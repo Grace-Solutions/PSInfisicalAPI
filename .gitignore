@@ -29,3 +29,6 @@ Thumbs.db
 TestResults/
 *.trx
 *.coverage
+
+## Local helper scripts (not part of the module)
+scripts/
