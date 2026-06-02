@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <AssemblyName>PSInfisicalAPI</AssemblyName>
+    <RootNamespace>PSInfisicalAPI</RootNamespace>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;NU1701</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Version>$(BuildVersion)</Version>
+    <AssemblyVersion>$(BuildAssemblyVersion)</AssemblyVersion>
+    <FileVersion>$(BuildAssemblyVersion)</FileVersion>
+    <InformationalVersion>$(BuildVersion)</InformationalVersion>
+    <Company />
+    <Authors>Alphaeus Mote</Authors>
+    <Product>PSInfisicalAPI</Product>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PowerShellStandard.Library" Version="5.1.1" PrivateAssets="all" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="YamlDotNet" Version="15.1.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>CommitHash</_Parameter1>
+      <_Parameter2>$(BuildCommitHash)</_Parameter2>
+    </AssemblyAttribute>
+    <InternalsVisibleTo Include="PSInfisicalAPI.Tests" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,213 @@
+using System;
+using System.Collections.Generic;
+using System.Management.Automation;
+using System.Security;
+using PSInfisicalAPI.Authentication;
+using PSInfisicalAPI.Connections;
+using PSInfisicalAPI.Errors;
+using PSInfisicalAPI.Models;
+
+namespace PSInfisicalAPI.Cmdlets
+{
+    [Cmdlet(VerbsCommunications.Connect, "Infisical", DefaultParameterSetName = "UniversalAuth")]
+    [OutputType(typeof(InfisicalConnection))]
+    public sealed class ConnectInfisicalCmdlet : InfisicalCmdletBase
+    {
+        private const string ParameterSetUniversalAuth = "UniversalAuth";
+        private const string ParameterSetToken = "Token";
+        private const string Component = "ConnectInfisicalCmdlet";
+
+        [Parameter]
+        public Uri BaseUri { get; set; }
+
+        [Parameter]
+        public string OrganizationId { get; set; }
+
+        [Parameter]
+        public string ProjectId { get; set; }
+
+        [Parameter]
+        public string Environment { get; set; }
+
+        [Parameter(ParameterSetName = ParameterSetUniversalAuth)]
+        public string ClientId { get; set; }
+
+        [Parameter(ParameterSetName = ParameterSetUniversalAuth)]
+        public SecureString ClientSecret { get; set; }
+
+        [Parameter(ParameterSetName = ParameterSetToken)]
+        public SecureString AccessToken { get; set; }
+
+        [Parameter]
+        public string SecretPath { get; set; } = "/";
+
+        [Parameter]
+        public string ApiVersion { get; set; } = "v4";
+
+        [Parameter]
+        public SwitchParameter PassThru { get; set; }
+
+        protected override void ProcessRecord()
+        {
+            try
+            {
+                ResolveMissingParametersFromEnvironment();
+                ValidateRequiredParameters();
+
+                IInfisicalAuthProvider provider;
+                InfisicalAuthenticationRequest request;
+                InfisicalAuthType authType;
+
+                if (string.Equals(ParameterSetName, ParameterSetToken, StringComparison.Ordinal))
+                {
+                    provider = new TokenAuthProvider();
+                    authType = InfisicalAuthType.Token;
+                    request = new InfisicalAuthenticationRequest
+                    {
+                        BaseUri = BaseUri,
+                        ApiVersion = ApiVersion,
+                        PreSuppliedAccessToken = AccessToken
+                    };
+                }
+                else
+                {
+                    provider = new UniversalAuthProvider();
+                    authType = InfisicalAuthType.UniversalAuth;
+                    request = new InfisicalAuthenticationRequest
+                    {
+                        BaseUri = BaseUri,
+                        ApiVersion = ApiVersion,
+                        ClientId = ClientId,
+                        ClientSecret = ClientSecret
+                    };
+                }
+
+                InfisicalAuthenticationResult authResult = provider.Authenticate(request, HttpClient, Logger);
+
+                if (authResult == null || authResult.AccessToken == null)
+                {
+                    throw new InfisicalAuthenticationException("Authentication did not produce an access token.");
+                }
+
+                InfisicalConnection connection = new InfisicalConnection
+                {
+                    BaseUri = BaseUri,
+                    ApiVersion = ApiVersion,
+                    AuthType = authType,
+                    OrganizationId = OrganizationId,
+                    ProjectId = ProjectId,
+                    Environment = Environment,
+                    DefaultSecretPath = string.IsNullOrEmpty(SecretPath) ? "/" : SecretPath,
+                    ConnectedAtUtc = DateTimeOffset.UtcNow,
+                    ExpiresAtUtc = authResult.ExpiresAtUtc,
+                    IsConnected = true,
+                    AccessToken = authResult.AccessToken
+                };
+
+                InfisicalSessionManager.SetCurrent(connection);
+
+                if (PassThru.IsPresent)
+                {
+                    WriteObject(connection);
+                }
+            }
+            catch (Exception exception)
+            {
+                ThrowTerminatingForException(Component, "Connect", exception);
+            }
+        }
+
+        private void ResolveMissingParametersFromEnvironment()
+        {
+            bool tokenSet = string.Equals(ParameterSetName, ParameterSetToken, StringComparison.Ordinal);
+
+            bool needsScan =
+                BaseUri == null ||
+                string.IsNullOrWhiteSpace(OrganizationId) ||
+                string.IsNullOrWhiteSpace(ProjectId) ||
+                string.IsNullOrWhiteSpace(Environment) ||
+                (tokenSet && (AccessToken == null || AccessToken.Length == 0)) ||
+                (!tokenSet && string.IsNullOrWhiteSpace(ClientId)) ||
+                (!tokenSet && (ClientSecret == null || ClientSecret.Length == 0));
+
+            if (!needsScan)
+            {
+                return;
+            }
+
+            Logger.Verbose(Component, "Attempting to resolve missing Infisical connection parameters from environment variables. Please Wait...");
+
+            if (BaseUri == null)
+            {
+                string resolved = InfisicalEnvironmentResolver.ResolveString("BaseUri", InfisicalEnvironmentResolver.BaseUriPatterns, null, Logger);
+                if (!string.IsNullOrWhiteSpace(resolved))
+                {
+                    Uri parsed;
+                    if (Uri.TryCreate(resolved, UriKind.Absolute, out parsed))
+                    {
+                        BaseUri = parsed;
+                    }
+                }
+            }
+
+            OrganizationId = InfisicalEnvironmentResolver.ResolveString("OrganizationId", InfisicalEnvironmentResolver.OrganizationIdPatterns, OrganizationId, Logger);
+            ProjectId = InfisicalEnvironmentResolver.ResolveString("ProjectId", InfisicalEnvironmentResolver.ProjectIdPatterns, ProjectId, Logger);
+            Environment = InfisicalEnvironmentResolver.ResolveString("Environment", InfisicalEnvironmentResolver.EnvironmentPatterns, Environment, Logger);
+
+            if (tokenSet)
+            {
+                AccessToken = InfisicalEnvironmentResolver.ResolveSecureString("AccessToken", InfisicalEnvironmentResolver.AccessTokenPatterns, AccessToken, Logger);
+            }
+            else
+            {
+                ClientId = InfisicalEnvironmentResolver.ResolveString("ClientId", InfisicalEnvironmentResolver.ClientIdPatterns, ClientId, Logger);
+                ClientSecret = InfisicalEnvironmentResolver.ResolveSecureString("ClientSecret", InfisicalEnvironmentResolver.ClientSecretPatterns, ClientSecret, Logger);
+            }
+
+            if (!MyInvocation.BoundParameters.ContainsKey("SecretPath"))
+            {
+                string resolvedPath = InfisicalEnvironmentResolver.ResolveString("SecretPath", InfisicalEnvironmentResolver.SecretPathPatterns, null, Logger);
+                if (!string.IsNullOrWhiteSpace(resolvedPath))
+                {
+                    SecretPath = resolvedPath;
+                }
+            }
+
+            if (!MyInvocation.BoundParameters.ContainsKey("ApiVersion"))
+            {
+                string resolvedVersion = InfisicalEnvironmentResolver.ResolveString("ApiVersion", InfisicalEnvironmentResolver.ApiVersionPatterns, null, Logger);
+                if (!string.IsNullOrWhiteSpace(resolvedVersion))
+                {
+                    ApiVersion = resolvedVersion;
+                }
+            }
+        }
+
+        private void ValidateRequiredParameters()
+        {
+            List<string> missing = new List<string>();
+
+            if (BaseUri == null) { missing.Add("BaseUri"); }
+            if (string.IsNullOrWhiteSpace(OrganizationId)) { missing.Add("OrganizationId"); }
+            if (string.IsNullOrWhiteSpace(ProjectId)) { missing.Add("ProjectId"); }
+            if (string.IsNullOrWhiteSpace(Environment)) { missing.Add("Environment"); }
+
+            if (string.Equals(ParameterSetName, ParameterSetToken, StringComparison.Ordinal))
+            {
+                if (AccessToken == null || AccessToken.Length == 0) { missing.Add("AccessToken"); }
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(ClientId)) { missing.Add("ClientId"); }
+                if (ClientSecret == null || ClientSecret.Length == 0) { missing.Add("ClientSecret"); }
+            }
+
+            if (missing.Count > 0)
+            {
+                throw new InfisicalConfigurationException(string.Format(
+                    "Required Connect-Infisical parameter(s) not supplied and no matching environment variables were found: {0}.",
+                    string.Join(", ", missing.ToArray())));
+            }
+        }
+    }
+}
