@@ -149,15 +149,33 @@ function Invoke-DotNet {
 
 function Test-ModuleImports {
     param([System.IO.DirectoryInfo]$ModuleDirectory)
-    Write-Step "Validating module import"
+    Write-Step "Validating module import, manifest, and help"
+    $manifestPath = [System.IO.Path]::Combine($ModuleDirectory.FullName, 'PSInfisicalAPI.psd1')
     $script = @"
 `$ErrorActionPreference = 'Stop'
+
+`$manifest = Test-ModuleManifest -Path '$manifestPath'
+if (`$null -eq `$manifest) {
+    throw "Test-ModuleManifest returned no result for '$manifestPath'."
+}
+
 Import-Module -Name '$($ModuleDirectory.FullName)' -Force
+
 `$cmds = @('Connect-Infisical','Disconnect-Infisical','Get-InfisicalSecrets','Get-InfisicalSecret','ConvertTo-InfisicalSecretDictionary','Export-InfisicalSecrets')
 foreach (`$c in `$cmds) {
     if (-not (Get-Command -Name `$c -Module PSInfisicalAPI -ErrorAction SilentlyContinue)) {
         throw "Cmdlet not found: `$c"
     }
+
+    `$help = Get-Help -Name `$c -ErrorAction SilentlyContinue
+    if (`$null -eq `$help) {
+        throw "Get-Help returned nothing for cmdlet: `$c"
+    }
+}
+
+`$about = Get-Help -Name 'about_PSInfisicalAPI' -ErrorAction SilentlyContinue
+if (`$null -eq `$about -or [string]::IsNullOrWhiteSpace((`$about | Out-String))) {
+    throw "Get-Help 'about_PSInfisicalAPI' returned no content. Ensure en-US/about_PSInfisicalAPI.help.txt is present."
 }
 "@
 
@@ -252,11 +270,7 @@ Write-Manifest -Path $manifestPath -ModuleVersion $buildVersion -CommitHash $com
 
 Update-Changelog -Version $buildVersion -CommitHash $commitHash
 
-try {
-    Test-ModuleImports -ModuleDirectory $ModuleRoot
-} catch {
-    Write-Warning "Module import validation reported: $($_.Exception.Message)"
-}
+Test-ModuleImports -ModuleDirectory $ModuleRoot
 
 if ($CreateRelease.IsPresent) {
     $releaseDir = [System.IO.DirectoryInfo][System.IO.Path]::Combine($ReleasesDir.FullName, $buildVersion)
