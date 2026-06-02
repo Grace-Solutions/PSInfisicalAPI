@@ -89,6 +89,7 @@ namespace PSInfisicalAPI.Cmdlets
         {
             switch (encoding)
             {
+                case InfisicalExportEncoding.UTF8: return new UTF8Encoding(false);
                 case InfisicalExportEncoding.UTF8Bom: return new UTF8Encoding(true);
                 case InfisicalExportEncoding.Unicode: return new UnicodeEncoding();
                 default: return new UTF8Encoding(false);
