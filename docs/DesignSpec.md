@@ -187,7 +187,7 @@ Example shape:
     RootModule = 'PSInfisicalAPI.psm1'
     ModuleVersion = 'yyyy.MM.dd.HHmm'
     GUID = '<stable-guid>'
-    Author = 'Alphaeus Mote'
+    Author = 'Grace Solutions'
     CompanyName = ''
     Copyright = ''
     PowerShellVersion = '5.1'

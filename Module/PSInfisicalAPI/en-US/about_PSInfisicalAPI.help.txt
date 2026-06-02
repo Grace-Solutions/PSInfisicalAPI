@@ -1,0 +1,97 @@
+TOPIC
+    about_PSInfisicalAPI
+
+SHORT DESCRIPTION
+    PSInfisicalAPI is a C# binary PowerShell module that exposes cmdlets for
+    authenticating against and retrieving secrets from the Infisical REST API,
+    with automatic environment-variable discovery for connection parameters.
+
+LONG DESCRIPTION
+    The module provides the following cmdlets:
+
+        Connect-Infisical                     Establish a session.
+        Disconnect-Infisical                  Clear the current session.
+        Get-InfisicalSecrets                  List secrets at a path.
+        Get-InfisicalSecret                   Retrieve a single secret by name.
+        ConvertTo-InfisicalSecretDictionary   Convert secret objects to a hashtable.
+        Export-InfisicalSecrets               Export secrets to JSON, YAML, XML, or .env.
+
+    Use Get-Help <cmdlet> -Full for parameter details.
+
+AUTHENTICATION
+    Connect-Infisical supports two parameter sets:
+
+        UniversalAuth   -ClientId / -ClientSecret (SecureString)
+        Token           -AccessToken (SecureString)
+
+    Common parameters apply to both sets:
+        -BaseUri, -OrganizationId, -ProjectId, -Environment,
+        -SecretPath (default '/'), -ApiVersion (default 'v4'), -PassThru.
+
+ENVIRONMENT VARIABLE DISCOVERY
+    When any of the Connect-Infisical parameters are omitted, null, or contain
+    only whitespace, the cmdlet scans environment variables in three scopes,
+    in order:
+
+        1. Process
+        2. User
+        3. Machine
+
+    The first matching variable with a non-blank value is used. Explicitly
+    supplied parameter values always win.
+
+    Patterns are case-insensitive and match Infisical's CLI defaults plus
+    common variants such as CLOUDINIT_INFISICAL_* and custom-prefixed names
+    (for example "myapp_infisical_client_id").
+
+    Parameter         Example variable names
+    ----------------  ----------------------------------------------------------
+    BaseUri           INFISICAL_API_URL, INFISICAL_BASE_URL, INFISICAL_HOST
+    OrganizationId    INFISICAL_ORG_ID, INFISICAL_ORGANIZATION_ID
+    ProjectId         INFISICAL_PROJECT_ID, INFISICAL_WORKSPACE_ID
+    Environment       INFISICAL_ENVIRONMENT, INFISICAL_ENV, INFISICAL_ENV_SLUG
+    ClientId          INFISICAL_CLIENT_ID, INFISICAL_UNIVERSAL_AUTH_CLIENT_ID
+    ClientSecret      INFISICAL_CLIENT_SECRET, INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET
+    AccessToken       INFISICAL_TOKEN, INFISICAL_ACCESS_TOKEN, INFISICAL_AUTH_TOKEN
+    SecretPath        INFISICAL_SECRET_PATH, INFISICAL_DEFAULT_SECRET_PATH
+    ApiVersion        INFISICAL_API_VERSION
+
+    Sensitive values (ClientSecret, AccessToken) are read directly into a
+    read-only SecureString. Discovered values are never written to logs;
+    only the variable name and the scope it was found in are recorded.
+
+    Use -Verbose to see the scan announcement and any discovered variable
+    names.
+
+EXAMPLES
+    Example 1: Zero-configuration connect (all values from environment).
+
+        Connect-Infisical
+        Get-InfisicalSecrets
+
+    Example 2: Explicit parameters override discovery.
+
+        $secret = Read-Host -AsSecureString 'Client Secret'
+        Connect-Infisical -Environment prod -ClientSecret $secret
+
+    Example 3: Token-based authentication.
+
+        $token = Read-Host -AsSecureString 'Access Token'
+        Connect-Infisical -AccessToken $token
+
+    Example 4: Export to a .env file.
+
+        Get-InfisicalSecrets |
+            Export-InfisicalSecrets -Path .\secrets.env -Format Env
+
+SECURITY NOTES
+    - SecureString is used for ClientSecret, AccessToken, and any secret
+      payloads returned by the API.
+    - Sanitization is applied before any value reaches the logging pipeline.
+    - Sessions are stored in process-local state only and never persisted.
+
+SEE ALSO
+    Get-Help Connect-Infisical -Full
+    Get-Help Get-InfisicalSecrets -Full
+    Get-Help Export-InfisicalSecrets -Full
+    https://infisical.com/docs/api-reference/overview/introduction

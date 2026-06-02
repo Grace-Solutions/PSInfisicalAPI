@@ -12,8 +12,8 @@
     <AssemblyVersion>$(BuildAssemblyVersion)</AssemblyVersion>
     <FileVersion>$(BuildAssemblyVersion)</FileVersion>
     <InformationalVersion>$(BuildVersion)</InformationalVersion>
-    <Company />
-    <Authors>Alphaeus Mote</Authors>
+    <Company>Grace Solutions</Company>
+    <Authors>Grace Solutions</Authors>
     <Product>PSInfisicalAPI</Product>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

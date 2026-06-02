@@ -1,0 +1,47 @@
+name: Publish to PowerShell Gallery
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  publish:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build and test module
+        shell: pwsh
+        run: |
+          ./build.ps1 -RunTests
+
+      - name: Verify PowerShell Gallery API key is configured
+        shell: pwsh
+        env:
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:PSGALLERY_API_KEY)) {
+              throw "Repository secret 'PSGALLERY_API_KEY' is not configured."
+          }
+
+      - name: Publish to PowerShell Gallery
+        shell: pwsh
+        env:
+          PSGALLERY_API_KEY: ${{ secrets.PSGALLERY_API_KEY }}
+        run: |
+          $moduleDir = Join-Path $PWD 'Module/PSInfisicalAPI'
+          Write-Host "Publishing module from: $moduleDir"
+          Publish-Module `
+              -Path $moduleDir `
+              -NuGetApiKey $env:PSGALLERY_API_KEY `
+              -Verbose
