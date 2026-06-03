@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.03.2136
+
+- Build produced from commit d9822aab7a4a.
+- **Resource CRUD expansion**: Added full Get/New/Update/Remove cmdlet families for Projects, Environments, Folders, and Tags (20 new cmdlets):
+  - Projects: `Get-InfisicalProjects`, `Get-InfisicalProject`, `New-InfisicalProject`, `Update-InfisicalProject`, `Remove-InfisicalProject`.
+  - Environments: `Get-InfisicalEnvironments`, `Get-InfisicalEnvironment`, `New-InfisicalEnvironment`, `Update-InfisicalEnvironment`, `Remove-InfisicalEnvironment`.
+  - Folders: `Get-InfisicalFolders`, `Get-InfisicalFolder`, `New-InfisicalFolder`, `Update-InfisicalFolder`, `Remove-InfisicalFolder`.
+  - Tags: `Get-InfisicalTags`, `Get-InfisicalTag`, `New-InfisicalTag`, `Update-InfisicalTag`, `Remove-InfisicalTag`.
+- **Secret mutation cmdlets**: Added `New-InfisicalSecret`, `Update-InfisicalSecret`, and `Remove-InfisicalSecret`; extended `InfisicalSecretsClient` with corresponding create/update/delete operations.
+- **Additional auth providers**: `Connect-Infisical` now supports JWT (`-Jwt -IdentityId`), OIDC (`-Jwt -IdentityId`), LDAP (`-Username -Password`), Azure (`-Jwt -IdentityId`), and GCP IAM (`-Jwt -IdentityId`) via dedicated parameter sets. Common identity-login flow is centralized in `IdentityLoginExecutor`.
+- Endpoint registry expanded with login routes (`/api/v1/auth/{jwt|oidc|ldap|azure|gcp}-auth/login`) and CRUD routes for projects (v2), environments, folders, tags, and secret mutations.
+- Test suite expanded to 139 passing tests, including mapper round-trips for projects/environments/folders/tags, secret mutation DTO shapes, and request-body validation for each new auth provider.
+
 ## 2026.06.03.0131
 
 - Build produced from commit 7be0b7b42008.

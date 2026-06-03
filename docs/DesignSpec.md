@@ -6,15 +6,38 @@
 
 The goal is to establish a strong, reusable, secure framework first, then initially implement secret retrieval and export workflows.
 
-Initial public cmdlets:
+Public cmdlets:
 
 ```powershell
 Connect-Infisical
 Disconnect-Infisical
 Get-InfisicalSecrets
 Get-InfisicalSecret
+New-InfisicalSecret
+Update-InfisicalSecret
+Remove-InfisicalSecret
 ConvertTo-InfisicalSecretDictionary
 Export-InfisicalSecrets
+Get-InfisicalProjects
+Get-InfisicalProject
+New-InfisicalProject
+Update-InfisicalProject
+Remove-InfisicalProject
+Get-InfisicalEnvironments
+Get-InfisicalEnvironment
+New-InfisicalEnvironment
+Update-InfisicalEnvironment
+Remove-InfisicalEnvironment
+Get-InfisicalFolders
+Get-InfisicalFolder
+New-InfisicalFolder
+Update-InfisicalFolder
+Remove-InfisicalFolder
+Get-InfisicalTags
+Get-InfisicalTag
+New-InfisicalTag
+Update-InfisicalTag
+Remove-InfisicalTag
 ```
 
 Infisical’s public API is REST-based and provides programmatic access for managing secrets and related resources. Current Infisical documentation shows the list-secrets endpoint under `/api/v4/secrets`, the single-secret retrieval endpoint under `/api/v4/secrets/{secretName}`, and Universal Auth login under `/api/v1/auth/universal-auth/login`. The implementation must centralize API endpoint definitions because Infisical uses different API versions across resource families. ([Infisical Blog][1])
@@ -198,8 +221,31 @@ Example shape:
         'Disconnect-Infisical',
         'Get-InfisicalSecrets',
         'Get-InfisicalSecret',
+        'New-InfisicalSecret',
+        'Update-InfisicalSecret',
+        'Remove-InfisicalSecret',
         'ConvertTo-InfisicalSecretDictionary',
-        'Export-InfisicalSecrets'
+        'Export-InfisicalSecrets',
+        'Get-InfisicalProjects',
+        'Get-InfisicalProject',
+        'New-InfisicalProject',
+        'Update-InfisicalProject',
+        'Remove-InfisicalProject',
+        'Get-InfisicalEnvironments',
+        'Get-InfisicalEnvironment',
+        'New-InfisicalEnvironment',
+        'Update-InfisicalEnvironment',
+        'Remove-InfisicalEnvironment',
+        'Get-InfisicalFolders',
+        'Get-InfisicalFolder',
+        'New-InfisicalFolder',
+        'Update-InfisicalFolder',
+        'Remove-InfisicalFolder',
+        'Get-InfisicalTags',
+        'Get-InfisicalTag',
+        'New-InfisicalTag',
+        'Update-InfisicalTag',
+        'Remove-InfisicalTag'
     )
     AliasesToExport = @()
     PrivateData = @{
@@ -698,29 +744,29 @@ Internal implementation must still use proper typed path handling.
 
 # 12. Authentication Design
 
-## 12.1 Supported Initial Auth Types
+## 12.1 Supported Auth Types
 
-Initial implementation:
+Currently implemented:
 
 ```text
 Universal Auth
 Token Auth
+JWT Auth
+OIDC Auth
+LDAP Auth
+Azure Auth
+GCP IAM Auth
 ```
 
-Infisical documents identity authentication modes such as Universal Auth and Token Auth for API access, and API interaction requires an access token. ([Infisical Blog][3])
+Each implemented provider is exposed as a dedicated `Connect-Infisical` parameter set. Identity-based providers (JWT, OIDC, Azure, GCP IAM) share a common login flow via `IdentityLoginExecutor` and POST to `/api/v1/auth/{provider}-auth/login`. Infisical documents identity authentication modes such as Universal Auth and Token Auth for API access, and API interaction requires an access token. ([Infisical Blog][3])
 
 ## 12.2 Future Auth Types
 
 Design must allow future support for:
 
 ```text
-AWS Auth
-Azure Auth
-GCP Auth
+AWS IAM Auth
 Kubernetes Auth
-OIDC Auth
-JWT Auth
-LDAP Auth
 TLS Certificate Auth
 Alibaba Cloud Auth
 OCI Auth
