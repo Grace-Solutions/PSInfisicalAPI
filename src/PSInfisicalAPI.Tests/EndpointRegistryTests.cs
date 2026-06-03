@@ -45,5 +45,39 @@ namespace PSInfisicalAPI.Tests
         {
             Assert.Throws<InfisicalConfigurationException>(() => InfisicalEndpointRegistry.Get("NotARealEndpoint"));
         }
+
+        [Theory]
+        [InlineData(InfisicalEndpointNames.CreateSecret, "POST", "/api/v3/secrets/raw/{secretName}")]
+        [InlineData(InfisicalEndpointNames.UpdateSecret, "PATCH", "/api/v3/secrets/raw/{secretName}")]
+        [InlineData(InfisicalEndpointNames.DeleteSecret, "DELETE", "/api/v3/secrets/raw/{secretName}")]
+        [InlineData(InfisicalEndpointNames.ListProjects, "GET", "/api/v1/workspace")]
+        [InlineData(InfisicalEndpointNames.RetrieveProject, "GET", "/api/v1/workspace/{projectId}")]
+        [InlineData(InfisicalEndpointNames.CreateProject, "POST", "/api/v2/workspace")]
+        [InlineData(InfisicalEndpointNames.UpdateProject, "PATCH", "/api/v1/workspace/{projectId}")]
+        [InlineData(InfisicalEndpointNames.DeleteProject, "DELETE", "/api/v1/workspace/{projectId}")]
+        [InlineData(InfisicalEndpointNames.CreateEnvironment, "POST", "/api/v1/workspace/{projectId}/environments")]
+        [InlineData(InfisicalEndpointNames.UpdateEnvironment, "PATCH", "/api/v1/workspace/{projectId}/environments/{environmentId}")]
+        [InlineData(InfisicalEndpointNames.DeleteEnvironment, "DELETE", "/api/v1/workspace/{projectId}/environments/{environmentId}")]
+        [InlineData(InfisicalEndpointNames.ListFolders, "GET", "/api/v1/folders")]
+        [InlineData(InfisicalEndpointNames.CreateFolder, "POST", "/api/v1/folders")]
+        [InlineData(InfisicalEndpointNames.UpdateFolder, "PATCH", "/api/v1/folders/{folderId}")]
+        [InlineData(InfisicalEndpointNames.DeleteFolder, "DELETE", "/api/v1/folders/{folderId}")]
+        [InlineData(InfisicalEndpointNames.ListTags, "GET", "/api/v1/workspace/{projectId}/tags")]
+        [InlineData(InfisicalEndpointNames.CreateTag, "POST", "/api/v1/workspace/{projectId}/tags")]
+        [InlineData(InfisicalEndpointNames.UpdateTag, "PATCH", "/api/v1/workspace/{projectId}/tags/{tagId}")]
+        [InlineData(InfisicalEndpointNames.DeleteTag, "DELETE", "/api/v1/workspace/{projectId}/tags/{tagId}")]
+        [InlineData(InfisicalEndpointNames.JwtAuthLogin, "POST", "/api/v1/auth/jwt-auth/login")]
+        [InlineData(InfisicalEndpointNames.OidcAuthLogin, "POST", "/api/v1/auth/oidc-auth/login")]
+        [InlineData(InfisicalEndpointNames.LdapAuthLogin, "POST", "/api/v1/auth/ldap-auth/login")]
+        [InlineData(InfisicalEndpointNames.KubernetesAuthLogin, "POST", "/api/v1/auth/kubernetes-auth/login")]
+        [InlineData(InfisicalEndpointNames.AwsAuthLogin, "POST", "/api/v1/auth/aws-auth/login")]
+        [InlineData(InfisicalEndpointNames.AzureAuthLogin, "POST", "/api/v1/auth/azure-auth/login")]
+        [InlineData(InfisicalEndpointNames.GcpIamAuthLogin, "POST", "/api/v1/auth/gcp-auth/login")]
+        public void Registered_Endpoints_Have_Expected_Shape(string name, string method, string template)
+        {
+            InfisicalEndpointDefinition definition = InfisicalEndpointRegistry.Get(name);
+            Assert.Equal(method, definition.Method);
+            Assert.Equal(template, definition.Template);
+        }
     }
 }
