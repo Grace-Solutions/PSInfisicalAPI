@@ -42,6 +42,14 @@ namespace PSInfisicalAPI.Http
             webRequest.UserAgent = "PSInfisicalAPI";
             webRequest.Timeout = _timeoutSeconds * 1000;
             webRequest.ReadWriteTimeout = _timeoutSeconds * 1000;
+            webRequest.UseDefaultCredentials = true;
+
+            IWebProxy systemProxy = WebRequest.GetSystemWebProxy();
+            if (systemProxy != null)
+            {
+                systemProxy.Credentials = CredentialCache.DefaultNetworkCredentials;
+                webRequest.Proxy = systemProxy;
+            }
 
             ApplyHeaders(webRequest, request.Headers);
 

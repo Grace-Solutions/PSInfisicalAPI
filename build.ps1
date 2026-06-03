@@ -90,10 +90,10 @@ function Write-Manifest {
     RootModule           = 'PSInfisicalAPI.psm1'
     ModuleVersion        = '$ModuleVersion'
     GUID                 = '$ModuleGuid'
-    Author               = 'Alphaeus Mote'
-    CompanyName          = ''
-    Copyright            = '(c) Alphaeus Mote. All rights reserved.'
-    Description          = 'PSInfisicalAPI is a C# binary PowerShell module for the Infisical REST API.'
+    Author               = 'Grace Solutions'
+    CompanyName          = 'Grace Solutions'
+    Copyright            = '(c) Grace Solutions. All rights reserved.'
+    Description          = 'PSInfisicalAPI is a C# binary PowerShell module for the Infisical REST API, providing cmdlets for authentication, secret retrieval, and export with automatic environment-variable discovery across Process, User, and Machine scopes.'
     PowerShellVersion    = '5.1'
     CompatiblePSEditions = @('Desktop','Core')
     FunctionsToExport    = @()
@@ -111,10 +111,11 @@ function Write-Manifest {
     TypesToProcess       = @('PSInfisicalAPI.Types.ps1xml')
     PrivateData          = @{
         PSData = @{
-            Tags        = @('Infisical','Secrets','API','SecureString')
-            ProjectUri  = ''
-            ReleaseNotes = ''
-            CommitHash  = '$CommitHash'
+            Tags         = @('Infisical','Secrets','API','SecureString','Vault','Authentication')
+            LicenseUri   = 'https://www.gnu.org/licenses/agpl-3.0.html'
+            ProjectUri   = 'https://prod.git.gracesolution.info/gsadmin/PSInfisicalAPI'
+            ReleaseNotes = 'See CHANGELOG.md in the project repository for release history.'
+            CommitHash   = '$CommitHash'
         }
     }
 }
@@ -132,7 +133,9 @@ function Update-Changelog {
     if ($existing -match [Regex]::Escape($marker)) { return }
 
     $insertion = "## $Version`r`n`r`n- Build produced from commit $CommitHash.`r`n`r`n"
-    $updated = $existing -replace '## Unreleased', "## Unreleased`r`n`r`n$insertion## Unreleased (carried forward)"
+    $unreleasedRegex = [regex]::new('(?m)^## Unreleased\r?$')
+    if (-not $unreleasedRegex.IsMatch($existing)) { return }
+    $updated = $unreleasedRegex.Replace($existing, "## Unreleased`r`n`r`n$insertion## Unreleased (carried forward)", 1)
     [System.IO.File]::WriteAllText($ChangelogFile.FullName, $updated, [System.Text.UTF8Encoding]::new($false))
 }
 
@@ -148,15 +151,33 @@ function Invoke-DotNet {
 
 function Test-ModuleImports {
     param([System.IO.DirectoryInfo]$ModuleDirectory)
-    Write-Step "Validating module import"
+    Write-Step "Validating module import, manifest, and help"
+    $manifestPath = [System.IO.Path]::Combine($ModuleDirectory.FullName, 'PSInfisicalAPI.psd1')
     $script = @"
 `$ErrorActionPreference = 'Stop'
+
+`$manifest = Test-ModuleManifest -Path '$manifestPath'
+if (`$null -eq `$manifest) {
+    throw "Test-ModuleManifest returned no result for '$manifestPath'."
+}
+
 Import-Module -Name '$($ModuleDirectory.FullName)' -Force
+
 `$cmds = @('Connect-Infisical','Disconnect-Infisical','Get-InfisicalSecrets','Get-InfisicalSecret','ConvertTo-InfisicalSecretDictionary','Export-InfisicalSecrets')
 foreach (`$c in `$cmds) {
     if (-not (Get-Command -Name `$c -Module PSInfisicalAPI -ErrorAction SilentlyContinue)) {
         throw "Cmdlet not found: `$c"
     }
+
+    `$help = Get-Help -Name `$c -ErrorAction SilentlyContinue
+    if (`$null -eq `$help) {
+        throw "Get-Help returned nothing for cmdlet: `$c"
+    }
+}
+
+`$about = Get-Help -Name 'about_PSInfisicalAPI' -ErrorAction SilentlyContinue
+if (`$null -eq `$about -or [string]::IsNullOrWhiteSpace((`$about | Out-String))) {
+    throw "Get-Help 'about_PSInfisicalAPI' returned no content. Ensure en-US/about_PSInfisicalAPI.help.txt is present."
 }
 "@
 
@@ -251,11 +272,7 @@ Write-Manifest -Path $manifestPath -ModuleVersion $buildVersion -CommitHash $com
 
 Update-Changelog -Version $buildVersion -CommitHash $commitHash
 
-try {
-    Test-ModuleImports -ModuleDirectory $ModuleRoot
-} catch {
-    Write-Warning "Module import validation reported: $($_.Exception.Message)"
-}
+Test-ModuleImports -ModuleDirectory $ModuleRoot
 
 if ($CreateRelease.IsPresent) {
     $releaseDir = [System.IO.DirectoryInfo][System.IO.Path]::Combine($ReleasesDir.FullName, $buildVersion)

@@ -9,6 +9,7 @@ namespace PSInfisicalAPI.Cmdlets
 {
     [Cmdlet(VerbsData.ConvertTo, "InfisicalSecretDictionary")]
     [OutputType(typeof(Dictionary<string, SecureString>))]
+    [OutputType(typeof(Dictionary<string, string>))]
     public sealed class ConvertToInfisicalSecretDictionaryCmdlet : InfisicalCmdletBase
     {
         [Parameter(Mandatory = true, ValueFromPipeline = true)]
@@ -16,6 +17,9 @@ namespace PSInfisicalAPI.Cmdlets
 
         [Parameter]
         public InfisicalDuplicateKeyBehavior DuplicateKeyBehavior { get; set; } = InfisicalDuplicateKeyBehavior.Error;
+
+        [Parameter]
+        public SwitchParameter AsPlainText { get; set; }
 
         private readonly List<InfisicalSecret> _buffer = new List<InfisicalSecret>();
 
@@ -36,36 +40,50 @@ namespace PSInfisicalAPI.Cmdlets
         {
             try
             {
-                Dictionary<string, SecureString> dictionary = new Dictionary<string, SecureString>(StringComparer.OrdinalIgnoreCase);
-
-                foreach (InfisicalSecret secret in _buffer)
+                if (AsPlainText.IsPresent)
                 {
-                    string key = secret.SecretName ?? string.Empty;
-
-                    if (dictionary.ContainsKey(key))
-                    {
-                        if (DuplicateKeyBehavior == InfisicalDuplicateKeyBehavior.Error)
-                        {
-                            throw new InfisicalConfigurationException(string.Concat("Duplicate secret name encountered: ", key));
-                        }
-
-                        if (DuplicateKeyBehavior == InfisicalDuplicateKeyBehavior.LastWins)
-                        {
-                            dictionary[key] = secret.SecretValue;
-                        }
-
-                        continue;
-                    }
-
-                    dictionary[key] = secret.SecretValue;
+                    Dictionary<string, string> plain = BuildDictionary<string>(secret => secret.GetPlainTextValue());
+                    WriteObject(plain);
                 }
-
-                WriteObject(dictionary);
+                else
+                {
+                    Dictionary<string, SecureString> secure = BuildDictionary<SecureString>(secret => secret.SecretValue);
+                    WriteObject(secure);
+                }
             }
             catch (Exception exception)
             {
                 ThrowTerminatingForException("ConvertToInfisicalSecretDictionaryCmdlet", "ConvertToDictionary", exception);
             }
+        }
+
+        private Dictionary<string, TValue> BuildDictionary<TValue>(Func<InfisicalSecret, TValue> valueSelector)
+        {
+            Dictionary<string, TValue> dictionary = new Dictionary<string, TValue>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (InfisicalSecret secret in _buffer)
+            {
+                string key = secret.SecretName ?? string.Empty;
+
+                if (dictionary.ContainsKey(key))
+                {
+                    if (DuplicateKeyBehavior == InfisicalDuplicateKeyBehavior.Error)
+                    {
+                        throw new InfisicalConfigurationException(string.Concat("Duplicate secret name encountered: ", key));
+                    }
+
+                    if (DuplicateKeyBehavior == InfisicalDuplicateKeyBehavior.LastWins)
+                    {
+                        dictionary[key] = valueSelector(secret);
+                    }
+
+                    continue;
+                }
+
+                dictionary[key] = valueSelector(secret);
+            }
+
+            return dictionary;
         }
     }
 }

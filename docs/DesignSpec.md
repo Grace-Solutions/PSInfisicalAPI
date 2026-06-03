@@ -187,7 +187,7 @@ Example shape:
     RootModule = 'PSInfisicalAPI.psm1'
     ModuleVersion = 'yyyy.MM.dd.HHmm'
     GUID = '<stable-guid>'
-    Author = 'Alphaeus Mote'
+    Author = 'Grace Solutions'
     CompanyName = ''
     Copyright = ''
     PowerShellVersion = '5.1'
@@ -954,10 +954,10 @@ Get-InfisicalSecrets `
     [-Environment <string>] `
     [-SecretPath <string>] `
     [-Recursive] `
-    [-IncludeImports <bool>] `
+    [-IncludeImports] `
     [-IncludePersonalOverrides] `
-    [-ExpandSecretReferences <bool>] `
-    [-ViewSecretValue <bool>] `
+    [-ExpandSecretReferences] `
+    [-ViewSecretValue] `
     [-MetadataFilter <hashtable>] `
     [-TagSlugs <string[]>]
 ```
@@ -969,8 +969,8 @@ ProjectId: Current connection ProjectId
 Environment: Current connection Environment
 SecretPath: Current connection DefaultSecretPath or /
 Recursive: false
-IncludeImports: true
-ExpandSecretReferences: true
+IncludeImports: false
+ExpandSecretReferences: false
 ViewSecretValue: true
 ```
 
@@ -1020,9 +1020,9 @@ Get-InfisicalSecret `
     [-SecretPath <string>] `
     [-Version <int>] `
     [-Type <InfisicalSecretType>] `
-    [-ViewSecretValue <bool>] `
-    [-ExpandSecretReferences <bool>] `
-    [-IncludeImports <bool>]
+    [-ViewSecretValue] `
+    [-ExpandSecretReferences] `
+    [-IncludeImports]
 ```
 
 ## Parameter Attributes
@@ -1041,8 +1041,8 @@ Environment: Current connection Environment
 SecretPath: Current connection DefaultSecretPath or /
 Type: Shared
 ViewSecretValue: true
-ExpandSecretReferences: true
-IncludeImports: true
+ExpandSecretReferences: false
+IncludeImports: false
 ```
 
 ## Behavior

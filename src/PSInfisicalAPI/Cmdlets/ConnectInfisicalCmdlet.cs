@@ -89,10 +89,13 @@ namespace PSInfisicalAPI.Cmdlets
                     throw new InfisicalAuthenticationException("Authentication did not produce an access token.");
                 }
 
+                bool apiVersionExplicitlyBound = MyInvocation.BoundParameters.ContainsKey("ApiVersion");
+
                 InfisicalConnection connection = new InfisicalConnection
                 {
                     BaseUri = BaseUri,
                     ApiVersion = ApiVersion,
+                    PinnedApiVersion = apiVersionExplicitlyBound ? ApiVersion : null,
                     AuthType = authType,
                     OrganizationId = OrganizationId,
                     ProjectId = ProjectId,
