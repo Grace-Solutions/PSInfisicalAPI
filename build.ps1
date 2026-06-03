@@ -113,7 +113,12 @@ function Write-Manifest {
         'Get-InfisicalEnvironment',
         'New-InfisicalEnvironment',
         'Update-InfisicalEnvironment',
-        'Remove-InfisicalEnvironment'
+        'Remove-InfisicalEnvironment',
+        'Get-InfisicalFolders',
+        'Get-InfisicalFolder',
+        'New-InfisicalFolder',
+        'Update-InfisicalFolder',
+        'Remove-InfisicalFolder'
     )
     AliasesToExport      = @()
     VariablesToExport    = @()
@@ -173,7 +178,7 @@ if (`$null -eq `$manifest) {
 
 Import-Module -Name '$($ModuleDirectory.FullName)' -Force
 
-`$cmds = @('Connect-Infisical','Disconnect-Infisical','Get-InfisicalSecrets','Get-InfisicalSecret','ConvertTo-InfisicalSecretDictionary','Export-InfisicalSecrets','Get-InfisicalProjects','Get-InfisicalProject','New-InfisicalProject','Update-InfisicalProject','Remove-InfisicalProject','Get-InfisicalEnvironments','Get-InfisicalEnvironment','New-InfisicalEnvironment','Update-InfisicalEnvironment','Remove-InfisicalEnvironment')
+`$cmds = @('Connect-Infisical','Disconnect-Infisical','Get-InfisicalSecrets','Get-InfisicalSecret','ConvertTo-InfisicalSecretDictionary','Export-InfisicalSecrets','Get-InfisicalProjects','Get-InfisicalProject','New-InfisicalProject','Update-InfisicalProject','Remove-InfisicalProject','Get-InfisicalEnvironments','Get-InfisicalEnvironment','New-InfisicalEnvironment','Update-InfisicalEnvironment','Remove-InfisicalEnvironment','Get-InfisicalFolders','Get-InfisicalFolder','New-InfisicalFolder','Update-InfisicalFolder','Remove-InfisicalFolder')
 foreach (`$c in `$cmds) {
     if (-not (Get-Command -Name `$c -Module PSInfisicalAPI -ErrorAction SilentlyContinue)) {
         throw "Cmdlet not found: `$c"
