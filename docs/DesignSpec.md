@@ -971,7 +971,7 @@ SecretPath: Current connection DefaultSecretPath or /
 Recursive: false
 IncludeImports: false
 ExpandSecretReferences: false
-ViewSecretValue: false
+ViewSecretValue: true
 ```
 
 ## Behavior
@@ -1040,7 +1040,7 @@ ProjectId: Current connection ProjectId
 Environment: Current connection Environment
 SecretPath: Current connection DefaultSecretPath or /
 Type: Shared
-ViewSecretValue: false
+ViewSecretValue: true
 ExpandSecretReferences: false
 IncludeImports: false
 ```

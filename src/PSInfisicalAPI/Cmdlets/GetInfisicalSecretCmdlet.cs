@@ -19,7 +19,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter] public string ApiVersion { get; set; }
         [Parameter] public int? Version { get; set; }
         [Parameter] public InfisicalSecretType Type { get; set; } = InfisicalSecretType.Shared;
-        [Parameter] public SwitchParameter ViewSecretValue { get; set; }
+        [Parameter] public SwitchParameter ViewSecretValue { get; set; } = SwitchParameter.Present;
         [Parameter] public SwitchParameter ExpandSecretReferences { get; set; }
         [Parameter] public SwitchParameter IncludeImports { get; set; }
 

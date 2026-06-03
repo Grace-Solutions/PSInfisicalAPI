@@ -20,7 +20,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter] public SwitchParameter IncludeImports { get; set; }
         [Parameter] public SwitchParameter IncludePersonalOverrides { get; set; }
         [Parameter] public SwitchParameter ExpandSecretReferences { get; set; }
-        [Parameter] public SwitchParameter ViewSecretValue { get; set; }
+        [Parameter] public SwitchParameter ViewSecretValue { get; set; } = SwitchParameter.Present;
         [Parameter] public Hashtable MetadataFilter { get; set; }
         [Parameter] public string[] TagSlugs { get; set; }
 

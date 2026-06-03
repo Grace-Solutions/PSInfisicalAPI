@@ -15,6 +15,8 @@ namespace PSInfisicalAPI.Secrets
                 return null;
             }
 
+            bool hidden = dto.SecretValueHidden || IsHiddenPlaceholder(dto.SecretValue);
+
             InfisicalSecret secret = new InfisicalSecret
             {
                 Id = dto.Id,
@@ -24,8 +26,8 @@ namespace PSInfisicalAPI.Secrets
                 Version = dto.Version,
                 Type = ParseType(dto.Type),
                 SecretName = dto.SecretKey,
-                SecretValue = SecureStringUtility.ToReadOnlySecureString(dto.SecretValue),
-                SecretValueHidden = dto.SecretValueHidden,
+                SecretValue = hidden ? null : SecureStringUtility.ToReadOnlySecureString(dto.SecretValue),
+                SecretValueHidden = hidden,
                 SecretPath = dto.SecretPath,
                 SecretComment = dto.SecretComment,
                 CreatedAtUtc = ParseTimestamp(dto.CreatedAt),
@@ -39,6 +41,11 @@ namespace PSInfisicalAPI.Secrets
             dto.SecretValue = null;
 
             return secret;
+        }
+
+        private static bool IsHiddenPlaceholder(string value)
+        {
+            return string.Equals(value, "<hidden-by-infisical>", StringComparison.Ordinal);
         }
 
         public static InfisicalSecret[] MapMany(IEnumerable<InfisicalSecretResponseDto> items)

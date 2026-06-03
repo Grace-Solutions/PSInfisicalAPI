@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.03.0131
+
+- Build produced from commit 7be0b7b42008.
+- **Behavior change**: `Get-InfisicalSecrets` and `Get-InfisicalSecret` now default `-ViewSecretValue` to `$true`. Real secret values are returned by default. To request the redacted/hidden response, pass `-ViewSecretValue:$false`.
+- `InfisicalSecretMapper` now treats the server-side `<hidden-by-infisical>` placeholder as a hidden marker rather than a value: when `secretValueHidden=true` (or the placeholder string is detected) `SecretValue` is set to `null` instead of stuffing the literal into a `SecureString`. This prevents downstream consumers (auth, exports, dictionary conversion) from silently using `<hidden-by-infisical>` as if it were a real secret.
+
+## Unreleased (carried forward)
+
 ## 2026.06.03.0113
 
 - Build produced from commit 09c577ebd0fd.
