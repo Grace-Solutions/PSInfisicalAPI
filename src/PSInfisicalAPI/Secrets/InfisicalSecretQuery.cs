@@ -30,4 +30,43 @@ namespace PSInfisicalAPI.Secrets
         public bool? ExpandSecretReferences { get; set; }
         public bool? IncludeImports { get; set; }
     }
+
+    public sealed class InfisicalCreateSecretRequest
+    {
+        public string SecretName { get; set; }
+        public string SecretValue { get; set; }
+        public string SecretComment { get; set; }
+        public string ProjectId { get; set; }
+        public string Environment { get; set; }
+        public string SecretPath { get; set; }
+        public string Type { get; set; }
+        public string ApiVersion { get; set; }
+        public bool? SkipMultilineEncoding { get; set; }
+        public string[] TagIds { get; set; }
+    }
+
+    public sealed class InfisicalUpdateSecretRequest
+    {
+        public string SecretName { get; set; }
+        public string NewSecretName { get; set; }
+        public string SecretValue { get; set; }
+        public string SecretComment { get; set; }
+        public string ProjectId { get; set; }
+        public string Environment { get; set; }
+        public string SecretPath { get; set; }
+        public string Type { get; set; }
+        public string ApiVersion { get; set; }
+        public bool? SkipMultilineEncoding { get; set; }
+        public string[] TagIds { get; set; }
+    }
+
+    public sealed class InfisicalDeleteSecretRequest
+    {
+        public string SecretName { get; set; }
+        public string ProjectId { get; set; }
+        public string Environment { get; set; }
+        public string SecretPath { get; set; }
+        public string Type { get; set; }
+        public string ApiVersion { get; set; }
+    }
 }

@@ -55,4 +55,37 @@ namespace PSInfisicalAPI.Secrets
     {
         [JsonProperty("secret")] public InfisicalSecretResponseDto Secret { get; set; }
     }
+
+    internal sealed class InfisicalSecretCreateRequestDto
+    {
+        [JsonProperty("workspaceId")] public string WorkspaceId { get; set; }
+        [JsonProperty("environment")] public string Environment { get; set; }
+        [JsonProperty("secretPath", NullValueHandling = NullValueHandling.Ignore)] public string SecretPath { get; set; }
+        [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)] public string Type { get; set; }
+        [JsonProperty("secretValue")] public string SecretValue { get; set; }
+        [JsonProperty("secretComment", NullValueHandling = NullValueHandling.Ignore)] public string SecretComment { get; set; }
+        [JsonProperty("skipMultilineEncoding", NullValueHandling = NullValueHandling.Ignore)] public bool? SkipMultilineEncoding { get; set; }
+        [JsonProperty("tagIds", NullValueHandling = NullValueHandling.Ignore)] public string[] TagIds { get; set; }
+    }
+
+    internal sealed class InfisicalSecretUpdateRequestDto
+    {
+        [JsonProperty("workspaceId")] public string WorkspaceId { get; set; }
+        [JsonProperty("environment")] public string Environment { get; set; }
+        [JsonProperty("secretPath", NullValueHandling = NullValueHandling.Ignore)] public string SecretPath { get; set; }
+        [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)] public string Type { get; set; }
+        [JsonProperty("secretValue", NullValueHandling = NullValueHandling.Ignore)] public string SecretValue { get; set; }
+        [JsonProperty("secretComment", NullValueHandling = NullValueHandling.Ignore)] public string SecretComment { get; set; }
+        [JsonProperty("newSecretName", NullValueHandling = NullValueHandling.Ignore)] public string NewSecretName { get; set; }
+        [JsonProperty("skipMultilineEncoding", NullValueHandling = NullValueHandling.Ignore)] public bool? SkipMultilineEncoding { get; set; }
+        [JsonProperty("tagIds", NullValueHandling = NullValueHandling.Ignore)] public string[] TagIds { get; set; }
+    }
+
+    internal sealed class InfisicalSecretDeleteRequestDto
+    {
+        [JsonProperty("workspaceId")] public string WorkspaceId { get; set; }
+        [JsonProperty("environment")] public string Environment { get; set; }
+        [JsonProperty("secretPath", NullValueHandling = NullValueHandling.Ignore)] public string SecretPath { get; set; }
+        [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)] public string Type { get; set; }
+    }
 }

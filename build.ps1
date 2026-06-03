@@ -102,6 +102,9 @@ function Write-Manifest {
         'Disconnect-Infisical',
         'Get-InfisicalSecrets',
         'Get-InfisicalSecret',
+        'New-InfisicalSecret',
+        'Update-InfisicalSecret',
+        'Remove-InfisicalSecret',
         'ConvertTo-InfisicalSecretDictionary',
         'Export-InfisicalSecrets',
         'Get-InfisicalProjects',
@@ -183,7 +186,7 @@ if (`$null -eq `$manifest) {
 
 Import-Module -Name '$($ModuleDirectory.FullName)' -Force
 
-`$cmds = @('Connect-Infisical','Disconnect-Infisical','Get-InfisicalSecrets','Get-InfisicalSecret','ConvertTo-InfisicalSecretDictionary','Export-InfisicalSecrets','Get-InfisicalProjects','Get-InfisicalProject','New-InfisicalProject','Update-InfisicalProject','Remove-InfisicalProject','Get-InfisicalEnvironments','Get-InfisicalEnvironment','New-InfisicalEnvironment','Update-InfisicalEnvironment','Remove-InfisicalEnvironment','Get-InfisicalFolders','Get-InfisicalFolder','New-InfisicalFolder','Update-InfisicalFolder','Remove-InfisicalFolder','Get-InfisicalTags','Get-InfisicalTag','New-InfisicalTag','Update-InfisicalTag','Remove-InfisicalTag')
+`$cmds = @('Connect-Infisical','Disconnect-Infisical','Get-InfisicalSecrets','Get-InfisicalSecret','New-InfisicalSecret','Update-InfisicalSecret','Remove-InfisicalSecret','ConvertTo-InfisicalSecretDictionary','Export-InfisicalSecrets','Get-InfisicalProjects','Get-InfisicalProject','New-InfisicalProject','Update-InfisicalProject','Remove-InfisicalProject','Get-InfisicalEnvironments','Get-InfisicalEnvironment','New-InfisicalEnvironment','Update-InfisicalEnvironment','Remove-InfisicalEnvironment','Get-InfisicalFolders','Get-InfisicalFolder','New-InfisicalFolder','Update-InfisicalFolder','Remove-InfisicalFolder','Get-InfisicalTags','Get-InfisicalTag','New-InfisicalTag','Update-InfisicalTag','Remove-InfisicalTag')
 foreach (`$c in `$cmds) {
     if (-not (Get-Command -Name `$c -Module PSInfisicalAPI -ErrorAction SilentlyContinue)) {
         throw "Cmdlet not found: `$c"
