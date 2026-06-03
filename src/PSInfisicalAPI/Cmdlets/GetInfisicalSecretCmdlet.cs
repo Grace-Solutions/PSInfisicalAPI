@@ -18,9 +18,9 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter] public string SecretPath { get; set; }
         [Parameter] public int? Version { get; set; }
         [Parameter] public InfisicalSecretType Type { get; set; } = InfisicalSecretType.Shared;
-        [Parameter] public bool ViewSecretValue { get; set; } = true;
-        [Parameter] public bool ExpandSecretReferences { get; set; } = true;
-        [Parameter] public bool IncludeImports { get; set; } = true;
+        [Parameter] public SwitchParameter ViewSecretValue { get; set; }
+        [Parameter] public SwitchParameter ExpandSecretReferences { get; set; }
+        [Parameter] public SwitchParameter IncludeImports { get; set; }
 
         protected override void ProcessRecord()
         {
@@ -36,9 +36,9 @@ namespace PSInfisicalAPI.Cmdlets
                     SecretPath = SecretPath,
                     Version = Version,
                     Type = Type.ToString(),
-                    ViewSecretValue = ViewSecretValue,
-                    ExpandSecretReferences = ExpandSecretReferences,
-                    IncludeImports = IncludeImports
+                    ViewSecretValue = ViewSecretValue.IsPresent,
+                    ExpandSecretReferences = ExpandSecretReferences.IsPresent,
+                    IncludeImports = IncludeImports.IsPresent
                 };
 
                 InfisicalSecretsClient client = new InfisicalSecretsClient(HttpClient, Logger);

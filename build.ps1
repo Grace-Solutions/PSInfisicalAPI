@@ -133,7 +133,9 @@ function Update-Changelog {
     if ($existing -match [Regex]::Escape($marker)) { return }
 
     $insertion = "## $Version`r`n`r`n- Build produced from commit $CommitHash.`r`n`r`n"
-    $updated = $existing -replace '## Unreleased', "## Unreleased`r`n`r`n$insertion## Unreleased (carried forward)"
+    $unreleasedRegex = [regex]::new('(?m)^## Unreleased\r?$')
+    if (-not $unreleasedRegex.IsMatch($existing)) { return }
+    $updated = $unreleasedRegex.Replace($existing, "## Unreleased`r`n`r`n$insertion## Unreleased (carried forward)", 1)
     [System.IO.File]::WriteAllText($ChangelogFile.FullName, $updated, [System.Text.UTF8Encoding]::new($false))
 }
 

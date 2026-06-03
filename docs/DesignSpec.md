@@ -954,10 +954,10 @@ Get-InfisicalSecrets `
     [-Environment <string>] `
     [-SecretPath <string>] `
     [-Recursive] `
-    [-IncludeImports <bool>] `
+    [-IncludeImports] `
     [-IncludePersonalOverrides] `
-    [-ExpandSecretReferences <bool>] `
-    [-ViewSecretValue <bool>] `
+    [-ExpandSecretReferences] `
+    [-ViewSecretValue] `
     [-MetadataFilter <hashtable>] `
     [-TagSlugs <string[]>]
 ```
@@ -969,9 +969,9 @@ ProjectId: Current connection ProjectId
 Environment: Current connection Environment
 SecretPath: Current connection DefaultSecretPath or /
 Recursive: false
-IncludeImports: true
-ExpandSecretReferences: true
-ViewSecretValue: true
+IncludeImports: false
+ExpandSecretReferences: false
+ViewSecretValue: false
 ```
 
 ## Behavior
@@ -1020,9 +1020,9 @@ Get-InfisicalSecret `
     [-SecretPath <string>] `
     [-Version <int>] `
     [-Type <InfisicalSecretType>] `
-    [-ViewSecretValue <bool>] `
-    [-ExpandSecretReferences <bool>] `
-    [-IncludeImports <bool>]
+    [-ViewSecretValue] `
+    [-ExpandSecretReferences] `
+    [-IncludeImports]
 ```
 
 ## Parameter Attributes
@@ -1040,9 +1040,9 @@ ProjectId: Current connection ProjectId
 Environment: Current connection Environment
 SecretPath: Current connection DefaultSecretPath or /
 Type: Shared
-ViewSecretValue: true
-ExpandSecretReferences: true
-IncludeImports: true
+ViewSecretValue: false
+ExpandSecretReferences: false
+IncludeImports: false
 ```
 
 ## Behavior

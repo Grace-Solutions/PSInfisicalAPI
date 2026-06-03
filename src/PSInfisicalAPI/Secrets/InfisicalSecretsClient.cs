@@ -35,11 +35,11 @@ namespace PSInfisicalAPI.Secrets
             InfisicalEndpointDefinition definition = InfisicalEndpointRegistry.Get(InfisicalEndpointNames.ListSecrets);
 
             List<KeyValuePair<string, string>> queryParameters = new List<KeyValuePair<string, string>>();
-            AddIfNotNull(queryParameters, "workspaceId", FirstNonEmpty(query.ProjectId, connection.ProjectId));
+            AddIfNotNull(queryParameters, "projectId", FirstNonEmpty(query.ProjectId, connection.ProjectId));
             AddIfNotNull(queryParameters, "environment", FirstNonEmpty(query.Environment, connection.Environment));
             AddIfNotNull(queryParameters, "secretPath", FirstNonEmpty(query.SecretPath, connection.DefaultSecretPath, "/"));
             queryParameters.Add(new KeyValuePair<string, string>("recursive", query.Recursive ? "true" : "false"));
-            if (query.IncludeImports.HasValue) { queryParameters.Add(new KeyValuePair<string, string>("include_imports", query.IncludeImports.Value ? "true" : "false")); }
+            if (query.IncludeImports.HasValue) { queryParameters.Add(new KeyValuePair<string, string>("includeImports", query.IncludeImports.Value ? "true" : "false")); }
             if (query.IncludePersonalOverrides) { queryParameters.Add(new KeyValuePair<string, string>("includePersonalOverrides", "true")); }
             if (query.ExpandSecretReferences.HasValue) { queryParameters.Add(new KeyValuePair<string, string>("expandSecretReferences", query.ExpandSecretReferences.Value ? "true" : "false")); }
             if (query.ViewSecretValue.HasValue) { queryParameters.Add(new KeyValuePair<string, string>("viewSecretValue", query.ViewSecretValue.Value ? "true" : "false")); }
@@ -93,14 +93,14 @@ namespace PSInfisicalAPI.Secrets
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "secretName", query.SecretName } };
 
             List<KeyValuePair<string, string>> queryParameters = new List<KeyValuePair<string, string>>();
-            AddIfNotNull(queryParameters, "workspaceId", FirstNonEmpty(query.ProjectId, connection.ProjectId));
+            AddIfNotNull(queryParameters, "projectId", FirstNonEmpty(query.ProjectId, connection.ProjectId));
             AddIfNotNull(queryParameters, "environment", FirstNonEmpty(query.Environment, connection.Environment));
             AddIfNotNull(queryParameters, "secretPath", FirstNonEmpty(query.SecretPath, connection.DefaultSecretPath, "/"));
             AddIfNotNull(queryParameters, "type", string.IsNullOrEmpty(query.Type) ? "shared" : query.Type.ToLowerInvariant());
             if (query.Version.HasValue) { queryParameters.Add(new KeyValuePair<string, string>("version", query.Version.Value.ToString(CultureInfo.InvariantCulture))); }
             if (query.ViewSecretValue.HasValue) { queryParameters.Add(new KeyValuePair<string, string>("viewSecretValue", query.ViewSecretValue.Value ? "true" : "false")); }
             if (query.ExpandSecretReferences.HasValue) { queryParameters.Add(new KeyValuePair<string, string>("expandSecretReferences", query.ExpandSecretReferences.Value ? "true" : "false")); }
-            if (query.IncludeImports.HasValue) { queryParameters.Add(new KeyValuePair<string, string>("include_imports", query.IncludeImports.Value ? "true" : "false")); }
+            if (query.IncludeImports.HasValue) { queryParameters.Add(new KeyValuePair<string, string>("includeImports", query.IncludeImports.Value ? "true" : "false")); }
 
             Uri uri = InfisicalUriBuilder.Build(connection.BaseUri, definition, pathParameters, queryParameters);
             InfisicalHttpResponse response = ExecuteAuthorized(connection, definition, "RetrieveSecret", uri, null);

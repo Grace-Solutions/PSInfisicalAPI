@@ -16,10 +16,10 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter] public string Environment { get; set; }
         [Parameter] public string SecretPath { get; set; }
         [Parameter] public SwitchParameter Recursive { get; set; }
-        [Parameter] public bool IncludeImports { get; set; } = true;
+        [Parameter] public SwitchParameter IncludeImports { get; set; }
         [Parameter] public SwitchParameter IncludePersonalOverrides { get; set; }
-        [Parameter] public bool ExpandSecretReferences { get; set; } = true;
-        [Parameter] public bool ViewSecretValue { get; set; } = true;
+        [Parameter] public SwitchParameter ExpandSecretReferences { get; set; }
+        [Parameter] public SwitchParameter ViewSecretValue { get; set; }
         [Parameter] public Hashtable MetadataFilter { get; set; }
         [Parameter] public string[] TagSlugs { get; set; }
 
@@ -35,10 +35,10 @@ namespace PSInfisicalAPI.Cmdlets
                     Environment = Environment,
                     SecretPath = SecretPath,
                     Recursive = Recursive.IsPresent,
-                    IncludeImports = IncludeImports,
+                    IncludeImports = IncludeImports.IsPresent,
                     IncludePersonalOverrides = IncludePersonalOverrides.IsPresent,
-                    ExpandSecretReferences = ExpandSecretReferences,
-                    ViewSecretValue = ViewSecretValue,
+                    ExpandSecretReferences = ExpandSecretReferences.IsPresent,
+                    ViewSecretValue = ViewSecretValue.IsPresent,
                     MetadataFilter = ToStringDictionary(MetadataFilter),
                     TagSlugs = TagSlugs
                 };
