@@ -34,6 +34,12 @@ namespace PSInfisicalAPI.Models
             SecureStringUtility.UsePlainText(SecretValue, action);
         }
 
+        public string GetPlainTextValue()
+        {
+            if (SecretValue == null) { return null; }
+            return SecureStringUtility.UsePlainText(SecretValue, plainText => plainText);
+        }
+
         public override string ToString()
         {
             return SecretName;

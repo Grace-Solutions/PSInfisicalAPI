@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.03.0113
+
+- Build produced from commit 09c577ebd0fd.
+- Added `InfisicalSecret.GetPlainTextValue()` for direct plain-text access to secret material from PowerShell without needing `Marshal.SecureStringToBSTR`.
+- Added `-AsPlainText` switch to `ConvertTo-InfisicalSecretDictionary`; when present the cmdlet emits `Dictionary<string, string>` instead of the default `Dictionary<string, SecureString>`.
+
+## Unreleased (carried forward)
+
 ## 2026.06.03.0057
 
 - Build produced from commit 7e5209190ac2.
