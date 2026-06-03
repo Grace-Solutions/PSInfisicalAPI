@@ -32,10 +32,10 @@ namespace PSInfisicalAPI.Cmdlets
                 InfisicalRetrieveSecretQuery query = new InfisicalRetrieveSecretQuery
                 {
                     SecretName = SecretName,
-                    ProjectId = ProjectId,
-                    Environment = Environment,
-                    SecretPath = SecretPath,
-                    ApiVersion = ApiVersion,
+                    ProjectId = ResolveProjectId(connection, ProjectId),
+                    Environment = ResolveEnvironment(connection, Environment),
+                    SecretPath = ResolveSecretPath(connection, SecretPath),
+                    ApiVersion = ResolveApiVersion(connection, ApiVersion),
                     Version = Version,
                     Type = Type.ToString(),
                     ViewSecretValue = ViewSecretValue.IsPresent,

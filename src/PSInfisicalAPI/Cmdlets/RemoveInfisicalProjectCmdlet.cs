@@ -8,7 +8,7 @@ namespace PSInfisicalAPI.Cmdlets
     [Cmdlet(VerbsCommon.Remove, "InfisicalProject", SupportsShouldProcess = true, ConfirmImpact = ConfirmImpact.High)]
     public sealed class RemoveInfisicalProjectCmdlet : InfisicalCmdletBase
     {
-        [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true, Position = 0)]
+        [Parameter(ValueFromPipelineByPropertyName = true, Position = 0)]
         [Alias("Id")]
         public string ProjectId { get; set; }
 
@@ -18,18 +18,20 @@ namespace PSInfisicalAPI.Cmdlets
         {
             try
             {
-                if (!ShouldProcess(ProjectId, "Remove Infisical project"))
+                InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
+                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
+
+                if (!ShouldProcess(resolvedProjectId, "Remove Infisical project"))
                 {
                     return;
                 }
 
-                InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
                 InfisicalProjectClient client = new InfisicalProjectClient(HttpClient, Logger);
-                client.Delete(connection, ProjectId);
+                client.Delete(connection, resolvedProjectId);
 
                 if (PassThru.IsPresent)
                 {
-                    WriteObject(ProjectId);
+                    WriteObject(resolvedProjectId);
                 }
             }
             catch (Exception exception)

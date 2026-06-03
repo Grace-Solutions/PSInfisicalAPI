@@ -25,8 +25,9 @@ namespace PSInfisicalAPI.Cmdlets
                 }
 
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
+                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalEnvironmentClient client = new InfisicalEnvironmentClient(HttpClient, Logger);
-                client.Delete(connection, ProjectId, EnvironmentId);
+                client.Delete(connection, resolvedProjectId, EnvironmentId);
 
                 if (PassThru.IsPresent)
                 {

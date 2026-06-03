@@ -23,8 +23,11 @@ namespace PSInfisicalAPI.Cmdlets
             try
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
+                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
+                string resolvedEnvironment = ResolveEnvironment(connection, Environment);
+                string resolvedPath = ResolveSecretPath(connection, Path);
                 InfisicalFolderClient client = new InfisicalFolderClient(HttpClient, Logger);
-                InfisicalFolder folder = client.Retrieve(connection, ProjectId, Environment, Path, FolderNameOrId);
+                InfisicalFolder folder = client.Retrieve(connection, resolvedProjectId, resolvedEnvironment, resolvedPath, FolderNameOrId);
                 if (folder != null)
                 {
                     WriteObject(folder);

@@ -17,8 +17,9 @@ namespace PSInfisicalAPI.Cmdlets
             try
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
+                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalEnvironmentClient client = new InfisicalEnvironmentClient(HttpClient, Logger);
-                InfisicalEnvironment[] envs = client.List(connection, ProjectId);
+                InfisicalEnvironment[] envs = client.List(connection, resolvedProjectId);
                 foreach (InfisicalEnvironment env in envs)
                 {
                     WriteObject(env);

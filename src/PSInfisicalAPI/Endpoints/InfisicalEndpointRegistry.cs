@@ -197,6 +197,54 @@ namespace PSInfisicalAPI.Endpoints
                 RequiresAuthorization = true,
                 ContainsSecretMaterialInResponse = true
             });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.BulkCreateSecret,
+                Resource = "Secrets",
+                Version = "v3",
+                Method = "POST",
+                Template = "/api/v3/secrets/batch/raw",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.BulkUpdateSecret,
+                Resource = "Secrets",
+                Version = "v3",
+                Method = "PATCH",
+                Template = "/api/v3/secrets/batch/raw",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.BulkDeleteSecret,
+                Resource = "Secrets",
+                Version = "v3",
+                Method = "DELETE",
+                Template = "/api/v3/secrets/batch/raw",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.DuplicateSecret,
+                Resource = "Secrets",
+                Version = "v4",
+                Method = "POST",
+                Template = "/api/v4/secrets/duplicate",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
         }
 
         private static void RegisterProjects(Dictionary<string, List<InfisicalEndpointDefinition>> map)

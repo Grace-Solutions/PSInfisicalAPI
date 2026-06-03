@@ -21,8 +21,9 @@ namespace PSInfisicalAPI.Cmdlets
             try
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
+                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalTagClient client = new InfisicalTagClient(HttpClient, Logger);
-                InfisicalTag tag = client.Retrieve(connection, ProjectId, TagSlugOrId);
+                InfisicalTag tag = client.Retrieve(connection, resolvedProjectId, TagSlugOrId);
                 if (tag != null)
                 {
                     WriteObject(tag);

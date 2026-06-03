@@ -25,8 +25,9 @@ namespace PSInfisicalAPI.Cmdlets
                 }
 
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
+                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalEnvironmentClient client = new InfisicalEnvironmentClient(HttpClient, Logger);
-                InfisicalEnvironment env = client.Create(connection, ProjectId, Name, Slug, Position);
+                InfisicalEnvironment env = client.Create(connection, resolvedProjectId, Name, Slug, Position);
                 if (env != null)
                 {
                     WriteObject(env);

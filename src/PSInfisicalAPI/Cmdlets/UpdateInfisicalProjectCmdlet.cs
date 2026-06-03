@@ -10,7 +10,7 @@ namespace PSInfisicalAPI.Cmdlets
     [OutputType(typeof(InfisicalProject))]
     public sealed class UpdateInfisicalProjectCmdlet : InfisicalCmdletBase
     {
-        [Parameter(Mandatory = true, ValueFromPipelineByPropertyName = true, Position = 0)]
+        [Parameter(ValueFromPipelineByPropertyName = true, Position = 0)]
         [Alias("Id")]
         public string ProjectId { get; set; }
 
@@ -22,14 +22,16 @@ namespace PSInfisicalAPI.Cmdlets
         {
             try
             {
-                if (!ShouldProcess(ProjectId, "Update Infisical project"))
+                InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
+                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
+
+                if (!ShouldProcess(resolvedProjectId, "Update Infisical project"))
                 {
                     return;
                 }
 
-                InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
                 InfisicalProjectClient client = new InfisicalProjectClient(HttpClient, Logger);
-                InfisicalProject project = client.Update(connection, ProjectId, Name, Description, AutoCapitalization);
+                InfisicalProject project = client.Update(connection, resolvedProjectId, Name, Description, AutoCapitalization);
                 if (project != null)
                 {
                     WriteObject(project);

@@ -27,8 +27,11 @@ namespace PSInfisicalAPI.Cmdlets
                 }
 
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
+                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
+                string resolvedEnvironment = ResolveEnvironment(connection, Environment);
+                string resolvedPath = ResolveSecretPath(connection, Path);
                 InfisicalFolderClient client = new InfisicalFolderClient(HttpClient, Logger);
-                client.Delete(connection, ProjectId, Environment, FolderId, Path);
+                client.Delete(connection, resolvedProjectId, resolvedEnvironment, FolderId, resolvedPath);
 
                 if (PassThru.IsPresent)
                 {

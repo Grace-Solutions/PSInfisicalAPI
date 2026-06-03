@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Management.Automation;
 using System.Security;
 using PSInfisicalAPI.Connections;
@@ -12,13 +13,18 @@ namespace PSInfisicalAPI.Cmdlets
     [OutputType(typeof(InfisicalSecret))]
     public sealed class NewInfisicalSecretCmdlet : InfisicalCmdletBase
     {
-        [Parameter(Mandatory = true, Position = 0)] public string SecretName { get; set; }
+        [Parameter(Mandatory = true, Position = 0, ParameterSetName = "PlainText")]
+        [Parameter(Mandatory = true, Position = 0, ParameterSetName = "SecureString")]
+        public string SecretName { get; set; }
 
         [Parameter(Mandatory = true, Position = 1, ParameterSetName = "PlainText")]
         public string SecretValue { get; set; }
 
         [Parameter(Mandatory = true, Position = 1, ParameterSetName = "SecureString")]
         public SecureString SecureSecretValue { get; set; }
+
+        [Parameter(Mandatory = true, Position = 0, ParameterSetName = "Bulk", ValueFromPipeline = true)]
+        public Hashtable[] Secrets { get; set; }
 
         [Parameter] public string SecretComment { get; set; }
         [Parameter] public string ProjectId { get; set; }
@@ -33,35 +39,62 @@ namespace PSInfisicalAPI.Cmdlets
         {
             try
             {
-                if (!ShouldProcess(SecretName, "Create Infisical secret"))
+                InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
+                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
+                string resolvedEnvironment = ResolveEnvironment(connection, Environment);
+                string resolvedSecretPath = ResolveSecretPath(connection, SecretPath);
+                string resolvedApiVersion = ResolveApiVersion(connection, ApiVersion);
+
+                if (string.Equals(ParameterSetName, "Bulk", StringComparison.Ordinal))
                 {
+                    if (Secrets == null || Secrets.Length == 0) { return; }
+                    string target = string.Concat(Secrets.Length, " secret(s)");
+                    if (!ShouldProcess(target, "Bulk-create Infisical secrets")) { return; }
+
+                    InfisicalBulkCreateSecretsRequest bulk = new InfisicalBulkCreateSecretsRequest
+                    {
+                        ProjectId = resolvedProjectId,
+                        Environment = resolvedEnvironment,
+                        SecretPath = resolvedSecretPath,
+                        ApiVersion = resolvedApiVersion,
+                        Secrets = InfisicalBulkSecretConverter.ToCreateItems(Secrets)
+                    };
+
+                    InfisicalSecretsClient bulkClient = new InfisicalSecretsClient(HttpClient, Logger);
+                    InfisicalSecret[] created = bulkClient.CreateBatch(connection, bulk);
+                    if (created != null)
+                    {
+                        foreach (InfisicalSecret secret in created) { WriteObject(secret); }
+                    }
+
                     return;
                 }
+
+                if (!ShouldProcess(SecretName, "Create Infisical secret")) { return; }
 
                 string plainValue = SecureSecretValue != null
                     ? SecureStringUtility.UsePlainText(SecureSecretValue, p => p)
                     : SecretValue;
 
-                InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
                 InfisicalCreateSecretRequest request = new InfisicalCreateSecretRequest
                 {
                     SecretName = SecretName,
                     SecretValue = plainValue,
                     SecretComment = SecretComment,
-                    ProjectId = ProjectId,
-                    Environment = Environment,
-                    SecretPath = SecretPath,
+                    ProjectId = resolvedProjectId,
+                    Environment = resolvedEnvironment,
+                    SecretPath = resolvedSecretPath,
                     Type = Type.ToString(),
-                    ApiVersion = ApiVersion,
+                    ApiVersion = resolvedApiVersion,
                     SkipMultilineEncoding = SkipMultilineEncoding.IsPresent ? (bool?)true : null,
                     TagIds = TagIds
                 };
 
                 InfisicalSecretsClient client = new InfisicalSecretsClient(HttpClient, Logger);
-                InfisicalSecret secret = client.Create(connection, request);
-                if (secret != null)
+                InfisicalSecret single = client.Create(connection, request);
+                if (single != null)
                 {
-                    WriteObject(secret);
+                    WriteObject(single);
                 }
             }
             catch (Exception exception)

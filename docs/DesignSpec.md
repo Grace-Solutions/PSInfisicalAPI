@@ -16,6 +16,7 @@ Get-InfisicalSecret
 New-InfisicalSecret
 Update-InfisicalSecret
 Remove-InfisicalSecret
+Copy-InfisicalSecret
 ConvertTo-InfisicalSecretDictionary
 Export-InfisicalSecrets
 Get-InfisicalProjects
@@ -224,6 +225,7 @@ Example shape:
         'New-InfisicalSecret',
         'Update-InfisicalSecret',
         'Remove-InfisicalSecret',
+        'Copy-InfisicalSecret',
         'ConvertTo-InfisicalSecretDictionary',
         'Export-InfisicalSecrets',
         'Get-InfisicalProjects',

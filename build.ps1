@@ -105,6 +105,7 @@ function Write-Manifest {
         'New-InfisicalSecret',
         'Update-InfisicalSecret',
         'Remove-InfisicalSecret',
+        'Copy-InfisicalSecret',
         'ConvertTo-InfisicalSecretDictionary',
         'Export-InfisicalSecrets',
         'Get-InfisicalProjects',

@@ -25,8 +25,9 @@ namespace PSInfisicalAPI.Cmdlets
                 }
 
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
+                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalTagClient client = new InfisicalTagClient(HttpClient, Logger);
-                client.Delete(connection, ProjectId, TagId);
+                client.Delete(connection, resolvedProjectId, TagId);
 
                 if (PassThru.IsPresent)
                 {

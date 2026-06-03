@@ -25,8 +25,11 @@ namespace PSInfisicalAPI.Cmdlets
                 }
 
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
+                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
+                string resolvedEnvironment = ResolveEnvironment(connection, Environment);
+                string resolvedPath = ResolveSecretPath(connection, Path);
                 InfisicalFolderClient client = new InfisicalFolderClient(HttpClient, Logger);
-                InfisicalFolder folder = client.Create(connection, ProjectId, Environment, Name, Path);
+                InfisicalFolder folder = client.Create(connection, resolvedProjectId, resolvedEnvironment, Name, resolvedPath);
                 if (folder != null)
                 {
                     WriteObject(folder);

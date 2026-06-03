@@ -6,6 +6,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.03.2207
+
+- Build produced from commit 09c3d5c68bbc.
+- **M9 — Bulk, Duplicate & Inheritance**:
+  - **Bulk parameter sets** added to `New-InfisicalSecret`, `Update-InfisicalSecret`, and `Remove-InfisicalSecret` accepting `-Secrets Hashtable[]`; client methods `CreateBatch`/`UpdateBatch`/`DeleteBatch` wrap `POST|PATCH|DELETE /api/v3/secrets/batch/raw`.
+  - **`Copy-InfisicalSecret`** cmdlet added, wrapping `POST /api/v4/secrets/duplicate` with source/destination environment + path parameters and per-attribute copy toggles.
+  - **Connection inheritance** centralized in `InfisicalCmdletBase` (`ResolveProjectId`/`ResolveEnvironment`/`ResolveSecretPath`/`ResolveApiVersion`/`ResolveOrganizationId`). Explicit parameters always win; missing values fall back to the active connection and emit a `-Verbose` line.
+  - Project/Environment/Folder/Tag and all secret cmdlets refactored to use the inheritance helpers; existing explicit-parameter behavior is preserved.
+  - `InfisicalBulkSecretConverter` accepts flexible key aliases (`SecretName`/`Name`/`Key`, `SecretValue`/`Value`, `SecretComment`/`Comment`, `Metadata`/`SecretMetadata`).
+  - Test count: 161 (up from 139). Added coverage for bulk DTO shapes, the converter, the duplicate request DTO, registry entries for the four new endpoints, and the resolution helpers.
+
+## Unreleased (carried forward)
+
+## 2026.06.03.2206
+
+- Build produced from commit 09c3d5c68bbc.
+
+## Unreleased (carried forward)
+
 ## 2026.06.03.2136
 
 - Build produced from commit d9822aab7a4a.

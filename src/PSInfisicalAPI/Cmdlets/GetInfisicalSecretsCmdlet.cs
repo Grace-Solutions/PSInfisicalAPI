@@ -32,10 +32,10 @@ namespace PSInfisicalAPI.Cmdlets
 
                 InfisicalListSecretsQuery query = new InfisicalListSecretsQuery
                 {
-                    ProjectId = ProjectId,
-                    Environment = Environment,
-                    SecretPath = SecretPath,
-                    ApiVersion = ApiVersion,
+                    ProjectId = ResolveProjectId(connection, ProjectId),
+                    Environment = ResolveEnvironment(connection, Environment),
+                    SecretPath = ResolveSecretPath(connection, SecretPath),
+                    ApiVersion = ResolveApiVersion(connection, ApiVersion),
                     Recursive = Recursive.IsPresent,
                     IncludeImports = IncludeImports.IsPresent,
                     IncludePersonalOverrides = IncludePersonalOverrides.IsPresent,

@@ -15,6 +15,10 @@ namespace PSInfisicalAPI.Endpoints
         public const string CreateSecret = "CreateSecret";
         public const string UpdateSecret = "UpdateSecret";
         public const string DeleteSecret = "DeleteSecret";
+        public const string BulkCreateSecret = "BulkCreateSecret";
+        public const string BulkUpdateSecret = "BulkUpdateSecret";
+        public const string BulkDeleteSecret = "BulkDeleteSecret";
+        public const string DuplicateSecret = "DuplicateSecret";
 
         public const string ListProjects = "ListProjects";
         public const string RetrieveProject = "RetrieveProject";

@@ -71,6 +71,10 @@ namespace PSInfisicalAPI.Tests
         [InlineData(InfisicalEndpointNames.LdapAuthLogin, "POST", "/api/v1/auth/ldap-auth/login")]
         [InlineData(InfisicalEndpointNames.AzureAuthLogin, "POST", "/api/v1/auth/azure-auth/login")]
         [InlineData(InfisicalEndpointNames.GcpIamAuthLogin, "POST", "/api/v1/auth/gcp-auth/login")]
+        [InlineData(InfisicalEndpointNames.BulkCreateSecret, "POST", "/api/v3/secrets/batch/raw")]
+        [InlineData(InfisicalEndpointNames.BulkUpdateSecret, "PATCH", "/api/v3/secrets/batch/raw")]
+        [InlineData(InfisicalEndpointNames.BulkDeleteSecret, "DELETE", "/api/v3/secrets/batch/raw")]
+        [InlineData(InfisicalEndpointNames.DuplicateSecret, "POST", "/api/v4/secrets/duplicate")]
         public void Registered_Endpoints_Have_Expected_Shape(string name, string method, string template)
         {
             InfisicalEndpointDefinition definition = InfisicalEndpointRegistry.Get(name);
