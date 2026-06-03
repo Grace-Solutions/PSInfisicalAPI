@@ -69,8 +69,6 @@ namespace PSInfisicalAPI.Tests
         [InlineData(InfisicalEndpointNames.JwtAuthLogin, "POST", "/api/v1/auth/jwt-auth/login")]
         [InlineData(InfisicalEndpointNames.OidcAuthLogin, "POST", "/api/v1/auth/oidc-auth/login")]
         [InlineData(InfisicalEndpointNames.LdapAuthLogin, "POST", "/api/v1/auth/ldap-auth/login")]
-        [InlineData(InfisicalEndpointNames.KubernetesAuthLogin, "POST", "/api/v1/auth/kubernetes-auth/login")]
-        [InlineData(InfisicalEndpointNames.AwsAuthLogin, "POST", "/api/v1/auth/aws-auth/login")]
         [InlineData(InfisicalEndpointNames.AzureAuthLogin, "POST", "/api/v1/auth/azure-auth/login")]
         [InlineData(InfisicalEndpointNames.GcpIamAuthLogin, "POST", "/api/v1/auth/gcp-auth/login")]
         public void Registered_Endpoints_Have_Expected_Shape(string name, string method, string template)

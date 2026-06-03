@@ -7,8 +7,6 @@ namespace PSInfisicalAPI.Endpoints
         public const string JwtAuthLogin = "JwtAuthLogin";
         public const string OidcAuthLogin = "OidcAuthLogin";
         public const string LdapAuthLogin = "LdapAuthLogin";
-        public const string KubernetesAuthLogin = "KubernetesAuthLogin";
-        public const string AwsAuthLogin = "AwsAuthLogin";
         public const string AzureAuthLogin = "AzureAuthLogin";
         public const string GcpIamAuthLogin = "GcpIamAuthLogin";
 

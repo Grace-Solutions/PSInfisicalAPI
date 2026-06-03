@@ -94,30 +94,6 @@ namespace PSInfisicalAPI.Endpoints
 
             Add(map, new InfisicalEndpointDefinition
             {
-                Name = InfisicalEndpointNames.KubernetesAuthLogin,
-                Resource = "Authentication",
-                Version = "v1",
-                Method = "POST",
-                Template = "/api/v1/auth/kubernetes-auth/login",
-                RequiresAuthorization = false,
-                ContainsSecretMaterialInRequest = true,
-                ContainsSecretMaterialInResponse = true
-            });
-
-            Add(map, new InfisicalEndpointDefinition
-            {
-                Name = InfisicalEndpointNames.AwsAuthLogin,
-                Resource = "Authentication",
-                Version = "v1",
-                Method = "POST",
-                Template = "/api/v1/auth/aws-auth/login",
-                RequiresAuthorization = false,
-                ContainsSecretMaterialInRequest = true,
-                ContainsSecretMaterialInResponse = true
-            });
-
-            Add(map, new InfisicalEndpointDefinition
-            {
                 Name = InfisicalEndpointNames.AzureAuthLogin,
                 Resource = "Authentication",
                 Version = "v1",
