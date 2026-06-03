@@ -7,6 +7,7 @@ namespace PSInfisicalAPI.Secrets
         public string ProjectId { get; set; }
         public string Environment { get; set; }
         public string SecretPath { get; set; }
+        public string ApiVersion { get; set; }
         public bool Recursive { get; set; }
         public bool? IncludeImports { get; set; }
         public bool IncludePersonalOverrides { get; set; }
@@ -22,6 +23,7 @@ namespace PSInfisicalAPI.Secrets
         public string ProjectId { get; set; }
         public string Environment { get; set; }
         public string SecretPath { get; set; }
+        public string ApiVersion { get; set; }
         public int? Version { get; set; }
         public string Type { get; set; }
         public bool? ViewSecretValue { get; set; }

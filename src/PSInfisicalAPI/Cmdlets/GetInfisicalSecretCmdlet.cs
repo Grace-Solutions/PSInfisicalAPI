@@ -16,6 +16,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter] public string ProjectId { get; set; }
         [Parameter] public string Environment { get; set; }
         [Parameter] public string SecretPath { get; set; }
+        [Parameter] public string ApiVersion { get; set; }
         [Parameter] public int? Version { get; set; }
         [Parameter] public InfisicalSecretType Type { get; set; } = InfisicalSecretType.Shared;
         [Parameter] public SwitchParameter ViewSecretValue { get; set; }
@@ -34,6 +35,7 @@ namespace PSInfisicalAPI.Cmdlets
                     ProjectId = ProjectId,
                     Environment = Environment,
                     SecretPath = SecretPath,
+                    ApiVersion = ApiVersion,
                     Version = Version,
                     Type = Type.ToString(),
                     ViewSecretValue = ViewSecretValue.IsPresent,

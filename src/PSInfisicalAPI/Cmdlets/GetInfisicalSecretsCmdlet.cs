@@ -15,6 +15,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter] public string ProjectId { get; set; }
         [Parameter] public string Environment { get; set; }
         [Parameter] public string SecretPath { get; set; }
+        [Parameter] public string ApiVersion { get; set; }
         [Parameter] public SwitchParameter Recursive { get; set; }
         [Parameter] public SwitchParameter IncludeImports { get; set; }
         [Parameter] public SwitchParameter IncludePersonalOverrides { get; set; }
@@ -34,6 +35,7 @@ namespace PSInfisicalAPI.Cmdlets
                     ProjectId = ProjectId,
                     Environment = Environment,
                     SecretPath = SecretPath,
+                    ApiVersion = ApiVersion,
                     Recursive = Recursive.IsPresent,
                     IncludeImports = IncludeImports.IsPresent,
                     IncludePersonalOverrides = IncludePersonalOverrides.IsPresent,

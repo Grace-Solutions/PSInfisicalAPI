@@ -39,13 +39,7 @@ namespace PSInfisicalAPI.Logging
         public void Error(string component, string message)
         {
             string line = InfisicalLogFormatter.FormatNow(InfisicalLogLevel.Error, component, message);
-            ErrorRecord record = new ErrorRecord(
-                new InvalidOperationException(message ?? string.Empty),
-                "PSInfisicalAPI.Error",
-                ErrorCategory.NotSpecified,
-                component);
-            record.ErrorDetails = new ErrorDetails(line);
-            _cmdlet.WriteError(record);
+            _cmdlet.WriteWarning(line);
         }
     }
 }
