@@ -340,7 +340,14 @@ namespace PSInfisicalAPI.Pki
                 {
                     string status = dto != null ? dto.Status : "unknown";
                     string message = dto != null ? dto.Message : null;
-                    throw new InfisicalConfigurationException(string.Concat("Certificate was not issued (status='", status ?? "unknown", "'", string.IsNullOrEmpty(message) ? "" : string.Concat(", message='", message, "'"), "). The certificate profile may require manual approval or additional validation."));
+                    string requestId = dto != null ? dto.CertificateRequestId : null;
+                    _logger.Warning(Component, string.Concat("Profile issuance did not return a certificate (status='", status ?? "unknown", "'", string.IsNullOrEmpty(message) ? "" : string.Concat(", message='", message, "'"), string.IsNullOrEmpty(requestId) ? "" : string.Concat(", certificateRequestId='", requestId, "'"), "). The profile may require manual approval or additional validation; returning a status-only result."));
+                    return new InfisicalSignedCertificate
+                    {
+                        Status = status,
+                        StatusMessage = message,
+                        CertificateRequestId = requestId
+                    };
                 }
 
                 InfisicalSignedCertificate signed = new InfisicalSignedCertificate
@@ -348,7 +355,10 @@ namespace PSInfisicalAPI.Pki
                     SerialNumber = dto.Certificate.SerialNumber,
                     CertificatePem = dto.Certificate.Certificate,
                     CertificateChainPem = dto.Certificate.CertificateChain,
-                    IssuingCaCertificatePem = dto.Certificate.IssuingCaCertificate
+                    IssuingCaCertificatePem = dto.Certificate.IssuingCaCertificate,
+                    Status = dto.Status,
+                    StatusMessage = dto.Message,
+                    CertificateRequestId = dto.CertificateRequestId
                 };
                 _logger.Information(Component, "Infisical certificate issuance (profile) was successful.");
                 return signed;

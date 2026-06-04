@@ -121,6 +121,15 @@ namespace PSInfisicalAPI.Cmdlets
                 InfisicalSignedCertificate signed = SignCertificate(client, connection, resolvedProjectId, csr.CsrPem);
                 signed.PrivateKeyPem = csr.PrivateKeyPem;
 
+                if (string.IsNullOrEmpty(signed.CertificatePem))
+                {
+                    Logger.Warning(Component, string.Concat("Issuance returned without a certificate (status='", signed.Status ?? "unknown", "'", string.IsNullOrEmpty(signed.StatusMessage) ? "" : string.Concat(", message='", signed.StatusMessage, "'"), string.IsNullOrEmpty(signed.CertificateRequestId) ? "" : string.Concat(", certificateRequestId='", signed.CertificateRequestId, "'"), "). Install / chain / key-write steps are skipped; emitting status-only result."));
+                    InfisicalCertificateResult pending = InfisicalCertificateRequestHelpers.BuildResult(null, signed);
+                    pending.PrivateKeyPem = null;
+                    WriteObject(pending);
+                    return;
+                }
+
                 X509KeyStorageFlags resolvedFlags = ResolveEffectiveKeyStorageFlags();
                 X509Certificate2 cert = PemCertificateBuilder.Build(signed.CertificatePem, signed.PrivateKeyPem, signed.CertificateChainPem, resolvedFlags);
 

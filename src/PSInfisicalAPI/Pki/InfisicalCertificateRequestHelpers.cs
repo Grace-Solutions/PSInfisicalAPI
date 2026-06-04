@@ -220,6 +220,9 @@ namespace PSInfisicalAPI.Pki
                 result.CertificatePem = signed.CertificatePem;
                 result.CertificateChainPem = signed.CertificateChainPem;
                 result.PrivateKeyPem = signed.PrivateKeyPem;
+                result.Status = signed.Status;
+                result.StatusMessage = signed.StatusMessage;
+                result.CertificateRequestId = signed.CertificateRequestId;
             }
 
             List<X509Certificate2> chainCerts = signed != null ? CollectChainCertificates(signed) : new List<X509Certificate2>();
