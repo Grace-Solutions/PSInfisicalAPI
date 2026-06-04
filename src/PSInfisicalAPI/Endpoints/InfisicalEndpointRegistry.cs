@@ -5,83 +5,495 @@ namespace PSInfisicalAPI.Endpoints
 {
     public static class InfisicalEndpointRegistry
     {
-        private static readonly Dictionary<string, List<InfisicalEndpointDefinition>> Candidates =
-            new Dictionary<string, List<InfisicalEndpointDefinition>>
+        private static readonly Dictionary<string, List<InfisicalEndpointDefinition>> Candidates;
+
+        static InfisicalEndpointRegistry()
+        {
+            Candidates = new Dictionary<string, List<InfisicalEndpointDefinition>>();
+            RegisterAuthentication(Candidates);
+            RegisterSecrets(Candidates);
+            RegisterProjects(Candidates);
+            RegisterEnvironments(Candidates);
+            RegisterFolders(Candidates);
+            RegisterTags(Candidates);
+        }
+
+        private static void Add(Dictionary<string, List<InfisicalEndpointDefinition>> map, InfisicalEndpointDefinition definition)
+        {
+            List<InfisicalEndpointDefinition> list;
+            if (!map.TryGetValue(definition.Name, out list))
             {
-                {
-                    InfisicalEndpointNames.UniversalAuthLogin,
-                    new List<InfisicalEndpointDefinition>
-                    {
-                        new InfisicalEndpointDefinition
-                        {
-                            Name = InfisicalEndpointNames.UniversalAuthLogin,
-                            Resource = "Authentication",
-                            Version = "v1",
-                            Method = "POST",
-                            Template = "/api/v1/auth/universal-auth/login",
-                            RequiresAuthorization = false,
-                            ContainsSecretMaterialInRequest = true,
-                            ContainsSecretMaterialInResponse = true
-                        }
-                    }
-                },
-                {
-                    InfisicalEndpointNames.ListSecrets,
-                    new List<InfisicalEndpointDefinition>
-                    {
-                        new InfisicalEndpointDefinition
-                        {
-                            Name = InfisicalEndpointNames.ListSecrets,
-                            Resource = "Secrets",
-                            Version = "v4",
-                            Method = "GET",
-                            Template = "/api/v4/secrets",
-                            RequiresAuthorization = true,
-                            ContainsSecretMaterialInRequest = false,
-                            ContainsSecretMaterialInResponse = true
-                        },
-                        new InfisicalEndpointDefinition
-                        {
-                            Name = InfisicalEndpointNames.ListSecrets,
-                            Resource = "Secrets",
-                            Version = "v3",
-                            Method = "GET",
-                            Template = "/api/v3/secrets/raw",
-                            RequiresAuthorization = true,
-                            ContainsSecretMaterialInRequest = false,
-                            ContainsSecretMaterialInResponse = true
-                        }
-                    }
-                },
-                {
-                    InfisicalEndpointNames.RetrieveSecret,
-                    new List<InfisicalEndpointDefinition>
-                    {
-                        new InfisicalEndpointDefinition
-                        {
-                            Name = InfisicalEndpointNames.RetrieveSecret,
-                            Resource = "Secrets",
-                            Version = "v4",
-                            Method = "GET",
-                            Template = "/api/v4/secrets/{secretName}",
-                            RequiresAuthorization = true,
-                            ContainsSecretMaterialInRequest = false,
-                            ContainsSecretMaterialInResponse = true
-                        },
-                        new InfisicalEndpointDefinition
-                        {
-                            Name = InfisicalEndpointNames.RetrieveSecret,
-                            Resource = "Secrets",
-                            Version = "v3",
-                            Method = "GET",
-                            Template = "/api/v3/secrets/raw/{secretName}",
-                            RequiresAuthorization = true,
-                            ContainsSecretMaterialInRequest = false,
-                            ContainsSecretMaterialInResponse = true
-                        }
-                    }
-                }
-            };
+                list = new List<InfisicalEndpointDefinition>();
+                map[definition.Name] = list;
+            }
+
+            list.Add(definition);
+        }
+
+        private static void RegisterAuthentication(Dictionary<string, List<InfisicalEndpointDefinition>> map)
+        {
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.UniversalAuthLogin,
+                Resource = "Authentication",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/auth/universal-auth/login",
+                RequiresAuthorization = false,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.TokenAuthLogin,
+                Resource = "Authentication",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/auth/token-auth/login",
+                RequiresAuthorization = false,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.JwtAuthLogin,
+                Resource = "Authentication",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/auth/jwt-auth/login",
+                RequiresAuthorization = false,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.OidcAuthLogin,
+                Resource = "Authentication",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/auth/oidc-auth/login",
+                RequiresAuthorization = false,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.LdapAuthLogin,
+                Resource = "Authentication",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/auth/ldap-auth/login",
+                RequiresAuthorization = false,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.AzureAuthLogin,
+                Resource = "Authentication",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/auth/azure-auth/login",
+                RequiresAuthorization = false,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GcpIamAuthLogin,
+                Resource = "Authentication",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/auth/gcp-auth/login",
+                RequiresAuthorization = false,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+        }
+
+        private static void RegisterSecrets(Dictionary<string, List<InfisicalEndpointDefinition>> map)
+        {
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListSecrets,
+                Resource = "Secrets",
+                Version = "v4",
+                Method = "GET",
+                Template = "/api/v4/secrets",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListSecrets,
+                Resource = "Secrets",
+                Version = "v3",
+                Method = "GET",
+                Template = "/api/v3/secrets/raw",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.RetrieveSecret,
+                Resource = "Secrets",
+                Version = "v4",
+                Method = "GET",
+                Template = "/api/v4/secrets/{secretName}",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.RetrieveSecret,
+                Resource = "Secrets",
+                Version = "v3",
+                Method = "GET",
+                Template = "/api/v3/secrets/raw/{secretName}",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.CreateSecret,
+                Resource = "Secrets",
+                Version = "v3",
+                Method = "POST",
+                Template = "/api/v3/secrets/raw/{secretName}",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.UpdateSecret,
+                Resource = "Secrets",
+                Version = "v3",
+                Method = "PATCH",
+                Template = "/api/v3/secrets/raw/{secretName}",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.DeleteSecret,
+                Resource = "Secrets",
+                Version = "v3",
+                Method = "DELETE",
+                Template = "/api/v3/secrets/raw/{secretName}",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.BulkCreateSecret,
+                Resource = "Secrets",
+                Version = "v4",
+                Method = "POST",
+                Template = "/api/v4/secrets/batch",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.BulkCreateSecret,
+                Resource = "Secrets",
+                Version = "v3",
+                Method = "POST",
+                Template = "/api/v3/secrets/batch/raw",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.BulkUpdateSecret,
+                Resource = "Secrets",
+                Version = "v4",
+                Method = "PATCH",
+                Template = "/api/v4/secrets/batch",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.BulkUpdateSecret,
+                Resource = "Secrets",
+                Version = "v3",
+                Method = "PATCH",
+                Template = "/api/v3/secrets/batch/raw",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.BulkDeleteSecret,
+                Resource = "Secrets",
+                Version = "v4",
+                Method = "DELETE",
+                Template = "/api/v4/secrets/batch",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.BulkDeleteSecret,
+                Resource = "Secrets",
+                Version = "v3",
+                Method = "DELETE",
+                Template = "/api/v3/secrets/batch/raw",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.DuplicateSecret,
+                Resource = "Secrets",
+                Version = "v4",
+                Method = "POST",
+                Template = "/api/v4/secrets/duplicate",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+        }
+
+        private static void RegisterProjects(Dictionary<string, List<InfisicalEndpointDefinition>> map)
+        {
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListProjects,
+                Resource = "Projects",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/workspace",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.RetrieveProject,
+                Resource = "Projects",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/workspace/{projectId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.CreateProject,
+                Resource = "Projects",
+                Version = "v2",
+                Method = "POST",
+                Template = "/api/v2/workspace",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.UpdateProject,
+                Resource = "Projects",
+                Version = "v1",
+                Method = "PATCH",
+                Template = "/api/v1/workspace/{projectId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.DeleteProject,
+                Resource = "Projects",
+                Version = "v1",
+                Method = "DELETE",
+                Template = "/api/v1/workspace/{projectId}",
+                RequiresAuthorization = true
+            });
+        }
+
+        private static void RegisterEnvironments(Dictionary<string, List<InfisicalEndpointDefinition>> map)
+        {
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListEnvironments,
+                Resource = "Environments",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/workspace/{projectId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.RetrieveEnvironment,
+                Resource = "Environments",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/workspace/{projectId}/environments/{environmentId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.CreateEnvironment,
+                Resource = "Environments",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/workspace/{projectId}/environments",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.UpdateEnvironment,
+                Resource = "Environments",
+                Version = "v1",
+                Method = "PATCH",
+                Template = "/api/v1/workspace/{projectId}/environments/{environmentId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.DeleteEnvironment,
+                Resource = "Environments",
+                Version = "v1",
+                Method = "DELETE",
+                Template = "/api/v1/workspace/{projectId}/environments/{environmentId}",
+                RequiresAuthorization = true
+            });
+        }
+
+        private static void RegisterFolders(Dictionary<string, List<InfisicalEndpointDefinition>> map)
+        {
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListFolders,
+                Resource = "Folders",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/folders",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.RetrieveFolder,
+                Resource = "Folders",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/folders/{folderId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.CreateFolder,
+                Resource = "Folders",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/folders",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.UpdateFolder,
+                Resource = "Folders",
+                Version = "v1",
+                Method = "PATCH",
+                Template = "/api/v1/folders/{folderId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.DeleteFolder,
+                Resource = "Folders",
+                Version = "v1",
+                Method = "DELETE",
+                Template = "/api/v1/folders/{folderId}",
+                RequiresAuthorization = true
+            });
+        }
+
+        private static void RegisterTags(Dictionary<string, List<InfisicalEndpointDefinition>> map)
+        {
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListTags,
+                Resource = "Tags",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/workspace/{projectId}/tags",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.RetrieveTag,
+                Resource = "Tags",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/workspace/{projectId}/tags/{tagId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.CreateTag,
+                Resource = "Tags",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/workspace/{projectId}/tags",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.UpdateTag,
+                Resource = "Tags",
+                Version = "v1",
+                Method = "PATCH",
+                Template = "/api/v1/workspace/{projectId}/tags/{tagId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.DeleteTag,
+                Resource = "Tags",
+                Version = "v1",
+                Method = "DELETE",
+                Template = "/api/v1/workspace/{projectId}/tags/{tagId}",
+                RequiresAuthorization = true
+            });
+        }
 
         public static InfisicalEndpointDefinition Get(string name)
         {

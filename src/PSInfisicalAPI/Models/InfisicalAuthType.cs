@@ -3,6 +3,11 @@ namespace PSInfisicalAPI.Models
     public enum InfisicalAuthType
     {
         UniversalAuth,
-        Token
+        Token,
+        Jwt,
+        Oidc,
+        Ldap,
+        Azure,
+        GcpIam
     }
 }

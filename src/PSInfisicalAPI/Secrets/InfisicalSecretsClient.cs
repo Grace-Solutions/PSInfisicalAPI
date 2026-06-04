@@ -136,6 +136,353 @@ namespace PSInfisicalAPI.Secrets
             }
         }
 
+        public InfisicalSecret Create(InfisicalConnection connection, InfisicalCreateSecretRequest request)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (request == null) { throw new ArgumentNullException(nameof(request)); }
+            if (string.IsNullOrEmpty(request.SecretName)) { throw new InfisicalConfigurationException("SecretName is required."); }
+            if (request.SecretValue == null) { throw new InfisicalConfigurationException("SecretValue is required."); }
+
+            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
+            string resolvedEnvironment = FirstNonEmpty(request.Environment, connection.Environment);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "secretName", request.SecretName } };
+            InfisicalSecretCreateRequestDto dtoRequest = new InfisicalSecretCreateRequestDto
+            {
+                WorkspaceId = resolvedProjectId,
+                Environment = resolvedEnvironment,
+                SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
+                Type = string.IsNullOrEmpty(request.Type) ? "shared" : request.Type.ToLowerInvariant(),
+                SecretValue = request.SecretValue,
+                SecretComment = request.SecretComment,
+                SkipMultilineEncoding = request.SkipMultilineEncoding,
+                TagIds = request.TagIds
+            };
+            string body = _serializer.Serialize(dtoRequest);
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to create Infisical secret '", request.SecretName, "'. Please Wait..."));
+                InfisicalHttpResponse response = SendWithVersionFallback(connection, InfisicalEndpointNames.CreateSecret, request.ApiVersion, "CreateSecret", pathParameters, null, body);
+                InfisicalSecretSingleResponseDto dto = _serializer.Deserialize<InfisicalSecretSingleResponseDto>(response.Body);
+                response.Clear();
+
+                InfisicalSecret mapped = InfisicalSecretMapper.Map(dto != null ? dto.Secret : null);
+                _logger.Information(Component, "Infisical secret creation was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical secret creation failed.");
+                throw;
+            }
+        }
+
+        public InfisicalSecret Update(InfisicalConnection connection, InfisicalUpdateSecretRequest request)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (request == null) { throw new ArgumentNullException(nameof(request)); }
+            if (string.IsNullOrEmpty(request.SecretName)) { throw new InfisicalConfigurationException("SecretName is required."); }
+
+            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
+            string resolvedEnvironment = FirstNonEmpty(request.Environment, connection.Environment);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "secretName", request.SecretName } };
+            InfisicalSecretUpdateRequestDto dtoRequest = new InfisicalSecretUpdateRequestDto
+            {
+                WorkspaceId = resolvedProjectId,
+                Environment = resolvedEnvironment,
+                SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
+                Type = string.IsNullOrEmpty(request.Type) ? "shared" : request.Type.ToLowerInvariant(),
+                SecretValue = request.SecretValue,
+                SecretComment = request.SecretComment,
+                NewSecretName = request.NewSecretName,
+                SkipMultilineEncoding = request.SkipMultilineEncoding,
+                TagIds = request.TagIds
+            };
+            string body = _serializer.Serialize(dtoRequest);
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to update Infisical secret '", request.SecretName, "'. Please Wait..."));
+                InfisicalHttpResponse response = SendWithVersionFallback(connection, InfisicalEndpointNames.UpdateSecret, request.ApiVersion, "UpdateSecret", pathParameters, null, body);
+                InfisicalSecretSingleResponseDto dto = _serializer.Deserialize<InfisicalSecretSingleResponseDto>(response.Body);
+                response.Clear();
+
+                InfisicalSecret mapped = InfisicalSecretMapper.Map(dto != null ? dto.Secret : null);
+                _logger.Information(Component, "Infisical secret update was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical secret update failed.");
+                throw;
+            }
+        }
+
+        public InfisicalSecret[] CreateBatch(InfisicalConnection connection, InfisicalBulkCreateSecretsRequest request)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (request == null) { throw new ArgumentNullException(nameof(request)); }
+            if (request.Secrets == null || request.Secrets.Length == 0) { throw new InfisicalConfigurationException("At least one secret is required."); }
+
+            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
+            string resolvedEnvironment = FirstNonEmpty(request.Environment, connection.Environment);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+
+            List<InfisicalSecretBatchCreateItemDto> items = new List<InfisicalSecretBatchCreateItemDto>(request.Secrets.Length);
+            foreach (InfisicalBulkCreateSecretItem item in request.Secrets)
+            {
+                if (item == null) { continue; }
+                if (string.IsNullOrEmpty(item.SecretName)) { throw new InfisicalConfigurationException("Each bulk-create item requires SecretName."); }
+                items.Add(new InfisicalSecretBatchCreateItemDto
+                {
+                    SecretKey = item.SecretName,
+                    SecretValue = item.SecretValue ?? string.Empty,
+                    SecretComment = item.SecretComment,
+                    SkipMultilineEncoding = item.SkipMultilineEncoding,
+                    TagIds = item.TagIds,
+                    SecretMetadata = ToMetadataDtoList(item.SecretMetadata)
+                });
+            }
+
+            InfisicalSecretBatchCreateRequestDto dtoRequest = new InfisicalSecretBatchCreateRequestDto
+            {
+                WorkspaceId = resolvedProjectId,
+                ProjectId = resolvedProjectId,
+                Environment = resolvedEnvironment,
+                SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
+                Secrets = items
+            };
+            string body = _serializer.Serialize(dtoRequest);
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to bulk-create ", items.Count.ToString(CultureInfo.InvariantCulture), " Infisical secret(s). Please Wait..."));
+                InfisicalHttpResponse response = SendWithVersionFallback(connection, InfisicalEndpointNames.BulkCreateSecret, request.ApiVersion, "BulkCreateSecrets", null, null, body);
+                InfisicalSecretListResponseDto dto = _serializer.Deserialize<InfisicalSecretListResponseDto>(response.Body);
+                response.Clear();
+
+                InfisicalSecret[] mapped = InfisicalSecretMapper.MapMany(dto != null ? dto.Secrets : null);
+                _logger.Information(Component, "Infisical bulk secret creation was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical bulk secret creation failed.");
+                throw;
+            }
+        }
+
+        public InfisicalSecret[] UpdateBatch(InfisicalConnection connection, InfisicalBulkUpdateSecretsRequest request)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (request == null) { throw new ArgumentNullException(nameof(request)); }
+            if (request.Secrets == null || request.Secrets.Length == 0) { throw new InfisicalConfigurationException("At least one secret is required."); }
+
+            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
+            string resolvedEnvironment = FirstNonEmpty(request.Environment, connection.Environment);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+
+            List<InfisicalSecretBatchUpdateItemDto> items = new List<InfisicalSecretBatchUpdateItemDto>(request.Secrets.Length);
+            foreach (InfisicalBulkUpdateSecretItem item in request.Secrets)
+            {
+                if (item == null) { continue; }
+                if (string.IsNullOrEmpty(item.SecretName)) { throw new InfisicalConfigurationException("Each bulk-update item requires SecretName."); }
+                items.Add(new InfisicalSecretBatchUpdateItemDto
+                {
+                    SecretKey = item.SecretName,
+                    NewSecretName = item.NewSecretName,
+                    SecretValue = item.SecretValue,
+                    SecretComment = item.SecretComment,
+                    SkipMultilineEncoding = item.SkipMultilineEncoding,
+                    TagIds = item.TagIds,
+                    SecretMetadata = ToMetadataDtoList(item.SecretMetadata)
+                });
+            }
+
+            InfisicalSecretBatchUpdateRequestDto dtoRequest = new InfisicalSecretBatchUpdateRequestDto
+            {
+                WorkspaceId = resolvedProjectId,
+                ProjectId = resolvedProjectId,
+                Environment = resolvedEnvironment,
+                SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
+                Mode = request.Mode,
+                Secrets = items
+            };
+            string body = _serializer.Serialize(dtoRequest);
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to bulk-update ", items.Count.ToString(CultureInfo.InvariantCulture), " Infisical secret(s). Please Wait..."));
+                InfisicalHttpResponse response = SendWithVersionFallback(connection, InfisicalEndpointNames.BulkUpdateSecret, request.ApiVersion, "BulkUpdateSecrets", null, null, body);
+                InfisicalSecretListResponseDto dto = _serializer.Deserialize<InfisicalSecretListResponseDto>(response.Body);
+                response.Clear();
+
+                InfisicalSecret[] mapped = InfisicalSecretMapper.MapMany(dto != null ? dto.Secrets : null);
+                _logger.Information(Component, "Infisical bulk secret update was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical bulk secret update failed.");
+                throw;
+            }
+        }
+
+        public void DeleteBatch(InfisicalConnection connection, InfisicalBulkDeleteSecretsRequest request)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (request == null) { throw new ArgumentNullException(nameof(request)); }
+            if (request.SecretNames == null || request.SecretNames.Length == 0) { throw new InfisicalConfigurationException("At least one secret name is required."); }
+
+            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
+            string resolvedEnvironment = FirstNonEmpty(request.Environment, connection.Environment);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+
+            List<InfisicalSecretBatchDeleteItemDto> items = new List<InfisicalSecretBatchDeleteItemDto>(request.SecretNames.Length);
+            foreach (string name in request.SecretNames)
+            {
+                if (string.IsNullOrEmpty(name)) { continue; }
+                items.Add(new InfisicalSecretBatchDeleteItemDto { SecretKey = name });
+            }
+
+            InfisicalSecretBatchDeleteRequestDto dtoRequest = new InfisicalSecretBatchDeleteRequestDto
+            {
+                WorkspaceId = resolvedProjectId,
+                ProjectId = resolvedProjectId,
+                Environment = resolvedEnvironment,
+                SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
+                Secrets = items
+            };
+            string body = _serializer.Serialize(dtoRequest);
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to bulk-delete ", items.Count.ToString(CultureInfo.InvariantCulture), " Infisical secret(s). Please Wait..."));
+                InfisicalHttpResponse response = SendWithVersionFallback(connection, InfisicalEndpointNames.BulkDeleteSecret, request.ApiVersion, "BulkDeleteSecrets", null, null, body);
+                response.Clear();
+                _logger.Information(Component, "Infisical bulk secret deletion was successful.");
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical bulk secret deletion failed.");
+                throw;
+            }
+        }
+
+        public InfisicalSecret[] Duplicate(InfisicalConnection connection, InfisicalDuplicateSecretsRequest request)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (request == null) { throw new ArgumentNullException(nameof(request)); }
+            if (request.SecretIds == null || request.SecretIds.Length == 0) { throw new InfisicalConfigurationException("At least one SecretId is required."); }
+
+            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
+            string resolvedSourceEnv = FirstNonEmpty(request.SourceEnvironment, connection.Environment);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(resolvedSourceEnv)) { throw new InfisicalConfigurationException("SourceEnvironment is required."); }
+            if (string.IsNullOrEmpty(request.DestinationEnvironment)) { throw new InfisicalConfigurationException("DestinationEnvironment is required."); }
+
+            string resolvedSourcePath = FirstNonEmpty(request.SourceSecretPath, connection.DefaultSecretPath, "/");
+            string resolvedDestPath = FirstNonEmpty(request.DestinationSecretPath, resolvedSourcePath);
+
+            InfisicalSecretDuplicateAttributesDto attributes = null;
+            if (request.CopySecretValue.HasValue || request.CopySecretComment.HasValue || request.CopyTags.HasValue || request.CopyMetadata.HasValue)
+            {
+                attributes = new InfisicalSecretDuplicateAttributesDto
+                {
+                    SecretValue = request.CopySecretValue,
+                    SecretComment = request.CopySecretComment,
+                    Tags = request.CopyTags,
+                    Metadata = request.CopyMetadata
+                };
+            }
+
+            InfisicalSecretDuplicateRequestDto dtoRequest = new InfisicalSecretDuplicateRequestDto
+            {
+                ProjectId = resolvedProjectId,
+                SourceEnvironment = resolvedSourceEnv,
+                DestinationEnvironment = request.DestinationEnvironment,
+                SourceSecretPath = resolvedSourcePath,
+                DestinationSecretPath = resolvedDestPath,
+                SecretIds = request.SecretIds,
+                OverwriteExisting = request.OverwriteExisting,
+                AttributesToCopy = attributes
+            };
+            string body = _serializer.Serialize(dtoRequest);
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to duplicate ", request.SecretIds.Length.ToString(CultureInfo.InvariantCulture), " Infisical secret(s). Please Wait..."));
+                InfisicalHttpResponse response = SendWithVersionFallback(connection, InfisicalEndpointNames.DuplicateSecret, request.ApiVersion, "DuplicateSecrets", null, null, body);
+                InfisicalSecretListResponseDto dto = _serializer.Deserialize<InfisicalSecretListResponseDto>(response.Body);
+                response.Clear();
+
+                InfisicalSecret[] mapped = InfisicalSecretMapper.MapMany(dto != null ? dto.Secrets : null);
+                _logger.Information(Component, "Infisical secret duplication was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical secret duplication failed.");
+                throw;
+            }
+        }
+
+        private static List<InfisicalSecretMetadataDto> ToMetadataDtoList(Dictionary<string, string> metadata)
+        {
+            if (metadata == null || metadata.Count == 0) { return null; }
+            List<InfisicalSecretMetadataDto> list = new List<InfisicalSecretMetadataDto>(metadata.Count);
+            foreach (KeyValuePair<string, string> kvp in metadata)
+            {
+                list.Add(new InfisicalSecretMetadataDto { Key = kvp.Key, Value = kvp.Value });
+            }
+
+            return list;
+        }
+
+        public void Delete(InfisicalConnection connection, InfisicalDeleteSecretRequest request)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (request == null) { throw new ArgumentNullException(nameof(request)); }
+            if (string.IsNullOrEmpty(request.SecretName)) { throw new InfisicalConfigurationException("SecretName is required."); }
+
+            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
+            string resolvedEnvironment = FirstNonEmpty(request.Environment, connection.Environment);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "secretName", request.SecretName } };
+            InfisicalSecretDeleteRequestDto dtoRequest = new InfisicalSecretDeleteRequestDto
+            {
+                WorkspaceId = resolvedProjectId,
+                Environment = resolvedEnvironment,
+                SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
+                Type = string.IsNullOrEmpty(request.Type) ? "shared" : request.Type.ToLowerInvariant()
+            };
+            string body = _serializer.Serialize(dtoRequest);
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to delete Infisical secret '", request.SecretName, "'. Please Wait..."));
+                InfisicalHttpResponse response = SendWithVersionFallback(connection, InfisicalEndpointNames.DeleteSecret, request.ApiVersion, "DeleteSecret", pathParameters, null, body);
+                response.Clear();
+                _logger.Information(Component, "Infisical secret deletion was successful.");
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical secret deletion failed.");
+                throw;
+            }
+        }
+
         private InfisicalHttpResponse SendWithVersionFallback(
             InfisicalConnection connection,
             string endpointName,

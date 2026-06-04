@@ -15,6 +15,11 @@ namespace PSInfisicalAPI.Cmdlets
     {
         private const string ParameterSetUniversalAuth = "UniversalAuth";
         private const string ParameterSetToken = "Token";
+        private const string ParameterSetJwt = "JwtAuth";
+        private const string ParameterSetOidc = "OidcAuth";
+        private const string ParameterSetLdap = "LdapAuth";
+        private const string ParameterSetAzure = "AzureAuth";
+        private const string ParameterSetGcpIam = "GcpIamAuth";
         private const string Component = "ConnectInfisicalCmdlet";
 
         [Parameter]
@@ -38,6 +43,25 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter(ParameterSetName = ParameterSetToken)]
         public SecureString AccessToken { get; set; }
 
+        [Parameter(Mandatory = true, ParameterSetName = ParameterSetJwt)]
+        [Parameter(Mandatory = true, ParameterSetName = ParameterSetOidc)]
+        [Parameter(Mandatory = true, ParameterSetName = ParameterSetAzure)]
+        [Parameter(Mandatory = true, ParameterSetName = ParameterSetGcpIam)]
+        [Parameter(ParameterSetName = ParameterSetLdap)]
+        public string IdentityId { get; set; }
+
+        [Parameter(Mandatory = true, ParameterSetName = ParameterSetJwt)]
+        [Parameter(Mandatory = true, ParameterSetName = ParameterSetOidc)]
+        [Parameter(Mandatory = true, ParameterSetName = ParameterSetAzure)]
+        [Parameter(Mandatory = true, ParameterSetName = ParameterSetGcpIam)]
+        public SecureString Jwt { get; set; }
+
+        [Parameter(Mandatory = true, ParameterSetName = ParameterSetLdap)]
+        public string Username { get; set; }
+
+        [Parameter(Mandatory = true, ParameterSetName = ParameterSetLdap)]
+        public SecureString Password { get; set; }
+
         [Parameter]
         public string SecretPath { get; set; } = "/";
 
@@ -58,28 +82,91 @@ namespace PSInfisicalAPI.Cmdlets
                 InfisicalAuthenticationRequest request;
                 InfisicalAuthType authType;
 
-                if (string.Equals(ParameterSetName, ParameterSetToken, StringComparison.Ordinal))
+                switch (ParameterSetName)
                 {
-                    provider = new TokenAuthProvider();
-                    authType = InfisicalAuthType.Token;
-                    request = new InfisicalAuthenticationRequest
-                    {
-                        BaseUri = BaseUri,
-                        ApiVersion = ApiVersion,
-                        PreSuppliedAccessToken = AccessToken
-                    };
-                }
-                else
-                {
-                    provider = new UniversalAuthProvider();
-                    authType = InfisicalAuthType.UniversalAuth;
-                    request = new InfisicalAuthenticationRequest
-                    {
-                        BaseUri = BaseUri,
-                        ApiVersion = ApiVersion,
-                        ClientId = ClientId,
-                        ClientSecret = ClientSecret
-                    };
+                    case ParameterSetToken:
+                        provider = new TokenAuthProvider();
+                        authType = InfisicalAuthType.Token;
+                        request = new InfisicalAuthenticationRequest
+                        {
+                            BaseUri = BaseUri,
+                            ApiVersion = ApiVersion,
+                            PreSuppliedAccessToken = AccessToken
+                        };
+                        break;
+
+                    case ParameterSetJwt:
+                        provider = new JwtAuthProvider();
+                        authType = InfisicalAuthType.Jwt;
+                        request = new InfisicalAuthenticationRequest
+                        {
+                            BaseUri = BaseUri,
+                            ApiVersion = ApiVersion,
+                            IdentityId = IdentityId,
+                            Jwt = Jwt
+                        };
+                        break;
+
+                    case ParameterSetOidc:
+                        provider = new OidcAuthProvider();
+                        authType = InfisicalAuthType.Oidc;
+                        request = new InfisicalAuthenticationRequest
+                        {
+                            BaseUri = BaseUri,
+                            ApiVersion = ApiVersion,
+                            IdentityId = IdentityId,
+                            Jwt = Jwt
+                        };
+                        break;
+
+                    case ParameterSetLdap:
+                        provider = new LdapAuthProvider();
+                        authType = InfisicalAuthType.Ldap;
+                        request = new InfisicalAuthenticationRequest
+                        {
+                            BaseUri = BaseUri,
+                            ApiVersion = ApiVersion,
+                            IdentityId = IdentityId,
+                            Username = Username,
+                            Password = Password
+                        };
+                        break;
+
+                    case ParameterSetAzure:
+                        provider = new AzureAuthProvider();
+                        authType = InfisicalAuthType.Azure;
+                        request = new InfisicalAuthenticationRequest
+                        {
+                            BaseUri = BaseUri,
+                            ApiVersion = ApiVersion,
+                            IdentityId = IdentityId,
+                            Jwt = Jwt
+                        };
+                        break;
+
+                    case ParameterSetGcpIam:
+                        provider = new GcpIamAuthProvider();
+                        authType = InfisicalAuthType.GcpIam;
+                        request = new InfisicalAuthenticationRequest
+                        {
+                            BaseUri = BaseUri,
+                            ApiVersion = ApiVersion,
+                            IdentityId = IdentityId,
+                            Jwt = Jwt
+                        };
+                        break;
+
+                    default:
+                        provider = new UniversalAuthProvider();
+                        authType = InfisicalAuthType.UniversalAuth;
+                        request = new InfisicalAuthenticationRequest
+                        {
+                            BaseUri = BaseUri,
+                            ApiVersion = ApiVersion,
+                            ClientId = ClientId,
+                            ClientSecret = ClientSecret
+                        };
+                        break;
                 }
 
                 InfisicalAuthenticationResult authResult = provider.Authenticate(request, HttpClient, Logger);
@@ -123,6 +210,7 @@ namespace PSInfisicalAPI.Cmdlets
         private void ResolveMissingParametersFromEnvironment()
         {
             bool tokenSet = string.Equals(ParameterSetName, ParameterSetToken, StringComparison.Ordinal);
+            bool universalSet = string.Equals(ParameterSetName, ParameterSetUniversalAuth, StringComparison.Ordinal);
 
             bool needsScan =
                 BaseUri == null ||
@@ -130,8 +218,8 @@ namespace PSInfisicalAPI.Cmdlets
                 string.IsNullOrWhiteSpace(ProjectId) ||
                 string.IsNullOrWhiteSpace(Environment) ||
                 (tokenSet && (AccessToken == null || AccessToken.Length == 0)) ||
-                (!tokenSet && string.IsNullOrWhiteSpace(ClientId)) ||
-                (!tokenSet && (ClientSecret == null || ClientSecret.Length == 0));
+                (universalSet && string.IsNullOrWhiteSpace(ClientId)) ||
+                (universalSet && (ClientSecret == null || ClientSecret.Length == 0));
 
             if (!needsScan)
             {
@@ -161,7 +249,7 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 AccessToken = InfisicalEnvironmentResolver.ResolveSecureString("AccessToken", InfisicalEnvironmentResolver.AccessTokenPatterns, AccessToken, Logger);
             }
-            else
+            else if (universalSet)
             {
                 ClientId = InfisicalEnvironmentResolver.ResolveString("ClientId", InfisicalEnvironmentResolver.ClientIdPatterns, ClientId, Logger);
                 ClientSecret = InfisicalEnvironmentResolver.ResolveSecureString("ClientSecret", InfisicalEnvironmentResolver.ClientSecretPatterns, ClientSecret, Logger);
@@ -199,7 +287,7 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 if (AccessToken == null || AccessToken.Length == 0) { missing.Add("AccessToken"); }
             }
-            else
+            else if (string.Equals(ParameterSetName, ParameterSetUniversalAuth, StringComparison.Ordinal))
             {
                 if (string.IsNullOrWhiteSpace(ClientId)) { missing.Add("ClientId"); }
                 if (ClientSecret == null || ClientSecret.Length == 0) { missing.Add("ClientSecret"); }

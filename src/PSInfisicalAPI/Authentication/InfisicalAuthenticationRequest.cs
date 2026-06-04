@@ -10,5 +10,10 @@ namespace PSInfisicalAPI.Authentication
         public string ClientId { get; set; }
         public SecureString ClientSecret { get; set; }
         public SecureString PreSuppliedAccessToken { get; set; }
+
+        public string IdentityId { get; set; }
+        public SecureString Jwt { get; set; }
+        public string Username { get; set; }
+        public SecureString Password { get; set; }
     }
 }
