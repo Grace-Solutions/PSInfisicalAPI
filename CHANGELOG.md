@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.04.1920
+
+- Build produced from commit 0f8f44afdb38.
+
+## Unreleased (carried forward)
+
 - `build.ps1` gains a `-CommitArtifacts` switch that, after a successful build, stages and commits only the build outputs (`Module/PSInfisicalAPI/bin/**`, `Module/PSInfisicalAPI/PSInfisicalAPI.psd1`, and the auto-inserted `CHANGELOG.md` build stamp) with a message that references the source commit whose hash is now embedded in `BuildCommitHash`. The switch is mutually exclusive with the older broader `-CommitOnSuccess` (which still uses `git add -A`). README extended with a "Committing source and build artifacts in lockstep" section describing the recommended two-commit workflow.
 
 ## 2026.06.04.1917
