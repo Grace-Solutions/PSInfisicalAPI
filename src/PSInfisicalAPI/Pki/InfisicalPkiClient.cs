@@ -427,6 +427,94 @@ namespace PSInfisicalAPI.Pki
             return obj.ToObject<InfisicalCertificateProfileResponseDto>();
         }
 
+        public InfisicalCertificatePolicy[] ListCertificatePolicies(InfisicalConnection connection, string projectId, int? limit, int? offset)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+
+            List<KeyValuePair<string, string>> query = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("projectId", resolvedProjectId)
+            };
+            if (limit.HasValue) { query.Add(new KeyValuePair<string, string>("limit", limit.Value.ToString(CultureInfo.InvariantCulture))); }
+            if (offset.HasValue) { query.Add(new KeyValuePair<string, string>("offset", offset.Value.ToString(CultureInfo.InvariantCulture))); }
+
+            try
+            {
+                _logger.Information(Component, "Attempting to list Infisical certificate policies. Please Wait...");
+                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.ListCertificatePolicies, "ListCertificatePolicies", null, query, null);
+                string body = response.Body;
+                response.Clear();
+
+                List<InfisicalCertificatePolicyResponseDto> source = ParseCertificatePolicyListBody(body);
+                InfisicalCertificatePolicy[] mapped = InfisicalCertificatePolicyMapper.MapMany(source, resolvedProjectId);
+                _logger.Information(Component, "Infisical certificate policy list retrieval was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate policy list retrieval failed.");
+                throw;
+            }
+        }
+
+        public InfisicalCertificatePolicy GetCertificatePolicy(InfisicalConnection connection, string certificatePolicyId, string projectId)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(certificatePolicyId)) { throw new InfisicalConfigurationException("CertificatePolicyId is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "certificatePolicyId", certificatePolicyId } };
+            List<KeyValuePair<string, string>> query = null;
+            if (!string.IsNullOrEmpty(projectId))
+            {
+                query = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("projectId", projectId) };
+            }
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to retrieve Infisical certificate policy '", certificatePolicyId, "'. Please Wait..."));
+                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.GetCertificatePolicy, "GetCertificatePolicy", pathParameters, query, null);
+                string body = response.Body;
+                response.Clear();
+
+                InfisicalCertificatePolicyResponseDto inner = ParseCertificatePolicySingleBody(body);
+                string fallbackProjectId = !string.IsNullOrEmpty(projectId) ? projectId : connection.ProjectId;
+                InfisicalCertificatePolicy mapped = InfisicalCertificatePolicyMapper.Map(inner, fallbackProjectId);
+                _logger.Information(Component, "Infisical certificate policy retrieval was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate policy retrieval failed.");
+                throw;
+            }
+        }
+
+        private List<InfisicalCertificatePolicyResponseDto> ParseCertificatePolicyListBody(string body)
+        {
+            if (string.IsNullOrEmpty(body)) { return null; }
+            JToken token = JToken.Parse(body);
+            if (token.Type == JTokenType.Array)
+            {
+                return token.ToObject<List<InfisicalCertificatePolicyResponseDto>>();
+            }
+
+            InfisicalCertificatePolicyListResponseDto wrapper = token.ToObject<InfisicalCertificatePolicyListResponseDto>();
+            return wrapper != null ? wrapper.CertificatePolicies : null;
+        }
+
+        private InfisicalCertificatePolicyResponseDto ParseCertificatePolicySingleBody(string body)
+        {
+            if (string.IsNullOrEmpty(body)) { return null; }
+            JToken token = JToken.Parse(body);
+            if (token.Type != JTokenType.Object) { return null; }
+            JObject obj = (JObject)token;
+
+            if (obj["certificatePolicy"] is JObject inner) { return inner.ToObject<InfisicalCertificatePolicyResponseDto>(); }
+            return obj.ToObject<InfisicalCertificatePolicyResponseDto>();
+        }
+
         public InfisicalCertificateBundle GetCertificateBundle(InfisicalConnection connection, string serialNumber)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
