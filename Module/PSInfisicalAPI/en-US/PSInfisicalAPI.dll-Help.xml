@@ -1006,17 +1006,17 @@ $RemoveInfisicalTagResult = Remove-InfisicalTag @RemoveInfisicalTagParameters</d
   <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
     <command:details>
       <command:name>Get-InfisicalCertificateAuthority</command:name>
-      <maml:description><maml:para>Lists or retrieves Infisical internal Certificate Authorities.</maml:para></maml:description>
+      <maml:description><maml:para>Lists or retrieves Infisical Certificate Authorities.</maml:para></maml:description>
       <command:verb>Get</command:verb>
       <command:noun>InfisicalCertificateAuthority</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>When -CaId is supplied (ById parameter set) returns a single CA. Otherwise (List parameter set) returns every internal CA visible in the project. -ProjectId defaults to the session-pinned project when omitted.</maml:para>
+      <maml:para>When -CaId is supplied (ById parameter set) returns a single internal CA. Otherwise (List parameter set) returns CAs scoped by -Kind: Internal (default, /api/v1/cert-manager/ca/internal), Any (/api/v1/cert-manager/ca returning both internal and ACME), or Acme (filters the generic endpoint to ACME issuers only). -ProjectId defaults to the session-pinned project when omitted.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
       <maml:alert>
-        <maml:para>Only internal CAs are surfaced; external/ACME issuers are not enumerated by this cmdlet. CA Ids returned here are the values to pass on -CertificateAuthorityId to Request-InfisicalCertificate.</maml:para>
+        <maml:para>ByID retrieval currently always resolves against the internal CA endpoint. CA Ids returned here are the values to pass on -CertificateAuthorityId to Request-InfisicalCertificate. The Type property distinguishes 'internal' from 'acme' when -Kind Any is used.</maml:para>
       </maml:alert>
     </maml:alertSet>
     <command:examples>
@@ -1027,6 +1027,11 @@ $RemoveInfisicalTagResult = Remove-InfisicalTag @RemoveInfisicalTagParameters</d
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificateAuthority -Kind Any</dev:code>
+        <dev:remarks><maml:para>Lists every CA (internal and ACME) visible in the session-pinned project; inspect the Type property to distinguish them.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
         <dev:code>$GetInfisicalCertificateAuthorityListResult = Get-InfisicalCertificateAuthority | Where-Object { $_.FriendlyName -eq 'Issuing CA - Platform' }
 
 $GetInfisicalCertificateAuthorityParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
@@ -1035,7 +1040,7 @@ $GetInfisicalCertificateAuthorityParameters.ProjectId = $ConnectInfisicalParamet
 $GetInfisicalCertificateAuthorityParameters.Verbose   = $True
 
 $GetInfisicalCertificateAuthorityResult = Get-InfisicalCertificateAuthority @GetInfisicalCertificateAuthorityParameters</dev:code>
-        <dev:remarks><maml:para>Filters the CA list by friendly name and then re-fetches the canonical CA record by id.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Filters the CA list by friendly name and then re-fetches the canonical CA record by id using a splatted parameter set.</maml:para></dev:remarks>
       </command:example>
     </command:examples>
   </command:command>

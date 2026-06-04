@@ -91,6 +91,36 @@ namespace PSInfisicalAPI.Pki
             }
         }
 
+        public InfisicalCertificateAuthority[] ListAllCertificateAuthorities(InfisicalConnection connection, string projectId)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+
+            List<KeyValuePair<string, string>> query = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("projectId", resolvedProjectId)
+            };
+
+            try
+            {
+                _logger.Information(Component, "Attempting to list Infisical certificate authorities. Please Wait...");
+                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.ListCertificateAuthorities, "ListCertificateAuthorities", null, query, null);
+                string body = response.Body;
+                response.Clear();
+
+                List<InfisicalInternalCaResponseDto> source = ParseCaListBody(body);
+                InfisicalCertificateAuthority[] mapped = InfisicalCaMapper.MapMany(source, resolvedProjectId);
+                _logger.Information(Component, "Infisical certificate authority list retrieval was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate authority list retrieval failed.");
+                throw;
+            }
+        }
+
         public InfisicalCertificate RetrieveCertificate(InfisicalConnection connection, string identifier)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }

@@ -60,5 +60,7 @@ namespace PSInfisicalAPI.Endpoints
 
         public const string ListCertificatePolicies = "ListCertificatePolicies";
         public const string GetCertificatePolicy = "GetCertificatePolicy";
+
+        public const string ListCertificateAuthorities = "ListCertificateAuthorities";
     }
 }

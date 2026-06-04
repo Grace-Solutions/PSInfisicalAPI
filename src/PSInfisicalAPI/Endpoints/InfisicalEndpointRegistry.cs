@@ -682,6 +682,16 @@ namespace PSInfisicalAPI.Endpoints
                 Template = "/api/v1/cert-manager/certificate-policies/{certificatePolicyId}",
                 RequiresAuthorization = true
             });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListCertificateAuthorities,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/ca",
+                RequiresAuthorization = true
+            });
         }
 
         public static InfisicalEndpointDefinition Get(string name)
