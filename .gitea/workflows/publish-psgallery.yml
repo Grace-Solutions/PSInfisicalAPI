@@ -27,6 +27,23 @@ jobs:
           }
           Write-Host ("pwsh:   " + (pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'))
           Write-Host ("dotnet: " + (dotnet --version))
+          Write-Host '--- dotnet --info ---'
+          dotnet --info
+          Write-Host '--- disk free ---'
+          df -h .
+          Write-Host '--- memory ---'
+          free -m
+
+      - name: Restore NuGet packages
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Write-Host '==> dotnet restore src/PSInfisicalAPI/PSInfisicalAPI.csproj'
+          dotnet restore src/PSInfisicalAPI/PSInfisicalAPI.csproj --verbosity normal
+          if ($LASTEXITCODE -ne 0) { throw "Restore of PSInfisicalAPI.csproj failed with exit code $LASTEXITCODE" }
+          Write-Host '==> dotnet restore src/PSInfisicalAPI.Tests/PSInfisicalAPI.Tests.csproj'
+          dotnet restore src/PSInfisicalAPI.Tests/PSInfisicalAPI.Tests.csproj --verbosity normal
+          if ($LASTEXITCODE -ne 0) { throw "Restore of PSInfisicalAPI.Tests.csproj failed with exit code $LASTEXITCODE" }
 
       - name: Build and test module
         shell: pwsh
