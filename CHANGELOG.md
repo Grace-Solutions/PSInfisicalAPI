@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.04.2335
+
+- Build produced from commit 3c39a99b9a4c.
+
+## Unreleased (carried forward)
+
 ## 2026.06.04.2305
 
 - Build produced from commit 485ee8a7dd6a.
