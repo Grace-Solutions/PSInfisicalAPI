@@ -1006,17 +1006,17 @@ $RemoveInfisicalTagResult = Remove-InfisicalTag @RemoveInfisicalTagParameters</d
   <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
     <command:details>
       <command:name>Get-InfisicalCertificateAuthority</command:name>
-      <maml:description><maml:para>Lists or retrieves Infisical internal Certificate Authorities.</maml:para></maml:description>
+      <maml:description><maml:para>Lists or retrieves Infisical Certificate Authorities.</maml:para></maml:description>
       <command:verb>Get</command:verb>
       <command:noun>InfisicalCertificateAuthority</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>When -CaId is supplied (ById parameter set) returns a single CA. Otherwise (List parameter set) returns every internal CA visible in the project. -ProjectId defaults to the session-pinned project when omitted.</maml:para>
+      <maml:para>When -CaId is supplied (ById parameter set) returns a single internal CA. Otherwise (List parameter set) returns CAs scoped by -Kind: Internal (default, /api/v1/cert-manager/ca/internal), Any (/api/v1/cert-manager/ca returning both internal and ACME), or Acme (filters the generic endpoint to ACME issuers only). -ProjectId defaults to the session-pinned project when omitted.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
       <maml:alert>
-        <maml:para>Only internal CAs are surfaced; external/ACME issuers are not enumerated by this cmdlet. CA Ids returned here are the values to pass on -CertificateAuthorityId to Request-InfisicalCertificate.</maml:para>
+        <maml:para>ByID retrieval currently always resolves against the internal CA endpoint. CA Ids returned here are the values to pass on -CertificateAuthorityId to Request-InfisicalCertificate. The Type property distinguishes 'internal' from 'acme' when -Kind Any is used.</maml:para>
       </maml:alert>
     </maml:alertSet>
     <command:examples>
@@ -1027,6 +1027,11 @@ $RemoveInfisicalTagResult = Remove-InfisicalTag @RemoveInfisicalTagParameters</d
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificateAuthority -Kind Any</dev:code>
+        <dev:remarks><maml:para>Lists every CA (internal and ACME) visible in the session-pinned project; inspect the Type property to distinguish them.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
         <dev:code>$GetInfisicalCertificateAuthorityListResult = Get-InfisicalCertificateAuthority | Where-Object { $_.FriendlyName -eq 'Issuing CA - Platform' }
 
 $GetInfisicalCertificateAuthorityParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
@@ -1035,7 +1040,7 @@ $GetInfisicalCertificateAuthorityParameters.ProjectId = $ConnectInfisicalParamet
 $GetInfisicalCertificateAuthorityParameters.Verbose   = $True
 
 $GetInfisicalCertificateAuthorityResult = Get-InfisicalCertificateAuthority @GetInfisicalCertificateAuthorityParameters</dev:code>
-        <dev:remarks><maml:para>Filters the CA list by friendly name and then re-fetches the canonical CA record by id.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Filters the CA list by friendly name and then re-fetches the canonical CA record by id using a splatted parameter set.</maml:para></dev:remarks>
       </command:example>
     </command:examples>
   </command:command>
@@ -1130,6 +1135,90 @@ $GetInfisicalPkiSubscriberResult = Get-InfisicalPkiSubscriber @GetInfisicalPkiSu
 
   <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
     <command:details>
+      <command:name>Get-InfisicalCertificateProfile</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical certificate profiles in a project.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalCertificateProfile</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) returns every certificate profile configured on the project via /api/v1/cert-manager/certificate-profiles, with optional -Limit, -Offset, and -IncludeConfigs. When -ProfileId is supplied (ById parameter set) the cmdlet returns one profile by its id. -ProjectId defaults to the session-pinned project in both modes.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Profiles bind a CA and a certificate policy and surface defaults (TtlDays, KeyAlgorithm, KeyUsages, ExtendedKeyUsages). Use the returned profile Id when wiring profile-based issuance against Request-InfisicalCertificate.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificateProfile</dev:code>
+        <dev:remarks><maml:para>Lists every certificate profile defined on the session-pinned project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificateProfile -ProfileId '8257641e-c808-454e-ac92-8dc920be865f'</dev:code>
+        <dev:remarks><maml:para>Retrieves a single certificate profile by id from the session-pinned project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalCertificateProfileListResult = Get-InfisicalCertificateProfile | Where-Object { $_.Slug -ieq 'codesigning' }
+
+$GetInfisicalCertificateProfileParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalCertificateProfileParameters.ProfileId = $GetInfisicalCertificateProfileListResult[0].Id
+$GetInfisicalCertificateProfileParameters.ProjectId = $ConnectInfisicalParameters.ProjectId
+$GetInfisicalCertificateProfileParameters.Verbose   = $True
+
+$GetInfisicalCertificateProfileResult = Get-InfisicalCertificateProfile @GetInfisicalCertificateProfileParameters</dev:code>
+        <dev:remarks><maml:para>Filters profiles whose slug equals 'codesigning' and refetches the canonical record for the first match using a splatted parameter set.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalCertificatePolicy</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical certificate policies in a project.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalCertificatePolicy</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) returns every certificate policy configured on the project via /api/v1/cert-manager/certificate-policies, with optional -Limit and -Offset. When -PolicyId is supplied (ById parameter set) the cmdlet returns one policy by its id. -ProjectId defaults to the session-pinned project in both modes.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Policies define the allowed/required subject, SANs, key usages, extended key usages, key algorithms, signature algorithm, and validity windows that certificate profiles enforce. Each profile binds exactly one policy via its CertificatePolicyId.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificatePolicy</dev:code>
+        <dev:remarks><maml:para>Lists every certificate policy defined on the session-pinned project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificatePolicy -PolicyId '3e69306a-e7c1-4fd2-a140-7fb300e53c43'</dev:code>
+        <dev:remarks><maml:para>Retrieves a single certificate policy by id from the session-pinned project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalCertificatePolicyListResult = Get-InfisicalCertificatePolicy | Where-Object { $_.Name -ieq 'codesigning' }
+
+$GetInfisicalCertificatePolicyParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalCertificatePolicyParameters.PolicyId  = $GetInfisicalCertificatePolicyListResult[0].Id
+$GetInfisicalCertificatePolicyParameters.ProjectId = $ConnectInfisicalParameters.ProjectId
+$GetInfisicalCertificatePolicyParameters.Verbose   = $True
+
+$GetInfisicalCertificatePolicyResult = Get-InfisicalCertificatePolicy @GetInfisicalCertificatePolicyParameters</dev:code>
+        <dev:remarks><maml:para>Filters policies whose name equals 'codesigning' and refetches the canonical record for the first match using a splatted parameter set.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
       <command:name>Search-InfisicalCertificate</command:name>
       <maml:description><maml:para>Searches Infisical certificates with advanced filters and automatic paging.</maml:para></maml:description>
       <command:verb>Search</command:verb>
@@ -1180,7 +1269,7 @@ $SearchInfisicalCertificateResult = Search-InfisicalCertificate @SearchInfisical
       <command:noun>InfisicalCertificate</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Generates a keypair locally, builds a CSR, and submits it for signing either via a PKI subscriber (-PkiSubscriberSlug, default parameter set) or by direct CA signing (-CertificateAuthorityId). On subsequent runs an existing certificate whose CN matches and whose remaining lifetime exceeds -RenewalThresholdDays is reused; pass -Force to always issue or -AllowRenewal to allow rotation inside the threshold. Optional flags install the leaf (-Install) and chain (-InstallChain) into a Windows certificate store, and control private-key protection (-PrivateKeyProtection, -PersistKey, -MachineKey, -PrivateKeyPath, -KeyStorageFlags). Honors -WhatIf and -Confirm.</maml:para>
+      <maml:para>Generates a keypair locally, builds a CSR, and submits it for signing via one of three parameter sets: a PKI subscriber (-PkiSubscriberSlug, default), direct CA signing (-CertificateAuthorityId), or a certificate profile (-CertificateProfileId, POSTs to /api/v1/cert-manager/certificates with the profile bound). On subsequent runs an existing certificate whose CN matches and whose remaining lifetime exceeds -RenewalThresholdDays is reused; pass -Force to always issue or -AllowRenewal to allow rotation inside the threshold. Optional flags install the leaf (-Install) and chain (-InstallChain) into a Windows certificate store, and control private-key protection (-PrivateKeyProtection, -PersistKey, -MachineKey, -PrivateKeyPath, -KeyStorageFlags). Honors -WhatIf and -Confirm.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -1216,6 +1305,12 @@ $RequestInfisicalCertificateParameters.Verbose              = $True
 
 $RequestInfisicalCertificateResult = Request-InfisicalCertificate @RequestInfisicalCertificateParameters</dev:code>
         <dev:remarks><maml:para>Issues (or renews within 30 days) a 3072-bit RSA certificate for the local FQDN, installs the leaf and chain into LocalMachine\My with a non-exportable machine-bound persistent key.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$Profile = Get-InfisicalCertificateProfile | Where-Object { $_.Slug -eq 'web-tier-profile' }
+Request-InfisicalCertificate -CertificateProfileId $Profile.Id -CommonName 'web01.contoso.com' -Ttl '90d'</dev:code>
+        <dev:remarks><maml:para>Issues a certificate via the modern profile API (POST /api/v1/cert-manager/certificates). The profile binds the CA, policy, and defaults so no subscriber is required.</maml:para></dev:remarks>
       </command:example>
     </command:examples>
   </command:command>
