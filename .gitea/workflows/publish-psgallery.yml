@@ -41,7 +41,7 @@ jobs:
           Write-Host "Manifest OK: $($manifest.Name) $($manifest.Version)"
 
       - name: Upload module artifact
-        uses: actions/upload-artifact@v4
+        uses: christopherhx/gitea-upload-artifact@v4
         with:
           name: PSInfisicalAPI-module
           path: Module/PSInfisicalAPI
@@ -71,7 +71,7 @@ jobs:
           Write-Host ("pwsh: " + (pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'))
 
       - name: Download module artifact
-        uses: actions/download-artifact@v4
+        uses: christopherhx/gitea-download-artifact@v4
         with:
           name: PSInfisicalAPI-module
           path: Module/PSInfisicalAPI
@@ -213,7 +213,7 @@ jobs:
           Write-Host ("pwsh: " + (pwsh -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'))
 
       - name: Download module artifact
-        uses: actions/download-artifact@v4
+        uses: christopherhx/gitea-download-artifact@v4
         with:
           name: PSInfisicalAPI-module
           path: Module/PSInfisicalAPI

@@ -31,5 +31,63 @@
         </TableRowEntries>
       </TableControl>
     </View>
+    <View>
+      <Name>PSInfisicalAPI.Models.InfisicalCertificateAuthority</Name>
+      <ViewSelectedBy>
+        <TypeName>PSInfisicalAPI.Models.InfisicalCertificateAuthority</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>Name</Label><Width>28</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CommonName</Label><Width>32</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Type</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>KeyAlgorithm</Label><Width>14</Width></TableColumnHeader>
+          <TableColumnHeader><Label>NotAfter</Label><Width>22</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>Name</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>CommonName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Type</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Status</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>KeyAlgorithm</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>NotAfter</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <View>
+      <Name>PSInfisicalAPI.Models.InfisicalCertificate</Name>
+      <ViewSelectedBy>
+        <TypeName>PSInfisicalAPI.Models.InfisicalCertificate</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader><Label>CommonName</Label><Width>32</Width></TableColumnHeader>
+          <TableColumnHeader><Label>FriendlyName</Label><Width>24</Width></TableColumnHeader>
+          <TableColumnHeader><Label>Status</Label><Width>10</Width></TableColumnHeader>
+          <TableColumnHeader><Label>SerialNumber</Label><Width>20</Width></TableColumnHeader>
+          <TableColumnHeader><Label>NotAfterUtc</Label><Width>22</Width></TableColumnHeader>
+          <TableColumnHeader><Label>HasKey</Label><Width>6</Width></TableColumnHeader>
+          <TableColumnHeader><Label>CaName</Label><Width>18</Width></TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem><PropertyName>CommonName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>FriendlyName</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>Status</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>SerialNumber</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>NotAfterUtc</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>HasPrivateKey</PropertyName></TableColumnItem>
+              <TableColumnItem><PropertyName>CaName</PropertyName></TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>

@@ -43,5 +43,11 @@ namespace PSInfisicalAPI.Endpoints
         public const string CreateTag = "CreateTag";
         public const string UpdateTag = "UpdateTag";
         public const string DeleteTag = "DeleteTag";
+
+        public const string ListInternalCertificateAuthorities = "ListInternalCertificateAuthorities";
+        public const string RetrieveInternalCertificateAuthority = "RetrieveInternalCertificateAuthority";
+        public const string SearchCertificates = "SearchCertificates";
+        public const string RetrieveCertificate = "RetrieveCertificate";
+        public const string GetCertificateBundle = "GetCertificateBundle";
     }
 }

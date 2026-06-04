@@ -43,6 +43,53 @@ namespace PSInfisicalAPI.Http
             throw exception;
         }
 
+        public InfisicalHttpResponse InvokeWithCandidateFallback(
+            InfisicalConnection connection,
+            string endpointName,
+            string operationName,
+            IDictionary<string, string> pathParameters,
+            IEnumerable<KeyValuePair<string, string>> queryParameters,
+            string body)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(endpointName)) { throw new ArgumentNullException(nameof(endpointName)); }
+
+            IReadOnlyList<InfisicalEndpointDefinition> candidates = InfisicalEndpointRegistry.GetCandidates(endpointName);
+            InfisicalApiException lastException = null;
+
+            for (int index = 0; index < candidates.Count; index++)
+            {
+                InfisicalEndpointDefinition definition = candidates[index];
+                Uri uri = InfisicalUriBuilder.Build(connection.BaseUri, definition, pathParameters, queryParameters);
+                InfisicalHttpResponse response = ExecuteAuthorized(connection, definition, operationName, uri, body);
+
+                if (response.StatusCode >= 200 && response.StatusCode < 300)
+                {
+                    return response;
+                }
+
+                InfisicalApiException exception = BuildApiException(response, definition);
+                response.Clear();
+
+                bool hasMoreCandidates = (index + 1) < candidates.Count;
+                if (hasMoreCandidates && IsRouteAliasMismatch(exception))
+                {
+                    lastException = exception;
+                    continue;
+                }
+
+                throw exception;
+            }
+
+            throw lastException ?? new InfisicalApiException(string.Concat(
+                "All route candidates exhausted for '", endpointName, "'."));
+        }
+
+        private static bool IsRouteAliasMismatch(InfisicalApiException exception)
+        {
+            return exception.StatusCode == 404 || exception.StatusCode == 405;
+        }
+
         private InfisicalHttpResponse ExecuteAuthorized(
             InfisicalConnection connection,
             InfisicalEndpointDefinition definition,
