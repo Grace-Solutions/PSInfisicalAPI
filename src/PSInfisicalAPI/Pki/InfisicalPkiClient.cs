@@ -300,6 +300,66 @@ namespace PSInfisicalAPI.Pki
             };
         }
 
+        public InfisicalSignedCertificate IssueCertificateByProfile(InfisicalConnection connection, string profileId, string csrPem, string commonName, string organization, string organizationalUnit, string country, string state, string locality, string ttl, string notBefore, string notAfter, IEnumerable<string> keyUsages, IEnumerable<string> extendedKeyUsages)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(profileId)) { throw new InfisicalConfigurationException("CertificateProfileId is required."); }
+            if (string.IsNullOrEmpty(csrPem)) { throw new InfisicalConfigurationException("CSR is required."); }
+
+            InfisicalIssueCertificateAttributesDto attributes = new InfisicalIssueCertificateAttributesDto
+            {
+                CommonName = commonName,
+                Organization = organization,
+                OrganizationalUnit = organizationalUnit,
+                Country = country,
+                State = state,
+                Locality = locality,
+                Ttl = ttl,
+                NotBefore = notBefore,
+                NotAfter = notAfter,
+                KeyUsages = keyUsages != null ? new List<string>(keyUsages) : null,
+                ExtendedKeyUsages = extendedKeyUsages != null ? new List<string>(extendedKeyUsages) : null
+            };
+
+            InfisicalIssueCertificateByProfileRequestDto request = new InfisicalIssueCertificateByProfileRequestDto
+            {
+                ProfileId = profileId,
+                Csr = csrPem,
+                Attributes = attributes
+            };
+            string body = _serializer.Serialize(request);
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to issue certificate via profile '", profileId, "'. Please Wait..."));
+                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.IssueCertificateByProfile, "IssueCertificateByProfile", null, null, body);
+                InfisicalIssueCertificateResponseDto dto = _serializer.Deserialize<InfisicalIssueCertificateResponseDto>(response.Body);
+                response.Clear();
+
+                if (dto == null || dto.Certificate == null || string.IsNullOrEmpty(dto.Certificate.Certificate))
+                {
+                    string status = dto != null ? dto.Status : "unknown";
+                    string message = dto != null ? dto.Message : null;
+                    throw new InfisicalConfigurationException(string.Concat("Certificate was not issued (status='", status ?? "unknown", "'", string.IsNullOrEmpty(message) ? "" : string.Concat(", message='", message, "'"), "). The certificate profile may require manual approval or additional validation."));
+                }
+
+                InfisicalSignedCertificate signed = new InfisicalSignedCertificate
+                {
+                    SerialNumber = dto.Certificate.SerialNumber,
+                    CertificatePem = dto.Certificate.Certificate,
+                    CertificateChainPem = dto.Certificate.CertificateChain,
+                    IssuingCaCertificatePem = dto.Certificate.IssuingCaCertificate
+                };
+                _logger.Information(Component, "Infisical certificate issuance (profile) was successful.");
+                return signed;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate issuance (profile) failed.");
+                throw;
+            }
+        }
+
         public InfisicalPkiSubscriber[] ListPkiSubscribers(InfisicalConnection connection, string projectId)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }

@@ -1269,7 +1269,7 @@ $SearchInfisicalCertificateResult = Search-InfisicalCertificate @SearchInfisical
       <command:noun>InfisicalCertificate</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Generates a keypair locally, builds a CSR, and submits it for signing either via a PKI subscriber (-PkiSubscriberSlug, default parameter set) or by direct CA signing (-CertificateAuthorityId). On subsequent runs an existing certificate whose CN matches and whose remaining lifetime exceeds -RenewalThresholdDays is reused; pass -Force to always issue or -AllowRenewal to allow rotation inside the threshold. Optional flags install the leaf (-Install) and chain (-InstallChain) into a Windows certificate store, and control private-key protection (-PrivateKeyProtection, -PersistKey, -MachineKey, -PrivateKeyPath, -KeyStorageFlags). Honors -WhatIf and -Confirm.</maml:para>
+      <maml:para>Generates a keypair locally, builds a CSR, and submits it for signing via one of three parameter sets: a PKI subscriber (-PkiSubscriberSlug, default), direct CA signing (-CertificateAuthorityId), or a certificate profile (-CertificateProfileId, POSTs to /api/v1/cert-manager/certificates with the profile bound). On subsequent runs an existing certificate whose CN matches and whose remaining lifetime exceeds -RenewalThresholdDays is reused; pass -Force to always issue or -AllowRenewal to allow rotation inside the threshold. Optional flags install the leaf (-Install) and chain (-InstallChain) into a Windows certificate store, and control private-key protection (-PrivateKeyProtection, -PersistKey, -MachineKey, -PrivateKeyPath, -KeyStorageFlags). Honors -WhatIf and -Confirm.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -1305,6 +1305,12 @@ $RequestInfisicalCertificateParameters.Verbose              = $True
 
 $RequestInfisicalCertificateResult = Request-InfisicalCertificate @RequestInfisicalCertificateParameters</dev:code>
         <dev:remarks><maml:para>Issues (or renews within 30 days) a 3072-bit RSA certificate for the local FQDN, installs the leaf and chain into LocalMachine\My with a non-exportable machine-bound persistent key.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$Profile = Get-InfisicalCertificateProfile | Where-Object { $_.Slug -eq 'web-tier-profile' }
+Request-InfisicalCertificate -CertificateProfileId $Profile.Id -CommonName 'web01.contoso.com' -Ttl '90d'</dev:code>
+        <dev:remarks><maml:para>Issues a certificate via the modern profile API (POST /api/v1/cert-manager/certificates). The profile binds the CA, policy, and defaults so no subscriber is required.</maml:para></dev:remarks>
       </command:example>
     </command:examples>
   </command:command>

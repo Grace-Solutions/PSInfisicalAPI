@@ -23,6 +23,10 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("CaId")]
         public string CertificateAuthorityId { get; set; }
 
+        [Parameter(ParameterSetName = "ByProfile", Mandatory = true, Position = 0)]
+        [Alias("ProfileId")]
+        public string CertificateProfileId { get; set; }
+
         [Parameter] public string ProjectId { get; set; }
         [Parameter] public IDictionary Subject { get; set; }
         [Parameter] public string CommonName { get; set; }
@@ -38,13 +42,18 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter] public int KeySize { get; set; } = 2048;
         [Parameter] public InfisicalEcCurve Curve { get; set; } = InfisicalEcCurve.P256;
 
-        [Parameter(ParameterSetName = "ByCa")] public string Ttl { get; set; }
-        [Parameter(ParameterSetName = "ByCa")] public string NotBefore { get; set; }
-        [Parameter(ParameterSetName = "ByCa")] public string NotAfter { get; set; }
+        [Parameter(ParameterSetName = "ByCa")]
+        [Parameter(ParameterSetName = "ByProfile")] public string Ttl { get; set; }
+        [Parameter(ParameterSetName = "ByCa")]
+        [Parameter(ParameterSetName = "ByProfile")] public string NotBefore { get; set; }
+        [Parameter(ParameterSetName = "ByCa")]
+        [Parameter(ParameterSetName = "ByProfile")] public string NotAfter { get; set; }
         [Parameter(ParameterSetName = "ByCa")] public string FriendlyName { get; set; }
         [Parameter(ParameterSetName = "ByCa")] public string PkiCollectionId { get; set; }
-        [Parameter(ParameterSetName = "ByCa")] public string[] KeyUsage { get; set; }
-        [Parameter(ParameterSetName = "ByCa")] public string[] ExtendedKeyUsage { get; set; }
+        [Parameter(ParameterSetName = "ByCa")]
+        [Parameter(ParameterSetName = "ByProfile")] public string[] KeyUsage { get; set; }
+        [Parameter(ParameterSetName = "ByCa")]
+        [Parameter(ParameterSetName = "ByProfile")] public string[] ExtendedKeyUsage { get; set; }
 
         [Parameter] public SwitchParameter Install { get; set; }
         [Parameter] public StoreName StoreName { get; set; } = StoreName.My;
@@ -104,7 +113,7 @@ namespace PSInfisicalAPI.Cmdlets
                     return;
                 }
 
-                string target = string.Concat("PKI subscriber '", PkiSubscriberSlug ?? "(n/a)", "' or CA '", CertificateAuthorityId ?? "(n/a)", "' for CN=", csrSubject.CommonName);
+                string target = string.Concat("PKI subscriber '", PkiSubscriberSlug ?? "(n/a)", "', CA '", CertificateAuthorityId ?? "(n/a)", "', or profile '", CertificateProfileId ?? "(n/a)", "' for CN=", csrSubject.CommonName);
                 if (!ShouldProcess(target, "Request new certificate")) { return; }
 
                 InfisicalCsrOptions csrOptions = new InfisicalCsrOptions { KeyAlgorithm = KeyAlgorithm, RsaKeySize = KeySize, EcCurve = Curve };
@@ -196,6 +205,12 @@ namespace PSInfisicalAPI.Cmdlets
             if (string.Equals(ParameterSetName, "BySubscriber", StringComparison.Ordinal))
             {
                 return client.SignCertificateBySubscriber(connection, PkiSubscriberSlug, projectId, csrPem);
+            }
+
+            if (string.Equals(ParameterSetName, "ByProfile", StringComparison.Ordinal))
+            {
+                InfisicalCsrSubject subject = InfisicalCertificateRequestHelpers.MergeSubject(Subject, CommonName, Country, State, Locality, Organization, OrganizationalUnit, EmailAddress);
+                return client.IssueCertificateByProfile(connection, CertificateProfileId, csrPem, subject.CommonName, subject.Organization, subject.OrganizationalUnit, subject.Country, subject.State, subject.Locality, Ttl, NotBefore, NotAfter, KeyUsage, ExtendedKeyUsage);
             }
 
             return client.SignCertificateByCa(connection, CertificateAuthorityId, csrPem, CommonName, null, Ttl, NotBefore, NotAfter, FriendlyName, PkiCollectionId, KeyUsage, ExtendedKeyUsage);

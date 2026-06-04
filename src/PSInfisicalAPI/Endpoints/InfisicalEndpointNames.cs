@@ -51,6 +51,7 @@ namespace PSInfisicalAPI.Endpoints
         public const string GetCertificateBundle = "GetCertificateBundle";
         public const string SignCertificateBySubscriber = "SignCertificateBySubscriber";
         public const string SignCertificateByCa = "SignCertificateByCa";
+        public const string IssueCertificateByProfile = "IssueCertificateByProfile";
 
         public const string ListPkiSubscribers = "ListPkiSubscribers";
         public const string GetPkiSubscriber = "GetPkiSubscriber";

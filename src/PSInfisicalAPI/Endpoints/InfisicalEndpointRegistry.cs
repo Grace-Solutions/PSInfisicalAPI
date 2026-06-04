@@ -625,6 +625,17 @@ namespace PSInfisicalAPI.Endpoints
 
             Add(map, new InfisicalEndpointDefinition
             {
+                Name = InfisicalEndpointNames.IssueCertificateByProfile,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/cert-manager/certificates",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
                 Name = InfisicalEndpointNames.ListPkiSubscribers,
                 Resource = "Pki",
                 Version = "v1",

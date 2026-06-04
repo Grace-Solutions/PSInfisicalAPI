@@ -158,6 +158,7 @@ namespace PSInfisicalAPI.Tests
 
             Assert.NotNull(cmdletType.GetProperty("PkiSubscriberSlug"));
             Assert.NotNull(cmdletType.GetProperty("CertificateAuthorityId"));
+            Assert.NotNull(cmdletType.GetProperty("CertificateProfileId"));
             Assert.NotNull(cmdletType.GetProperty("Subject"));
             Assert.NotNull(cmdletType.GetProperty("CommonName"));
             Assert.NotNull(cmdletType.GetProperty("DnsName"));
