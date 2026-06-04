@@ -254,6 +254,7 @@ namespace PSInfisicalAPI.Secrets
             InfisicalSecretBatchCreateRequestDto dtoRequest = new InfisicalSecretBatchCreateRequestDto
             {
                 WorkspaceId = resolvedProjectId,
+                ProjectId = resolvedProjectId,
                 Environment = resolvedEnvironment,
                 SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
                 Secrets = items
@@ -309,6 +310,7 @@ namespace PSInfisicalAPI.Secrets
             InfisicalSecretBatchUpdateRequestDto dtoRequest = new InfisicalSecretBatchUpdateRequestDto
             {
                 WorkspaceId = resolvedProjectId,
+                ProjectId = resolvedProjectId,
                 Environment = resolvedEnvironment,
                 SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
                 Mode = request.Mode,
@@ -355,6 +357,7 @@ namespace PSInfisicalAPI.Secrets
             InfisicalSecretBatchDeleteRequestDto dtoRequest = new InfisicalSecretBatchDeleteRequestDto
             {
                 WorkspaceId = resolvedProjectId,
+                ProjectId = resolvedProjectId,
                 Environment = resolvedEnvironment,
                 SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
                 Secrets = items

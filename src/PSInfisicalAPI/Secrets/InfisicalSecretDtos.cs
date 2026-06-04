@@ -117,7 +117,8 @@ namespace PSInfisicalAPI.Secrets
 
     internal sealed class InfisicalSecretBatchCreateRequestDto
     {
-        [JsonProperty("workspaceId")] public string WorkspaceId { get; set; }
+        [JsonProperty("workspaceId", NullValueHandling = NullValueHandling.Ignore)] public string WorkspaceId { get; set; }
+        [JsonProperty("projectId", NullValueHandling = NullValueHandling.Ignore)] public string ProjectId { get; set; }
         [JsonProperty("environment")] public string Environment { get; set; }
         [JsonProperty("secretPath", NullValueHandling = NullValueHandling.Ignore)] public string SecretPath { get; set; }
         [JsonProperty("secrets")] public List<InfisicalSecretBatchCreateItemDto> Secrets { get; set; }
@@ -125,7 +126,8 @@ namespace PSInfisicalAPI.Secrets
 
     internal sealed class InfisicalSecretBatchUpdateRequestDto
     {
-        [JsonProperty("workspaceId")] public string WorkspaceId { get; set; }
+        [JsonProperty("workspaceId", NullValueHandling = NullValueHandling.Ignore)] public string WorkspaceId { get; set; }
+        [JsonProperty("projectId", NullValueHandling = NullValueHandling.Ignore)] public string ProjectId { get; set; }
         [JsonProperty("environment")] public string Environment { get; set; }
         [JsonProperty("secretPath", NullValueHandling = NullValueHandling.Ignore)] public string SecretPath { get; set; }
         [JsonProperty("mode", NullValueHandling = NullValueHandling.Ignore)] public string Mode { get; set; }
@@ -134,7 +136,8 @@ namespace PSInfisicalAPI.Secrets
 
     internal sealed class InfisicalSecretBatchDeleteRequestDto
     {
-        [JsonProperty("workspaceId")] public string WorkspaceId { get; set; }
+        [JsonProperty("workspaceId", NullValueHandling = NullValueHandling.Ignore)] public string WorkspaceId { get; set; }
+        [JsonProperty("projectId", NullValueHandling = NullValueHandling.Ignore)] public string ProjectId { get; set; }
         [JsonProperty("environment")] public string Environment { get; set; }
         [JsonProperty("secretPath", NullValueHandling = NullValueHandling.Ignore)] public string SecretPath { get; set; }
         [JsonProperty("secrets")] public List<InfisicalSecretBatchDeleteItemDto> Secrets { get; set; }

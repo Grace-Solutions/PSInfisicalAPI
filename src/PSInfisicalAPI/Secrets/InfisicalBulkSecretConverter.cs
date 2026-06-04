@@ -1,29 +1,27 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using PSInfisicalAPI.Errors;
-using PSInfisicalAPI.Security;
 
 namespace PSInfisicalAPI.Secrets
 {
     public static class InfisicalBulkSecretConverter
     {
-        public static InfisicalBulkCreateSecretItem[] ToCreateItems(IEnumerable input)
+        public static InfisicalBulkCreateSecretItem[] ToCreateItems(IEnumerable<IDictionary<string, string>> input)
         {
             if (input == null) { return new InfisicalBulkCreateSecretItem[0]; }
 
             List<InfisicalBulkCreateSecretItem> list = new List<InfisicalBulkCreateSecretItem>();
-            foreach (object element in input)
+            foreach (IDictionary<string, string> entry in input)
             {
-                Hashtable table = AsHashtable(element);
+                if (entry == null) { continue; }
+                IDictionary<string, string> table = Normalize(entry);
                 InfisicalBulkCreateSecretItem item = new InfisicalBulkCreateSecretItem
                 {
                     SecretName = GetString(table, "SecretName", "Name", "Key", "SecretKey"),
-                    SecretValue = GetSecretValue(table, "SecretValue", "Value"),
+                    SecretValue = GetString(table, "SecretValue", "Value"),
                     SecretComment = GetString(table, "SecretComment", "Comment"),
                     SkipMultilineEncoding = GetBool(table, "SkipMultilineEncoding"),
-                    TagIds = GetStringArray(table, "TagIds"),
-                    SecretMetadata = GetStringDictionary(table, "SecretMetadata", "Metadata")
+                    TagIds = GetStringArray(table, "TagIds")
                 };
 
                 if (string.IsNullOrEmpty(item.SecretName))
@@ -37,23 +35,23 @@ namespace PSInfisicalAPI.Secrets
             return list.ToArray();
         }
 
-        public static InfisicalBulkUpdateSecretItem[] ToUpdateItems(IEnumerable input)
+        public static InfisicalBulkUpdateSecretItem[] ToUpdateItems(IEnumerable<IDictionary<string, string>> input)
         {
             if (input == null) { return new InfisicalBulkUpdateSecretItem[0]; }
 
             List<InfisicalBulkUpdateSecretItem> list = new List<InfisicalBulkUpdateSecretItem>();
-            foreach (object element in input)
+            foreach (IDictionary<string, string> entry in input)
             {
-                Hashtable table = AsHashtable(element);
+                if (entry == null) { continue; }
+                IDictionary<string, string> table = Normalize(entry);
                 InfisicalBulkUpdateSecretItem item = new InfisicalBulkUpdateSecretItem
                 {
                     SecretName = GetString(table, "SecretName", "Name", "Key", "SecretKey"),
                     NewSecretName = GetString(table, "NewSecretName", "NewName"),
-                    SecretValue = GetSecretValue(table, "SecretValue", "Value"),
+                    SecretValue = GetString(table, "SecretValue", "Value"),
                     SecretComment = GetString(table, "SecretComment", "Comment"),
                     SkipMultilineEncoding = GetBool(table, "SkipMultilineEncoding"),
-                    TagIds = GetStringArray(table, "TagIds"),
-                    SecretMetadata = GetStringDictionary(table, "SecretMetadata", "Metadata")
+                    TagIds = GetStringArray(table, "TagIds")
                 };
 
                 if (string.IsNullOrEmpty(item.SecretName))
@@ -67,98 +65,53 @@ namespace PSInfisicalAPI.Secrets
             return list.ToArray();
         }
 
-        private static Hashtable AsHashtable(object element)
+        private static IDictionary<string, string> Normalize(IDictionary<string, string> source)
         {
-            if (element is Hashtable hashtable) { return hashtable; }
-            if (element is IDictionary dictionary)
+            Dictionary<string, string> normalized = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (KeyValuePair<string, string> kvp in source)
             {
-                Hashtable converted = new Hashtable(StringComparer.OrdinalIgnoreCase);
-                foreach (DictionaryEntry entry in dictionary)
-                {
-                    if (entry.Key == null) { continue; }
-                    converted[entry.Key.ToString()] = entry.Value;
-                }
-
-                return converted;
+                if (string.IsNullOrEmpty(kvp.Key)) { continue; }
+                normalized[kvp.Key] = kvp.Value;
             }
 
-            throw new InfisicalConfigurationException("Bulk secret entries must be Hashtable or IDictionary values.");
+            return normalized;
         }
 
-        private static string GetString(Hashtable table, params string[] keys)
+        private static string GetString(IDictionary<string, string> table, params string[] keys)
         {
             foreach (string key in keys)
             {
-                if (table.ContainsKey(key) && table[key] != null)
+                string value;
+                if (table.TryGetValue(key, out value) && !string.IsNullOrEmpty(value))
                 {
-                    return table[key].ToString();
+                    return value;
                 }
             }
 
             return null;
         }
 
-        private static string GetSecretValue(Hashtable table, params string[] keys)
+        private static bool? GetBool(IDictionary<string, string> table, string key)
         {
-            foreach (string key in keys)
-            {
-                if (!table.ContainsKey(key)) { continue; }
-                object value = table[key];
-                if (value == null) { return null; }
-                if (value is System.Security.SecureString secure)
-                {
-                    return SecureStringUtility.UsePlainText(secure, plain => plain);
-                }
-
-                return value.ToString();
-            }
-
-            return null;
-        }
-
-        private static bool? GetBool(Hashtable table, string key)
-        {
-            if (!table.ContainsKey(key) || table[key] == null) { return null; }
-            object value = table[key];
-            if (value is bool b) { return b; }
+            string value;
+            if (!table.TryGetValue(key, out value) || string.IsNullOrEmpty(value)) { return null; }
             bool parsed;
-            return bool.TryParse(value.ToString(), out parsed) ? parsed : (bool?)null;
+            return bool.TryParse(value, out parsed) ? parsed : (bool?)null;
         }
 
-        private static string[] GetStringArray(Hashtable table, string key)
+        private static string[] GetStringArray(IDictionary<string, string> table, string key)
         {
-            if (!table.ContainsKey(key) || table[key] == null) { return null; }
-            object value = table[key];
-            if (value is string[] direct) { return direct; }
-            if (value is IEnumerable enumerable && !(value is string))
+            string value;
+            if (!table.TryGetValue(key, out value) || string.IsNullOrEmpty(value)) { return null; }
+            string[] parts = value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            List<string> trimmed = new List<string>(parts.Length);
+            foreach (string part in parts)
             {
-                List<string> items = new List<string>();
-                foreach (object item in enumerable) { if (item != null) { items.Add(item.ToString()); } }
-                return items.ToArray();
+                string item = part.Trim();
+                if (!string.IsNullOrEmpty(item)) { trimmed.Add(item); }
             }
 
-            return new[] { value.ToString() };
-        }
-
-        private static Dictionary<string, string> GetStringDictionary(Hashtable table, params string[] keys)
-        {
-            foreach (string key in keys)
-            {
-                if (!table.ContainsKey(key) || table[key] == null) { continue; }
-                if (table[key] is IDictionary dictionary)
-                {
-                    Dictionary<string, string> result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                    foreach (DictionaryEntry entry in dictionary)
-                    {
-                        if (entry.Key == null) { continue; }
-                        result[entry.Key.ToString()] = entry.Value != null ? entry.Value.ToString() : null;
-                    }
-
-                    return result;
-                }
-            }
-
-            return null;
+            return trimmed.Count == 0 ? null : trimmed.ToArray();
         }
     }
 }

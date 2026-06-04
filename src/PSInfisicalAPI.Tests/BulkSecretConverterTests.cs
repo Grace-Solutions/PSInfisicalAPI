@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Collections.Generic;
 using PSInfisicalAPI.Errors;
 using PSInfisicalAPI.Secrets;
 using Xunit;
@@ -10,16 +10,16 @@ namespace PSInfisicalAPI.Tests
         [Fact]
         public void ToCreateItems_Maps_Standard_Keys()
         {
-            Hashtable entry = new Hashtable
+            Dictionary<string, string> entry = new Dictionary<string, string>
             {
                 { "SecretName", "API_KEY" },
                 { "SecretValue", "abc" },
                 { "SecretComment", "primary" },
-                { "SkipMultilineEncoding", true },
-                { "TagIds", new[] { "tag-1", "tag-2" } }
+                { "SkipMultilineEncoding", "true" },
+                { "TagIds", "tag-1,tag-2" }
             };
 
-            InfisicalBulkCreateSecretItem[] items = InfisicalBulkSecretConverter.ToCreateItems(new[] { entry });
+            InfisicalBulkCreateSecretItem[] items = InfisicalBulkSecretConverter.ToCreateItems(new IDictionary<string, string>[] { entry });
             Assert.Single(items);
             Assert.Equal("API_KEY", items[0].SecretName);
             Assert.Equal("abc", items[0].SecretValue);
@@ -31,13 +31,13 @@ namespace PSInfisicalAPI.Tests
         [Fact]
         public void ToCreateItems_Accepts_Name_Alias_For_SecretName()
         {
-            Hashtable entry = new Hashtable
+            Dictionary<string, string> entry = new Dictionary<string, string>
             {
                 { "Name", "API_KEY" },
                 { "Value", "abc" }
             };
 
-            InfisicalBulkCreateSecretItem[] items = InfisicalBulkSecretConverter.ToCreateItems(new[] { entry });
+            InfisicalBulkCreateSecretItem[] items = InfisicalBulkSecretConverter.ToCreateItems(new IDictionary<string, string>[] { entry });
             Assert.Single(items);
             Assert.Equal("API_KEY", items[0].SecretName);
             Assert.Equal("abc", items[0].SecretValue);
@@ -46,23 +46,23 @@ namespace PSInfisicalAPI.Tests
         [Fact]
         public void ToCreateItems_Without_SecretName_Throws()
         {
-            Hashtable entry = new Hashtable { { "Value", "abc" } };
+            Dictionary<string, string> entry = new Dictionary<string, string> { { "Value", "abc" } };
 
             Assert.Throws<InfisicalConfigurationException>(() =>
-                InfisicalBulkSecretConverter.ToCreateItems(new[] { entry }));
+                InfisicalBulkSecretConverter.ToCreateItems(new IDictionary<string, string>[] { entry }));
         }
 
         [Fact]
         public void ToUpdateItems_Maps_NewSecretName()
         {
-            Hashtable entry = new Hashtable
+            Dictionary<string, string> entry = new Dictionary<string, string>
             {
                 { "SecretName", "API_KEY" },
                 { "NewSecretName", "RENAMED" },
                 { "SecretValue", "new-value" }
             };
 
-            InfisicalBulkUpdateSecretItem[] items = InfisicalBulkSecretConverter.ToUpdateItems(new[] { entry });
+            InfisicalBulkUpdateSecretItem[] items = InfisicalBulkSecretConverter.ToUpdateItems(new IDictionary<string, string>[] { entry });
             Assert.Single(items);
             Assert.Equal("API_KEY", items[0].SecretName);
             Assert.Equal("RENAMED", items[0].NewSecretName);
@@ -70,20 +70,17 @@ namespace PSInfisicalAPI.Tests
         }
 
         [Fact]
-        public void ToCreateItems_Maps_Metadata_Dictionary()
+        public void ToCreateItems_Trims_TagId_Whitespace_And_Skips_Empty()
         {
-            Hashtable meta = new Hashtable { { "owner", "platform" }, { "tier", "1" } };
-            Hashtable entry = new Hashtable
+            Dictionary<string, string> entry = new Dictionary<string, string>
             {
                 { "SecretName", "API_KEY" },
                 { "SecretValue", "abc" },
-                { "Metadata", meta }
+                { "TagIds", " tag-1 , , tag-2 " }
             };
 
-            InfisicalBulkCreateSecretItem[] items = InfisicalBulkSecretConverter.ToCreateItems(new[] { entry });
-            Assert.NotNull(items[0].SecretMetadata);
-            Assert.Equal("platform", items[0].SecretMetadata["owner"]);
-            Assert.Equal("1", items[0].SecretMetadata["tier"]);
+            InfisicalBulkCreateSecretItem[] items = InfisicalBulkSecretConverter.ToCreateItems(new IDictionary<string, string>[] { entry });
+            Assert.Equal(new[] { "tag-1", "tag-2" }, items[0].TagIds);
         }
 
         [Fact]

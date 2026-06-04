@@ -202,6 +202,18 @@ namespace PSInfisicalAPI.Endpoints
             {
                 Name = InfisicalEndpointNames.BulkCreateSecret,
                 Resource = "Secrets",
+                Version = "v4",
+                Method = "POST",
+                Template = "/api/v4/secrets/batch",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.BulkCreateSecret,
+                Resource = "Secrets",
                 Version = "v3",
                 Method = "POST",
                 Template = "/api/v3/secrets/batch/raw",
@@ -214,9 +226,33 @@ namespace PSInfisicalAPI.Endpoints
             {
                 Name = InfisicalEndpointNames.BulkUpdateSecret,
                 Resource = "Secrets",
+                Version = "v4",
+                Method = "PATCH",
+                Template = "/api/v4/secrets/batch",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.BulkUpdateSecret,
+                Resource = "Secrets",
                 Version = "v3",
                 Method = "PATCH",
                 Template = "/api/v3/secrets/batch/raw",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInRequest = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.BulkDeleteSecret,
+                Resource = "Secrets",
+                Version = "v4",
+                Method = "DELETE",
+                Template = "/api/v4/secrets/batch",
                 RequiresAuthorization = true,
                 ContainsSecretMaterialInRequest = true,
                 ContainsSecretMaterialInResponse = true

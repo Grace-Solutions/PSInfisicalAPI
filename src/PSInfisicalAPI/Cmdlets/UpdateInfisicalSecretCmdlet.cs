@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.Management.Automation;
 using System.Security;
 using PSInfisicalAPI.Connections;
@@ -21,7 +21,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter(ParameterSetName = "SecureString")] public SecureString SecureSecretValue { get; set; }
 
         [Parameter(Mandatory = true, Position = 0, ParameterSetName = "Bulk", ValueFromPipeline = true)]
-        public Hashtable[] Secrets { get; set; }
+        public IDictionary<string, string>[] Secrets { get; set; }
 
         [Parameter] public string NewSecretName { get; set; }
         [Parameter] public string SecretComment { get; set; }

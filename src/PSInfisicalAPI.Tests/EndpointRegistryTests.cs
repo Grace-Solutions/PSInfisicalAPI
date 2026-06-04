@@ -71,15 +71,29 @@ namespace PSInfisicalAPI.Tests
         [InlineData(InfisicalEndpointNames.LdapAuthLogin, "POST", "/api/v1/auth/ldap-auth/login")]
         [InlineData(InfisicalEndpointNames.AzureAuthLogin, "POST", "/api/v1/auth/azure-auth/login")]
         [InlineData(InfisicalEndpointNames.GcpIamAuthLogin, "POST", "/api/v1/auth/gcp-auth/login")]
-        [InlineData(InfisicalEndpointNames.BulkCreateSecret, "POST", "/api/v3/secrets/batch/raw")]
-        [InlineData(InfisicalEndpointNames.BulkUpdateSecret, "PATCH", "/api/v3/secrets/batch/raw")]
-        [InlineData(InfisicalEndpointNames.BulkDeleteSecret, "DELETE", "/api/v3/secrets/batch/raw")]
+        [InlineData(InfisicalEndpointNames.BulkCreateSecret, "POST", "/api/v4/secrets/batch")]
+        [InlineData(InfisicalEndpointNames.BulkUpdateSecret, "PATCH", "/api/v4/secrets/batch")]
+        [InlineData(InfisicalEndpointNames.BulkDeleteSecret, "DELETE", "/api/v4/secrets/batch")]
         [InlineData(InfisicalEndpointNames.DuplicateSecret, "POST", "/api/v4/secrets/duplicate")]
         public void Registered_Endpoints_Have_Expected_Shape(string name, string method, string template)
         {
             InfisicalEndpointDefinition definition = InfisicalEndpointRegistry.Get(name);
             Assert.Equal(method, definition.Method);
             Assert.Equal(template, definition.Template);
+        }
+
+        [Theory]
+        [InlineData(InfisicalEndpointNames.BulkCreateSecret, "POST", "/api/v3/secrets/batch/raw")]
+        [InlineData(InfisicalEndpointNames.BulkUpdateSecret, "PATCH", "/api/v3/secrets/batch/raw")]
+        [InlineData(InfisicalEndpointNames.BulkDeleteSecret, "DELETE", "/api/v3/secrets/batch/raw")]
+        public void Bulk_Endpoints_Retain_V3_Fallback_Candidate(string name, string method, string template)
+        {
+            System.Collections.Generic.IReadOnlyList<InfisicalEndpointDefinition> candidates = InfisicalEndpointRegistry.GetCandidates(name);
+            Assert.Equal(2, candidates.Count);
+            Assert.Equal("v4", candidates[0].Version);
+            Assert.Equal("v3", candidates[1].Version);
+            Assert.Equal(method, candidates[1].Method);
+            Assert.Equal(template, candidates[1].Template);
         }
     }
 }

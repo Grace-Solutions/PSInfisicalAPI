@@ -59,18 +59,45 @@ namespace PSInfisicalAPI.Tests
 
             object dto = MakeDto("PSInfisicalAPI.Secrets.InfisicalSecretBatchCreateRequestDto");
             dto.GetType().GetProperty("WorkspaceId").SetValue(dto, "wks-1");
+            dto.GetType().GetProperty("ProjectId").SetValue(dto, "wks-1");
             dto.GetType().GetProperty("Environment").SetValue(dto, "prod");
             dto.GetType().GetProperty("SecretPath").SetValue(dto, "/db");
             dto.GetType().GetProperty("Secrets").SetValue(dto, list);
 
             JObject json = JObject.Parse(JsonConvert.SerializeObject(dto));
             Assert.Equal("wks-1", (string)json["workspaceId"]);
+            Assert.Equal("wks-1", (string)json["projectId"]);
             Assert.Equal("prod", (string)json["environment"]);
             Assert.Equal("/db", (string)json["secretPath"]);
             JArray secrets = (JArray)json["secrets"];
             Assert.Single(secrets);
             Assert.Equal("K1", (string)secrets[0]["secretKey"]);
             Assert.Equal("V1", (string)secrets[0]["secretValue"]);
+        }
+
+        [Fact]
+        public void BatchCreateRequest_Omits_Null_WorkspaceId_When_Only_ProjectId_Set()
+        {
+            object dto = MakeDto("PSInfisicalAPI.Secrets.InfisicalSecretBatchCreateRequestDto");
+            dto.GetType().GetProperty("ProjectId").SetValue(dto, "wks-1");
+            dto.GetType().GetProperty("Environment").SetValue(dto, "prod");
+
+            JObject json = JObject.Parse(JsonConvert.SerializeObject(dto));
+            Assert.False(json.ContainsKey("workspaceId"));
+            Assert.Equal("wks-1", (string)json["projectId"]);
+        }
+
+        [Fact]
+        public void BatchUpdateRequest_Includes_ProjectId_Alongside_WorkspaceId()
+        {
+            object dto = MakeDto("PSInfisicalAPI.Secrets.InfisicalSecretBatchUpdateRequestDto");
+            dto.GetType().GetProperty("WorkspaceId").SetValue(dto, "wks-1");
+            dto.GetType().GetProperty("ProjectId").SetValue(dto, "wks-1");
+            dto.GetType().GetProperty("Environment").SetValue(dto, "prod");
+
+            JObject json = JObject.Parse(JsonConvert.SerializeObject(dto));
+            Assert.Equal("wks-1", (string)json["workspaceId"]);
+            Assert.Equal("wks-1", (string)json["projectId"]);
         }
 
         [Fact]
@@ -86,11 +113,13 @@ namespace PSInfisicalAPI.Tests
 
             object dto = MakeDto("PSInfisicalAPI.Secrets.InfisicalSecretBatchDeleteRequestDto");
             dto.GetType().GetProperty("WorkspaceId").SetValue(dto, "wks-1");
+            dto.GetType().GetProperty("ProjectId").SetValue(dto, "wks-1");
             dto.GetType().GetProperty("Environment").SetValue(dto, "prod");
             dto.GetType().GetProperty("Secrets").SetValue(dto, list);
 
             JObject json = JObject.Parse(JsonConvert.SerializeObject(dto));
             Assert.Equal("wks-1", (string)json["workspaceId"]);
+            Assert.Equal("wks-1", (string)json["projectId"]);
             JArray secrets = (JArray)json["secrets"];
             Assert.Single(secrets);
             Assert.Equal("K1", (string)secrets[0]["secretKey"]);

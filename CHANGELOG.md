@@ -6,10 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.04.0005
+
+- Build produced from commit e0a6ef02df3e.
+
+## Unreleased (carried forward)
+
+- **Bulk v4 batch routes**: Endpoint registry now registers `POST|PATCH|DELETE /api/v4/secrets/batch` as the preferred candidates for `BulkCreateSecret`/`BulkUpdateSecret`/`BulkDeleteSecret`; the existing v3 raw routes (`/api/v3/secrets/batch/raw`) remain as automatic fallback. Batch request DTOs serialize both `projectId` (required by v4) and `workspaceId` (accepted by v3) when populated.
+- **Strongly-typed bulk input**: `-Secrets` on `New-InfisicalSecret` and `Update-InfisicalSecret` is now `IDictionary<string, string>[]` instead of `Hashtable[]`. `InfisicalBulkSecretConverter` accepts `IEnumerable<IDictionary<string, string>>` and parses `TagIds` from a comma-separated string. Nested `Metadata`/`SecretMetadata` dictionaries are no longer accepted in the bulk hashtable surface (set `SecretMetadata` programmatically on `InfisicalBulkCreateSecretItem`/`InfisicalBulkUpdateSecretItem` if needed).
+
 ## 2026.06.03.2207
 
 - Build produced from commit 09c3d5c68bbc.
-- **M9 — Bulk, Duplicate & Inheritance**:
+- **M9 â€” Bulk, Duplicate & Inheritance**:
   - **Bulk parameter sets** added to `New-InfisicalSecret`, `Update-InfisicalSecret`, and `Remove-InfisicalSecret` accepting `-Secrets Hashtable[]`; client methods `CreateBatch`/`UpdateBatch`/`DeleteBatch` wrap `POST|PATCH|DELETE /api/v3/secrets/batch/raw`.
   - **`Copy-InfisicalSecret`** cmdlet added, wrapping `POST /api/v4/secrets/duplicate` with source/destination environment + path parameters and per-attribute copy toggles.
   - **Connection inheritance** centralized in `InfisicalCmdletBase` (`ResolveProjectId`/`ResolveEnvironment`/`ResolveSecretPath`/`ResolveApiVersion`/`ResolveOrganizationId`). Explicit parameters always win; missing values fall back to the active connection and emit a `-Verbose` line.
