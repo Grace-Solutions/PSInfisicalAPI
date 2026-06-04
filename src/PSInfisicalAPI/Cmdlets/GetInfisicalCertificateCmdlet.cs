@@ -6,13 +6,23 @@ using PSInfisicalAPI.Pki;
 
 namespace PSInfisicalAPI.Cmdlets
 {
-    [Cmdlet(VerbsCommon.Get, "InfisicalCertificate")]
+    [Cmdlet(VerbsCommon.Get, "InfisicalCertificate", DefaultParameterSetName = "List")]
     [OutputType(typeof(InfisicalCertificate))]
     public sealed class GetInfisicalCertificateCmdlet : InfisicalCmdletBase
     {
-        [Parameter(Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
+        [Parameter(ParameterSetName = "Single", Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
         [Alias("Id", "Identifier")]
         public string SerialNumber { get; set; }
+
+        [Parameter(ParameterSetName = "List")] public SwitchParameter List { get; set; }
+        [Parameter(ParameterSetName = "List")] public string ProjectId { get; set; }
+        [Parameter(ParameterSetName = "List")] public string CommonName { get; set; }
+        [Parameter(ParameterSetName = "List")] public string FriendlyName { get; set; }
+        [Parameter(ParameterSetName = "List")] public string Status { get; set; }
+        [Parameter(ParameterSetName = "List")] public string[] CaId { get; set; }
+        [Parameter(ParameterSetName = "List")] public int? Limit { get; set; }
+        [Parameter(ParameterSetName = "List")] public int? Offset { get; set; }
+        [Parameter(ParameterSetName = "List")] public SwitchParameter NoAutoPage { get; set; }
 
         protected override void ProcessRecord()
         {
@@ -21,10 +31,57 @@ namespace PSInfisicalAPI.Cmdlets
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
                 InfisicalPkiClient client = new InfisicalPkiClient(HttpClient, Logger);
 
-                InfisicalCertificate cert = client.RetrieveCertificate(connection, SerialNumber);
-                if (cert != null)
+                if (string.Equals(ParameterSetName, "Single", StringComparison.Ordinal))
                 {
-                    WriteObject(cert);
+                    InfisicalCertificate cert = client.RetrieveCertificate(connection, SerialNumber);
+                    if (cert != null)
+                    {
+                        WriteObject(cert);
+                    }
+
+                    return;
+                }
+
+                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
+
+                InfisicalCertificateSearchQuery query = new InfisicalCertificateSearchQuery
+                {
+                    ProjectId = resolvedProjectId,
+                    CommonName = CommonName,
+                    FriendlyName = FriendlyName,
+                    Status = Status,
+                    CaIds = CaId,
+                    Limit = Limit ?? 100,
+                    Offset = Offset ?? 0
+                };
+
+                int requestedLimit = query.Limit ?? 100;
+                int emitted = 0;
+                while (true)
+                {
+                    InfisicalCertificateSearchResult page = client.SearchCertificates(connection, query);
+                    if (page == null || page.Certificates == null || page.Certificates.Length == 0)
+                    {
+                        break;
+                    }
+
+                    foreach (InfisicalCertificate cert in page.Certificates)
+                    {
+                        WriteObject(cert);
+                        emitted++;
+                    }
+
+                    if (NoAutoPage.IsPresent || page.Certificates.Length < requestedLimit)
+                    {
+                        break;
+                    }
+
+                    if (page.TotalCount > 0 && emitted >= page.TotalCount)
+                    {
+                        break;
+                    }
+
+                    query.Offset = (query.Offset ?? 0) + page.Certificates.Length;
                 }
             }
             catch (Exception exception)

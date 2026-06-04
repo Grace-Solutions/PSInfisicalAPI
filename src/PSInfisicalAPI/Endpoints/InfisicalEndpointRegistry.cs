@@ -596,18 +596,7 @@ namespace PSInfisicalAPI.Endpoints
                 Resource = "Pki",
                 Version = "v1",
                 Method = "POST",
-                Template = "/api/v1/pki/pki-subscribers/{subscriberName}/sign-certificate",
-                RequiresAuthorization = true,
-                ContainsSecretMaterialInResponse = true
-            });
-
-            Add(map, new InfisicalEndpointDefinition
-            {
-                Name = InfisicalEndpointNames.SignCertificateBySubscriber,
-                Resource = "Pki",
-                Version = "v1",
-                Method = "POST",
-                Template = "/api/v1/cert-manager/pki-subscribers/{subscriberName}/sign-certificate",
+                Template = "/api/v1/pki/subscribers/{subscriberName}/sign-certificate",
                 RequiresAuthorization = true,
                 ContainsSecretMaterialInResponse = true
             });
@@ -632,6 +621,26 @@ namespace PSInfisicalAPI.Endpoints
                 Template = "/api/v1/cert-manager/ca/{caId}/sign-certificate",
                 RequiresAuthorization = true,
                 ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListPkiSubscribers,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/projects/{projectId}/pki-subscribers",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetPkiSubscriber,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/pki/subscribers/{subscriberName}",
+                RequiresAuthorization = true
             });
         }
 

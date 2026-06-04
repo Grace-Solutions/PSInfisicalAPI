@@ -6,6 +6,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.04.1911
+
+- Build produced from commit 51bf819c37e5.
+
+## Unreleased (carried forward)
+
+## 2026.06.04.1906
+
+- Build produced from commit 51bf819c37e5.
+
+## Unreleased (carried forward)
+
+- **BREAKING**: Removed the plural-noun discovery cmdlets `Get-InfisicalProjects`, `Get-InfisicalEnvironments`, `Get-InfisicalFolders`, `Get-InfisicalTags`, `Get-InfisicalSecrets`, and `Get-InfisicalCertificates`. Their behavior is now folded into the corresponding singular cmdlets via a `List` (default) / single-record parameter set pair, matching the existing `Get-InfisicalCertificateAuthority` precedent. Callers should drop the trailing `s`; invocation without the identity parameter (`-ProjectId`, `-EnvironmentSlugOrId`, `-FolderNameOrId`, `-TagSlugOrId`, `-SecretName`, `-SerialNumber`) now returns the list, and supplying the identity parameter returns the single record. No back-compat aliases were added.
+- Added `Get-InfisicalPkiSubscriber` with `List` (default) and `ByName` parameter sets, backed by new `InfisicalPkiClient.ListPkiSubscribers` and `GetPkiSubscriber` methods, an `InfisicalPkiSubscriber` model, and corresponding DTOs/mapper. Use the emitted `Name` (slug) on `Request-InfisicalCertificate -PkiSubscriberSlug`.
+- **Bug fix**: `Request-InfisicalCertificate -PkiSubscriberSlug ...` was returning 404 because the registry's `SignCertificateBySubscriber` endpoint pointed at `/api/v1/pki/pki-subscribers/{subscriberName}/sign-certificate` and `/api/v1/cert-manager/pki-subscribers/...`. Per Infisical's `v1/index.ts`, the subscriber router is mounted at `/pki/subscribers`, so the single correct path is `/api/v1/pki/subscribers/{subscriberName}/sign-certificate`. The redundant `cert-manager` template was removed; the PKI endpoint registry tests were updated to match.
+- Updated MAML help in `Module/PSInfisicalAPI/en-US/PSInfisicalAPI.dll-Help.xml`: the six consolidated cmdlets and the new `Get-InfisicalPkiSubscriber` each ship three examples — two straight-line invocations (one per parameter set) plus one `OrderedDictionary` splat example. All in-text references to the removed plural cmdlets across other cmdlets' examples were updated to the singular form.
+- `build.ps1`: `CmdletsToExport` and the `Test-ModuleImports` expected cmdlet list were updated to drop the six plural cmdlets and add `Get-InfisicalPkiSubscriber` (total: 34 exported cmdlets).
+
 ## 2026.06.04.1825
 
 - Build produced from commit 19615363e356.

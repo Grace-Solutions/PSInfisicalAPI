@@ -270,6 +270,74 @@ namespace PSInfisicalAPI.Pki
             };
         }
 
+        public InfisicalPkiSubscriber[] ListPkiSubscribers(InfisicalConnection connection, string projectId)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", resolvedProjectId } };
+
+            try
+            {
+                _logger.Information(Component, "Attempting to list Infisical PKI subscribers. Please Wait...");
+                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.ListPkiSubscribers, "ListPkiSubscribers", pathParameters, null, null);
+                string body = response.Body;
+                response.Clear();
+
+                List<InfisicalPkiSubscriberResponseDto> source = ParsePkiSubscriberListBody(body);
+                InfisicalPkiSubscriber[] mapped = InfisicalPkiSubscriberMapper.MapMany(source, resolvedProjectId);
+                _logger.Information(Component, "Infisical PKI subscriber list retrieval was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical PKI subscriber list retrieval failed.");
+                throw;
+            }
+        }
+
+        public InfisicalPkiSubscriber GetPkiSubscriber(InfisicalConnection connection, string subscriberName, string projectId)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(subscriberName)) { throw new InfisicalConfigurationException("SubscriberName is required."); }
+            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "subscriberName", subscriberName } };
+            List<KeyValuePair<string, string>> query = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("projectId", resolvedProjectId) };
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to retrieve Infisical PKI subscriber '", subscriberName, "'. Please Wait..."));
+                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.GetPkiSubscriber, "GetPkiSubscriber", pathParameters, query, null);
+                InfisicalPkiSubscriberResponseDto dto = _serializer.Deserialize<InfisicalPkiSubscriberResponseDto>(response.Body);
+                response.Clear();
+
+                InfisicalPkiSubscriber mapped = InfisicalPkiSubscriberMapper.Map(dto, resolvedProjectId);
+                _logger.Information(Component, "Infisical PKI subscriber retrieval was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical PKI subscriber retrieval failed.");
+                throw;
+            }
+        }
+
+        private List<InfisicalPkiSubscriberResponseDto> ParsePkiSubscriberListBody(string body)
+        {
+            if (string.IsNullOrEmpty(body)) { return null; }
+            JToken token = JToken.Parse(body);
+            if (token.Type == JTokenType.Array)
+            {
+                return token.ToObject<List<InfisicalPkiSubscriberResponseDto>>();
+            }
+
+            InfisicalPkiSubscriberListResponseDto wrapper = token.ToObject<InfisicalPkiSubscriberListResponseDto>();
+            return wrapper != null ? wrapper.Subscribers : null;
+        }
+
         public InfisicalCertificateBundle GetCertificateBundle(InfisicalConnection connection, string serialNumber)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }

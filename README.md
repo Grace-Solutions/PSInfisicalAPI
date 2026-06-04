@@ -26,14 +26,17 @@ Import-Module -Name .\Module\PSInfisicalAPI
 
 ## Cmdlets
 
-| Cmdlet                                | Purpose                                                                    |
-| ------------------------------------- | -------------------------------------------------------------------------- |
-| `Connect-Infisical`                   | Establish a session using Universal Auth or a pre-issued access token.     |
-| `Disconnect-Infisical`                | Clear the current session.                                                 |
-| `Get-InfisicalSecrets`                | List secrets at a given path / environment.                                |
-| `Get-InfisicalSecret`                 | Retrieve a single secret by name.                                          |
-| `ConvertTo-InfisicalSecretDictionary` | Convert secret objects into a `Hashtable` keyed by `SecretKey`.            |
-| `Export-InfisicalSecrets`             | Export secrets to JSON, YAML, XML, or `.env` format.                       |
+The module exports 34 cmdlets. Discovery cmdlets (`Get-Infisical*`) use a `List` (default) / single-record parameter-set pair: invoking without the identity parameter returns the collection, supplying the identity parameter returns one record.
+
+| Area                  | Cmdlets                                                                                                                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Session               | `Connect-Infisical`, `Disconnect-Infisical`                                                                                                                                                      |
+| Secrets               | `Get-InfisicalSecret`, `New-InfisicalSecret`, `Update-InfisicalSecret`, `Remove-InfisicalSecret`, `Copy-InfisicalSecret`, `ConvertTo-InfisicalSecretDictionary`, `Export-InfisicalSecrets`       |
+| Projects              | `Get-InfisicalProject`, `New-InfisicalProject`, `Update-InfisicalProject`, `Remove-InfisicalProject`                                                                                             |
+| Environments          | `Get-InfisicalEnvironment`, `New-InfisicalEnvironment`, `Update-InfisicalEnvironment`, `Remove-InfisicalEnvironment`                                                                             |
+| Folders               | `Get-InfisicalFolder`, `New-InfisicalFolder`, `Update-InfisicalFolder`, `Remove-InfisicalFolder`                                                                                                 |
+| Tags                  | `Get-InfisicalTag`, `New-InfisicalTag`, `Update-InfisicalTag`, `Remove-InfisicalTag`                                                                                                             |
+| PKI                   | `Get-InfisicalCertificateAuthority`, `Get-InfisicalPkiSubscriber`, `Get-InfisicalCertificate`, `Search-InfisicalCertificate`, `Request-InfisicalCertificate`, `ConvertTo-InfisicalCertificate`, `Install-InfisicalCertificate`, `Uninstall-InfisicalCertificate`, `Export-InfisicalCertificate` |
 
 Use `Get-Help <Cmdlet> -Full` for parameter details and `Get-Help about_PSInfisicalAPI` for the module overview.
 
@@ -51,7 +54,7 @@ $connection = Connect-Infisical `
     -ClientSecret   $secureSecret `
     -PassThru
 
-Get-InfisicalSecrets -SecretPath '/'
+Get-InfisicalSecret -SecretPath '/'
 Disconnect-Infisical
 ```
 
@@ -96,7 +99,7 @@ Sensitive values (`ClientSecret`, `AccessToken`) are read directly into a read-o
 [Environment]::SetEnvironmentVariable('INFISICAL_CLIENT_SECRET', 'super-secret-value',                   'User')
 
 Connect-Infisical
-Get-InfisicalSecrets
+Get-InfisicalSecret
 ```
 
 ### Mixed example (explicit values override discovery)
@@ -118,6 +121,55 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -RunTests
 ```
 
 The script builds the binary, runs unit tests, publishes binaries into `Module/PSInfisicalAPI/bin/`, regenerates the manifest, and validates that the module imports.
+
+## Extending the module
+
+### Adding a new API endpoint
+
+All HTTP routes live in two files under `src/PSInfisicalAPI/Endpoints/`:
+
+- `InfisicalEndpointNames.cs` declares a `const string` identifier for each endpoint.
+- `InfisicalEndpointRegistry.cs` maps each identifier to one or more `InfisicalEndpointDefinition` records grouped by resource (`RegisterAuthentication`, `RegisterSecrets`, `RegisterPki`, etc.).
+
+To add a route:
+
+1. Add a constant in `InfisicalEndpointNames.cs` (e.g., `public const string ListPkiSubscribers = "ListPkiSubscribers";`).
+2. In the matching `Register<Resource>` method, call `Add(map, new InfisicalEndpointDefinition { ... })` with `Name`, `Resource`, `Version`, `Method`, `Template`, and the `RequiresAuthorization` / `ContainsSecretMaterialInRequest` / `ContainsSecretMaterialInResponse` flags. Use `{placeholder}` tokens in `Template`; they are substituted from the `pathParameters` dictionary passed by the caller.
+3. If the same logical operation has more than one upstream path (legacy + current), register both definitions under the same `Name` — `InvokeWithCandidateFallback` tries each in order until one succeeds.
+4. Invoke the endpoint from the appropriate client (`InfisicalPkiClient`, `InfisicalSecretsClient`, etc.) via `_invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.XYZ, "XYZ", pathParameters, query, body)`.
+
+### Adding a new cmdlet
+
+Cmdlets live in `src/PSInfisicalAPI/Cmdlets/` and derive from `InfisicalCmdletBase`, which exposes `HttpClient`, `Logger`, `ResolveProjectId`, and `ThrowTerminatingForException`. Follow the consolidated discovery pattern when the cmdlet supports both list and single-record retrieval:
+
+```csharp
+[Cmdlet(VerbsCommon.Get, "InfisicalPkiSubscriber", DefaultParameterSetName = "List")]
+[OutputType(typeof(InfisicalPkiSubscriber))]
+public sealed class GetInfisicalPkiSubscriberCmdlet : InfisicalCmdletBase
+{
+    [Parameter(ParameterSetName = "ByName", Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
+    [Alias("SubscriberName", "Slug")]
+    public string Name { get; set; }
+
+    [Parameter] public string ProjectId { get; set; }
+
+    protected override void ProcessRecord() { /* dispatch on ParameterSetName */ }
+}
+```
+
+After adding (or removing) a cmdlet:
+
+1. Update `build.ps1` in **two** places — the `CmdletsToExport` array inside the generated manifest block, and the `$expectedCmds` array used by `Test-ModuleImports`. Both must list the same cmdlets; the build fails fast if they drift.
+2. Add a `<command:command>` entry in `Module/PSInfisicalAPI/en-US/PSInfisicalAPI.dll-Help.xml`. Each entry must include a non-empty `<maml:description>` synopsis (do not let it start with the cmdlet name — the validation gate rejects PowerShell's auto-generated fallback), a non-empty `<maml:description>` body, and at least one `<command:example>` with a non-empty `<dev:code>` block.
+3. For consolidated `List` / single-record cmdlets, ship **three examples**: two straight-line invocations (one per parameter set) and one `OrderedDictionary` splat. The splat must construct the dictionary with `OrdinalIgnoreCase` so parameter names round-trip case-insensitively:
+
+   ```powershell
+   $Params = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+   $Params.ProjectId = (Get-InfisicalProject | Select-Object -First 1).Id
+   $Result = Get-InfisicalPkiSubscriber @Params
+   ```
+4. Add a `## Unreleased` entry to `CHANGELOG.md` describing the change (mark removals of public cmdlets or parameters as **BREAKING**).
+5. Run `./build.ps1 -RunTests`. The script enforces the cmdlet list, runs the xUnit suite, and verifies that every exported cmdlet has a valid synopsis, description, and at least one non-empty example.
 
 ## Continuous integration
 

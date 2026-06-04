@@ -12,7 +12,7 @@ namespace PSInfisicalAPI.Tests
         private static readonly Assembly ModuleAssembly = typeof(PSInfisicalAPI.Connections.InfisicalConnection).Assembly;
 
         [Fact]
-        public void GetInfisicalCertificate_Cmdlet_Is_Singular_With_Mandatory_SerialNumber()
+        public void GetInfisicalCertificate_Cmdlet_Is_Singular_With_SerialNumber_In_Single_ParameterSet()
         {
             Type cmdletType = ModuleAssembly.GetType("PSInfisicalAPI.Cmdlets.GetInfisicalCertificateCmdlet", true);
             Assert.True(typeof(PSInfisicalAPI.Cmdlets.InfisicalCmdletBase).IsAssignableFrom(cmdletType));
@@ -27,6 +27,13 @@ namespace PSInfisicalAPI.Tests
             Assert.Equal(VerbsCommon.Get, cmdletData.ConstructorArguments[0].Value);
             Assert.Equal("InfisicalCertificate", cmdletData.ConstructorArguments[1].Value);
 
+            string defaultParameterSetName = null;
+            foreach (CustomAttributeNamedArgument named in cmdletData.NamedArguments)
+            {
+                if (named.MemberName == "DefaultParameterSetName") { defaultParameterSetName = (string)named.TypedValue.Value; break; }
+            }
+            Assert.Equal("List", defaultParameterSetName);
+
             PropertyInfo serialProp = cmdletType.GetProperty("SerialNumber");
             Assert.NotNull(serialProp);
 
@@ -38,33 +45,27 @@ namespace PSInfisicalAPI.Tests
             Assert.NotNull(parameterAttr);
 
             bool mandatory = false;
+            string parameterSetName = null;
             foreach (CustomAttributeNamedArgument named in parameterAttr.NamedArguments)
             {
-                if (named.MemberName == "Mandatory") { mandatory = (bool)named.TypedValue.Value; break; }
+                if (named.MemberName == "Mandatory") { mandatory = (bool)named.TypedValue.Value; }
+                else if (named.MemberName == "ParameterSetName") { parameterSetName = (string)named.TypedValue.Value; }
             }
             Assert.True(mandatory);
+            Assert.Equal("Single", parameterSetName);
         }
 
         [Fact]
-        public void GetInfisicalCertificates_Cmdlet_Is_Registered_For_Listing()
+        public void GetInfisicalCertificate_Cmdlet_Exposes_List_Filter_Properties()
         {
-            Type cmdletType = ModuleAssembly.GetType("PSInfisicalAPI.Cmdlets.GetInfisicalCertificatesCmdlet", true);
-            Assert.True(typeof(PSInfisicalAPI.Cmdlets.InfisicalCmdletBase).IsAssignableFrom(cmdletType));
-
-            CustomAttributeData cmdletData = null;
-            foreach (CustomAttributeData candidate in cmdletType.GetCustomAttributesData())
-            {
-                if (candidate.AttributeType == typeof(CmdletAttribute)) { cmdletData = candidate; break; }
-            }
-            Assert.NotNull(cmdletData);
-            Assert.Equal(VerbsCommon.Get, cmdletData.ConstructorArguments[0].Value);
-            Assert.Equal("InfisicalCertificates", cmdletData.ConstructorArguments[1].Value);
-
+            Type cmdletType = ModuleAssembly.GetType("PSInfisicalAPI.Cmdlets.GetInfisicalCertificateCmdlet", true);
             Assert.NotNull(cmdletType.GetProperty("CommonName"));
             Assert.NotNull(cmdletType.GetProperty("FriendlyName"));
             Assert.NotNull(cmdletType.GetProperty("CaId"));
             Assert.NotNull(cmdletType.GetProperty("Limit"));
             Assert.NotNull(cmdletType.GetProperty("Offset"));
+            Assert.NotNull(cmdletType.GetProperty("NoAutoPage"));
+            Assert.NotNull(cmdletType.GetProperty("List"));
         }
 
         [Fact]

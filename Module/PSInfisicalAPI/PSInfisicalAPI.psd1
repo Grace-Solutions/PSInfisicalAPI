@@ -1,6 +1,6 @@
 @{
     RootModule           = 'PSInfisicalAPI.psm1'
-    ModuleVersion        = '2026.06.04.1825'
+    ModuleVersion        = '2026.06.04.1911'
     GUID                 = 'b8a2f3d4-7c51-4d2f-9e6a-1f0c8b3d4e51'
     Author               = 'Grace Solutions'
     CompanyName          = 'Grace Solutions'
@@ -12,7 +12,6 @@
     CmdletsToExport      = @(
         'Connect-Infisical',
         'Disconnect-Infisical',
-        'Get-InfisicalSecrets',
         'Get-InfisicalSecret',
         'New-InfisicalSecret',
         'Update-InfisicalSecret',
@@ -20,29 +19,25 @@
         'Copy-InfisicalSecret',
         'ConvertTo-InfisicalSecretDictionary',
         'Export-InfisicalSecrets',
-        'Get-InfisicalProjects',
         'Get-InfisicalProject',
         'New-InfisicalProject',
         'Update-InfisicalProject',
         'Remove-InfisicalProject',
-        'Get-InfisicalEnvironments',
         'Get-InfisicalEnvironment',
         'New-InfisicalEnvironment',
         'Update-InfisicalEnvironment',
         'Remove-InfisicalEnvironment',
-        'Get-InfisicalFolders',
         'Get-InfisicalFolder',
         'New-InfisicalFolder',
         'Update-InfisicalFolder',
         'Remove-InfisicalFolder',
-        'Get-InfisicalTags',
         'Get-InfisicalTag',
         'New-InfisicalTag',
         'Update-InfisicalTag',
         'Remove-InfisicalTag',
         'Get-InfisicalCertificateAuthority',
+        'Get-InfisicalPkiSubscriber',
         'Get-InfisicalCertificate',
-        'Get-InfisicalCertificates',
         'Search-InfisicalCertificate',
         'Request-InfisicalCertificate',
         'ConvertTo-InfisicalCertificate',
@@ -60,7 +55,7 @@
             LicenseUri   = 'https://www.gnu.org/licenses/agpl-3.0.html'
             ProjectUri   = 'https://prod.git.gracesolution.info/gsadmin/PSInfisicalAPI'
             ReleaseNotes = 'See CHANGELOG.md in the project repository for release history.'
-            CommitHash   = '19615363e356'
+            CommitHash   = '51bf819c37e5'
         }
     }
 }

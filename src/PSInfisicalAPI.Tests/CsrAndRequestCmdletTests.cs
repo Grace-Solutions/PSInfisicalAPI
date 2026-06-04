@@ -115,17 +115,15 @@ namespace PSInfisicalAPI.Tests
         }
 
         [Fact]
-        public void Candidates_For_SignCertificateBySubscriber_Include_Pki_And_CertManager()
+        public void SignCertificateBySubscriber_Uses_Pki_Subscribers_Template()
         {
             IReadOnlyList<InfisicalEndpointDefinition> candidates = InfisicalEndpointRegistry.GetCandidates(InfisicalEndpointNames.SignCertificateBySubscriber);
-            Assert.Contains(candidates, c => c.Template == "/api/v1/pki/pki-subscribers/{subscriberName}/sign-certificate");
-            Assert.Contains(candidates, c => c.Template == "/api/v1/cert-manager/pki-subscribers/{subscriberName}/sign-certificate");
-            foreach (InfisicalEndpointDefinition candidate in candidates)
-            {
-                Assert.Equal("POST", candidate.Method);
-                Assert.True(candidate.RequiresAuthorization);
-                Assert.True(candidate.ContainsSecretMaterialInResponse);
-            }
+            Assert.Single(candidates);
+            InfisicalEndpointDefinition only = candidates[0];
+            Assert.Equal("/api/v1/pki/subscribers/{subscriberName}/sign-certificate", only.Template);
+            Assert.Equal("POST", only.Method);
+            Assert.True(only.RequiresAuthorization);
+            Assert.True(only.ContainsSecretMaterialInResponse);
         }
 
         [Fact]
