@@ -230,6 +230,16 @@ After adding (or removing) a cmdlet:
 4. Add a `## Unreleased` entry to `CHANGELOG.md` describing the change (mark removals of public cmdlets or parameters as **BREAKING**).
 5. Run `./build.ps1 -RunTests`. The script enforces the cmdlet list, runs the xUnit suite, and verifies that every exported cmdlet has a valid synopsis, description, and at least one non-empty example.
 
+### Committing source and build artifacts in lockstep
+
+The embedded `BuildCommitHash` in `Module/PSInfisicalAPI/PSInfisicalAPI.psd1` and the bundled DLL is captured from `git rev-parse HEAD` at build time. To keep the embedded hash truthful, commit source and build artifacts as two ordered commits:
+
+1. Stage and commit your source changes first. Suppose this produces commit `S`.
+2. Run `./build.ps1 -RunTests -CommitArtifacts`. The build picks up `S` as `HEAD`, embeds it as `BuildCommitHash`, then stages and commits **only** the build outputs (`Module/PSInfisicalAPI/bin/**`, `Module/PSInfisicalAPI/PSInfisicalAPI.psd1`, and the `CHANGELOG.md` build-stamp insertion). The commit message references `S` so the binary commit always traces back to its source.
+3. `git push`.
+
+`-CommitArtifacts` only touches the three artifact paths above; any other dirty files in your working tree are left alone. Use the older `-CommitOnSuccess` switch only when you intentionally want a single commit covering everything (`git add -A` + `git commit -m "Build <version>"`); the two switches are mutually exclusive.
+
 ## Continuous integration
 
 `.gitea/workflows/publish-psgallery.yml` publishes the module to the PowerShell Gallery whenever a pull request is merged into `main`. The workflow expects a repository secret named `PSGALLERY_API_KEY` containing a valid Gallery API key.
