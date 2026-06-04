@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+- **CI â€” Gitea artifact upload fix**: Replaced `actions/upload-artifact@v4` and `actions/download-artifact@v4` with the Gitea-compatible forks `christopherhx/gitea-upload-artifact@v4` and `christopherhx/gitea-download-artifact@v4` in `.gitea/workflows/publish-psgallery.yml`. The upstream v4 actions abort on Gitea because Gitea is detected as GHES, which the upstream v4 actions do not support (see [go-gitea/gitea#28853](https://github.com/go-gitea/gitea/issues/28853)).
+
 ## 2026.06.04.0123
 
 - Build produced from commit 2cbd5c2008f5.
