@@ -21,6 +21,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter(ParameterSetName = "SecureString")] public SecureString SecureSecretValue { get; set; }
 
         [Parameter(Mandatory = true, Position = 0, ParameterSetName = "Bulk", ValueFromPipeline = true)]
+        [BulkSecretsTransformation]
         public IDictionary<string, string>[] Secrets { get; set; }
 
         [Parameter] public string NewSecretName { get; set; }

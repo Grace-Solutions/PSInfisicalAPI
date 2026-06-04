@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.04.0020
+
+- Build produced from commit 211fbcf34dbb.
+
+## Unreleased (carried forward)
+
 ## 2026.06.04.0005
 
 - Build produced from commit e0a6ef02df3e.
@@ -18,7 +24,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 ## 2026.06.03.2207
 
 - Build produced from commit 09c3d5c68bbc.
-- **M9 â€” Bulk, Duplicate & Inheritance**:
+- **M9 Ã¢â‚¬â€ Bulk, Duplicate & Inheritance**:
   - **Bulk parameter sets** added to `New-InfisicalSecret`, `Update-InfisicalSecret`, and `Remove-InfisicalSecret` accepting `-Secrets Hashtable[]`; client methods `CreateBatch`/`UpdateBatch`/`DeleteBatch` wrap `POST|PATCH|DELETE /api/v3/secrets/batch/raw`.
   - **`Copy-InfisicalSecret`** cmdlet added, wrapping `POST /api/v4/secrets/duplicate` with source/destination environment + path parameters and per-attribute copy toggles.
   - **Connection inheritance** centralized in `InfisicalCmdletBase` (`ResolveProjectId`/`ResolveEnvironment`/`ResolveSecretPath`/`ResolveApiVersion`/`ResolveOrganizationId`). Explicit parameters always win; missing values fall back to the active connection and emit a `-Verbose` line.
