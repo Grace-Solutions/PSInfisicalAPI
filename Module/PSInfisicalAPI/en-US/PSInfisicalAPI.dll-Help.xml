@@ -1479,31 +1479,128 @@ $UninstallInfisicalCertificateResult = Uninstall-InfisicalCertificate @Uninstall
 
   <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
     <command:details>
+      <command:name>Get-InfisicalCertificateApplication</command:name>
+      <maml:description><maml:para>Lists or retrieves an Infisical Certificate Manager Application from the active project.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalCertificateApplication</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Reads Infisical certificate-manager Applications (the join target used by EST/ACME/SCEP profile attachments) using the active connection's project scope. The List parameter set returns all applications visible to the caller; the ById and ByName sets return a single application. ProjectId falls back to the active connection when omitted.</maml:para>
+    </maml:description>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificateApplication</dev:code>
+        <dev:remarks><maml:para>Lists certificate-manager applications for the active project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificateApplication -ApplicationName 'workstation-mdm'</dev:code>
+        <dev:remarks><maml:para>Retrieves a single application by name.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalCertificateApplicationParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalCertificateApplicationParameters.Id        = $ApplicationId
+$GetInfisicalCertificateApplicationParameters.ProjectId = $ProjectId
+$GetInfisicalCertificateApplicationParameters.Verbose   = $True
+
+$GetInfisicalCertificateApplicationResult = Get-InfisicalCertificateApplication @GetInfisicalCertificateApplicationParameters</dev:code>
+        <dev:remarks><maml:para>Retrieves a single application by id from an explicit project.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalCertificateApplicationEnrollment</command:name>
+      <maml:description><maml:para>Retrieves the API/EST/ACME/SCEP enrollment configuration attached to an application/profile pair.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalCertificateApplicationEnrollment</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Returns the InfisicalCertificateApplicationEnrollment for the given application and certificate profile, including any configured SCEP sub-block (server URL, RA certificate PEM, computed SHA-1 RaCertificateThumbprint, challenge type, and challenge endpoint URL when dynamic).</maml:para>
+    </maml:description>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificateApplicationEnrollment -ApplicationId $AppId -ProfileId $ProfileId</dev:code>
+        <dev:remarks><maml:para>Fetches the enrollment configuration for an application/profile pair.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalCertificateApplicationEnrollmentParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalCertificateApplicationEnrollmentParameters.ApplicationId = $ApplicationId
+$GetInfisicalCertificateApplicationEnrollmentParameters.ProfileId     = $ProfileId
+$GetInfisicalCertificateApplicationEnrollmentParameters.Verbose       = $True
+
+$GetInfisicalCertificateApplicationEnrollmentResult = Get-InfisicalCertificateApplicationEnrollment @GetInfisicalCertificateApplicationEnrollmentParameters</dev:code>
+        <dev:remarks><maml:para>Retrieves the enrollment configuration and feeds it downstream to Get-InfisicalScepMdmProfile.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>New-InfisicalScepDynamicChallenge</command:name>
+      <maml:description><maml:para>Generates a one-time SCEP challenge from an application/profile that is configured with dynamic challenge mode.</maml:para></maml:description>
+      <command:verb>New</command:verb>
+      <command:noun>InfisicalScepDynamicChallenge</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>POSTs to /scep/applications/{applicationId}/profiles/{profileId}/challenge and returns the minted challenge as a SecureString. Use -AsPlainText to return a string instead. Requires the active machine identity to have read access on certificate-application-enrollment, and the target SCEP profile must be set to challengeType=dynamic. Dynamic challenges are an Enterprise-tier feature on managed Infisical deployments.</maml:para>
+    </maml:description>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>$Challenge = New-InfisicalScepDynamicChallenge -ApplicationId $AppId -ProfileId $ProfileId</dev:code>
+        <dev:remarks><maml:para>Mints a single-use SCEP challenge and stores it as a SecureString.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$NewInfisicalScepDynamicChallengeParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$NewInfisicalScepDynamicChallengeParameters.ApplicationId = $ApplicationId
+$NewInfisicalScepDynamicChallengeParameters.ProfileId     = $ProfileId
+$NewInfisicalScepDynamicChallengeParameters.AsPlainText   = $True
+$NewInfisicalScepDynamicChallengeParameters.Verbose       = $True
+
+$NewInfisicalScepDynamicChallengeResult = New-InfisicalScepDynamicChallenge @NewInfisicalScepDynamicChallengeParameters</dev:code>
+        <dev:remarks><maml:para>Mints a plain-text challenge for use in environments where SecureString is inconvenient.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
       <command:name>Get-InfisicalScepMdmProfile</command:name>
-      <maml:description><maml:para>Builds an Infisical SCEP MDM profile model from a certificate profile, suitable for SyncML export or local MDM enrollment.</maml:para></maml:description>
+      <maml:description><maml:para>Builds an Infisical SCEP MDM profile model from an application enrollment, certificate profile, or fully manual inputs.</maml:para></maml:description>
       <command:verb>Get</command:verb>
       <command:noun>InfisicalScepMdmProfile</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Projects an InfisicalCertificateProfile (pipeline-bound) into an InfisicalScepMdmProfile that mirrors the Windows ClientCertificateInstall/SCEP CSP node set. -Challenge is accepted as a SecureString and decrypted into the model only at write-time. -ServerUrl defaults to {baseUri}/scep/{profileId}/pkiclient.exe derived from the active connection. -UniqueId defaults to a sanitized form of the source profile slug. KeyAlgorithm and EkuMapping are inherited from the source profile defaults unless overridden.</maml:para>
+      <maml:para>Produces an InfisicalScepMdmProfile that mirrors the Windows ClientCertificateInstall/SCEP CSP node set. FromEnrollment (default) consumes an InfisicalCertificateApplicationEnrollment and auto-fills ServerUrl from scep.scepEndpointUrl and CAThumbprint from the RA certificate; if the enrollment is configured for dynamic challenge mode, a fresh challenge is minted automatically when -Challenge is not supplied. FromProfile keeps the legacy projection from an InfisicalCertificateProfile and now requires -ApplicationId so the server URL can be built against /scep/applications/{appId}/profiles/{profileId}/pkiclient.exe. Manual requires explicit -ServerUrl, -Challenge, and -UniqueId.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
       <maml:alert>
-        <maml:para>The SCEP endpoint URL ends in 'pkiclient.exe' for RFC 8894 / Cisco SCEP client compatibility. The source profile must have SCEP enrollment enabled on the server side for enrollment to succeed; this cmdlet does not validate that.</maml:para>
+        <maml:para>The SCEP endpoint URL ends in 'pkiclient.exe' for RFC 8894 / Cisco SCEP client compatibility. SecureString -Challenge is decrypted into the model only at write-time.</maml:para>
       </maml:alert>
     </maml:alertSet>
     <command:examples>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>Get-InfisicalCertificateProfile -CertificateProfileId $ProfileId | Get-InfisicalScepMdmProfile -Challenge (Read-Host -AsSecureString 'SCEP challenge')</dev:code>
-        <dev:remarks><maml:para>Builds a default SCEP MDM profile with the server URL inferred from the active connection.</maml:para></dev:remarks>
+        <dev:code>Get-InfisicalCertificateApplicationEnrollment -ApplicationId $AppId -ProfileId $ProfileId | Get-InfisicalScepMdmProfile</dev:code>
+        <dev:remarks><maml:para>Builds a SCEP MDM profile from an enrollment, auto-resolving ServerUrl, CAThumbprint, and (for dynamic mode) the challenge.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificateProfile -CertificateProfileId $ProfileId | Get-InfisicalScepMdmProfile -ApplicationId $AppId -Challenge (Read-Host -AsSecureString 'SCEP challenge')</dev:code>
+        <dev:remarks><maml:para>Builds a profile from a certificate profile (legacy path) with an explicit application id and static challenge.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
         <dev:code>$GetInfisicalScepMdmProfileParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
-$GetInfisicalScepMdmProfileParameters.InputObject              = (Get-InfisicalCertificateProfile -CertificateProfileId $ProfileId)
-$GetInfisicalScepMdmProfileParameters.Challenge                = (Read-Host -AsSecureString 'SCEP challenge')
+$GetInfisicalScepMdmProfileParameters.EnrollmentObject         = $Enrollment
 $GetInfisicalScepMdmProfileParameters.UniqueId                 = 'WindowsClientAuth'
 $GetInfisicalScepMdmProfileParameters.Scope                    = 'Device'
 $GetInfisicalScepMdmProfileParameters.SubjectName              = "CN=$($env:COMPUTERNAME)"
@@ -1514,7 +1611,7 @@ $GetInfisicalScepMdmProfileParameters.ValidPeriodUnits         = 1
 $GetInfisicalScepMdmProfileParameters.Verbose                  = $True
 
 $GetInfisicalScepMdmProfileResult = Get-InfisicalScepMdmProfile @GetInfisicalScepMdmProfileParameters</dev:code>
-        <dev:remarks><maml:para>Builds a device-scope SCEP MDM profile with explicit subject and key parameters for downstream export or local enrollment.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Builds a device-scope SCEP MDM profile from an enrollment with overridden subject and key parameters.</maml:para></dev:remarks>
       </command:example>
     </command:examples>
   </command:command>

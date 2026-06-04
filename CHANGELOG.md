@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.04.2305
+
+- Build produced from commit 485ee8a7dd6a.
+
+## Unreleased (carried forward)
+
+- `Get-InfisicalCertificateApplication` added with `List` (default), `ById`, and `ByName` parameter sets. Binds to `/api/v1/cert-manager/applications` (list) and `/api/v1/cert-manager/applications/{applicationId}` / `/by-name/{name}` for single retrieval. Requests carry the `x-infisical-project-id` header so the certificate-manager scope resolves correctly. New `InfisicalCertificateApplication` model surfaces id, project, name, description, and counts.
+- `Get-InfisicalCertificateApplicationEnrollment` added. Returns the API/EST/ACME/SCEP enrollment configuration for an application/profile pair (`GET /api/v1/cert-manager/applications/{applicationId}/profiles/{profileId}/enrollment`). The new `InfisicalCertificateApplicationEnrollment` model includes sub-blocks for each enrollment protocol; the SCEP block computes a SHA-1 `RaCertificateThumbprint` from the RA certificate PEM so it can be fed directly into MDM payloads.
+- `New-InfisicalScepDynamicChallenge` added. Wraps `POST /scep/applications/{applicationId}/profiles/{profileId}/challenge` and returns the minted challenge as a `SecureString` (default) or string (`-AsPlainText`). The endpoint is gated by the dynamic-challenge feature on the target Infisical instance and by the calling identity's permission on `certificate-application-enrollment`.
+- `Get-InfisicalScepMdmProfile` reworked into three parameter sets. `FromEnrollment` (new default) consumes an `InfisicalCertificateApplicationEnrollment` and auto-resolves `ServerUrl` from `scep.scepEndpointUrl`, `CAThumbprint` from the RA certificate, and the SCEP challenge (auto-minting when `challengeType=dynamic` and `-Challenge` is not supplied). `FromProfile` keeps the legacy projection from an `InfisicalCertificateProfile`, now requires `-ApplicationId`, and the default server URL is built against `/scep/applications/{appId}/profiles/{profileId}/pkiclient.exe`. `Manual` requires explicit `-ServerUrl`, `-Challenge`, and `-UniqueId`.
+- `InfisicalApiInvoker` accepts an optional `extraHeaders` argument so callers can attach the `x-infisical-project-id` header and override `Accept` for plain-text responses (used by the new SCEP challenge endpoint).
+
 ## 2026.06.04.2147
 
 - Build produced from commit 183fb48c32ce.
