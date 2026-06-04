@@ -338,6 +338,95 @@ namespace PSInfisicalAPI.Pki
             return wrapper != null ? wrapper.Subscribers : null;
         }
 
+        public InfisicalCertificateProfile[] ListCertificateProfiles(InfisicalConnection connection, string projectId, int? limit, int? offset, bool? includeConfigs)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+
+            List<KeyValuePair<string, string>> query = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("projectId", resolvedProjectId)
+            };
+            if (limit.HasValue) { query.Add(new KeyValuePair<string, string>("limit", limit.Value.ToString(CultureInfo.InvariantCulture))); }
+            if (offset.HasValue) { query.Add(new KeyValuePair<string, string>("offset", offset.Value.ToString(CultureInfo.InvariantCulture))); }
+            if (includeConfigs.HasValue) { query.Add(new KeyValuePair<string, string>("includeConfigs", includeConfigs.Value ? "true" : "false")); }
+
+            try
+            {
+                _logger.Information(Component, "Attempting to list Infisical certificate profiles. Please Wait...");
+                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.ListCertificateProfiles, "ListCertificateProfiles", null, query, null);
+                string body = response.Body;
+                response.Clear();
+
+                List<InfisicalCertificateProfileResponseDto> source = ParseCertificateProfileListBody(body);
+                InfisicalCertificateProfile[] mapped = InfisicalCertificateProfileMapper.MapMany(source, resolvedProjectId);
+                _logger.Information(Component, "Infisical certificate profile list retrieval was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate profile list retrieval failed.");
+                throw;
+            }
+        }
+
+        public InfisicalCertificateProfile GetCertificateProfile(InfisicalConnection connection, string certificateProfileId, string projectId)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(certificateProfileId)) { throw new InfisicalConfigurationException("CertificateProfileId is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "certificateProfileId", certificateProfileId } };
+            List<KeyValuePair<string, string>> query = null;
+            if (!string.IsNullOrEmpty(projectId))
+            {
+                query = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("projectId", projectId) };
+            }
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to retrieve Infisical certificate profile '", certificateProfileId, "'. Please Wait..."));
+                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.GetCertificateProfile, "GetCertificateProfile", pathParameters, query, null);
+                string body = response.Body;
+                response.Clear();
+
+                InfisicalCertificateProfileResponseDto inner = ParseCertificateProfileSingleBody(body);
+                string fallbackProjectId = !string.IsNullOrEmpty(projectId) ? projectId : connection.ProjectId;
+                InfisicalCertificateProfile mapped = InfisicalCertificateProfileMapper.Map(inner, fallbackProjectId);
+                _logger.Information(Component, "Infisical certificate profile retrieval was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate profile retrieval failed.");
+                throw;
+            }
+        }
+
+        private List<InfisicalCertificateProfileResponseDto> ParseCertificateProfileListBody(string body)
+        {
+            if (string.IsNullOrEmpty(body)) { return null; }
+            JToken token = JToken.Parse(body);
+            if (token.Type == JTokenType.Array)
+            {
+                return token.ToObject<List<InfisicalCertificateProfileResponseDto>>();
+            }
+
+            InfisicalCertificateProfileListResponseDto wrapper = token.ToObject<InfisicalCertificateProfileListResponseDto>();
+            return wrapper != null ? wrapper.CertificateProfiles : null;
+        }
+
+        private InfisicalCertificateProfileResponseDto ParseCertificateProfileSingleBody(string body)
+        {
+            if (string.IsNullOrEmpty(body)) { return null; }
+            JToken token = JToken.Parse(body);
+            if (token.Type != JTokenType.Object) { return null; }
+            JObject obj = (JObject)token;
+
+            if (obj["certificateProfile"] is JObject inner) { return inner.ToObject<InfisicalCertificateProfileResponseDto>(); }
+            return obj.ToObject<InfisicalCertificateProfileResponseDto>();
+        }
+
         public InfisicalCertificateBundle GetCertificateBundle(InfisicalConnection connection, string serialNumber)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }

@@ -54,5 +54,8 @@ namespace PSInfisicalAPI.Endpoints
 
         public const string ListPkiSubscribers = "ListPkiSubscribers";
         public const string GetPkiSubscriber = "GetPkiSubscriber";
+
+        public const string ListCertificateProfiles = "ListCertificateProfiles";
+        public const string GetCertificateProfile = "GetCertificateProfile";
     }
 }

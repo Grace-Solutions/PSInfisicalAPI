@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 ## Unreleased
 
 - Infisical API error responses are now parsed to surface the server-side `message`, `error`, and `reqId` fields. The 4xx/5xx exception message includes the human-readable explanation (e.g. "The project is of type secret-manager") instead of an opaque `Infisical API returned 400 (Bad Request)`. The `InfisicalApiException` gains `ApiErrorMessage` and `ApiRequestId` properties; `InfisicalErrorDetails` carries the same fields so PowerShell error records and logger output expose them.
+- `Get-InfisicalCertificateProfile` added with `List` (default) and `ById` parameter sets. List binds to `GET /api/v1/cert-manager/certificate-profiles` (optional `-Limit`, `-Offset`, `-IncludeConfigs`); ById binds to `GET /api/v1/cert-manager/certificate-profiles/{certificateProfileId}`. New `InfisicalCertificateProfile` model surfaces ca/policy ids, slug, enrollment type, per-profile defaults (ttl, key/extended key usages), and the embedded CA/policy/apiConfig summaries.
 
 ## 2026.06.04.1920
 

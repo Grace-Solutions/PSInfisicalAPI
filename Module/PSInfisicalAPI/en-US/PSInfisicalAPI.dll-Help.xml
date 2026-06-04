@@ -1130,6 +1130,48 @@ $GetInfisicalPkiSubscriberResult = Get-InfisicalPkiSubscriber @GetInfisicalPkiSu
 
   <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
     <command:details>
+      <command:name>Get-InfisicalCertificateProfile</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical certificate profiles in a project.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalCertificateProfile</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) returns every certificate profile configured on the project via /api/v1/cert-manager/certificate-profiles, with optional -Limit, -Offset, and -IncludeConfigs. When -ProfileId is supplied (ById parameter set) the cmdlet returns one profile by its id. -ProjectId defaults to the session-pinned project in both modes.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Profiles bind a CA and a certificate policy and surface defaults (TtlDays, KeyAlgorithm, KeyUsages, ExtendedKeyUsages). Use the returned profile Id when wiring profile-based issuance against Request-InfisicalCertificate.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificateProfile</dev:code>
+        <dev:remarks><maml:para>Lists every certificate profile defined on the session-pinned project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificateProfile -ProfileId '8257641e-c808-454e-ac92-8dc920be865f'</dev:code>
+        <dev:remarks><maml:para>Retrieves a single certificate profile by id from the session-pinned project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalCertificateProfileListResult = Get-InfisicalCertificateProfile | Where-Object { $_.Slug -ieq 'codesigning' }
+
+$GetInfisicalCertificateProfileParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalCertificateProfileParameters.ProfileId = $GetInfisicalCertificateProfileListResult[0].Id
+$GetInfisicalCertificateProfileParameters.ProjectId = $ConnectInfisicalParameters.ProjectId
+$GetInfisicalCertificateProfileParameters.Verbose   = $True
+
+$GetInfisicalCertificateProfileResult = Get-InfisicalCertificateProfile @GetInfisicalCertificateProfileParameters</dev:code>
+        <dev:remarks><maml:para>Filters profiles whose slug equals 'codesigning' and refetches the canonical record for the first match using a splatted parameter set.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
       <command:name>Search-InfisicalCertificate</command:name>
       <maml:description><maml:para>Searches Infisical certificates with advanced filters and automatic paging.</maml:para></maml:description>
       <command:verb>Search</command:verb>

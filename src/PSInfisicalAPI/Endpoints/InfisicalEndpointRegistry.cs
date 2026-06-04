@@ -642,6 +642,26 @@ namespace PSInfisicalAPI.Endpoints
                 Template = "/api/v1/pki/subscribers/{subscriberName}",
                 RequiresAuthorization = true
             });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListCertificateProfiles,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/certificate-profiles",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetCertificateProfile,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/certificate-profiles/{certificateProfileId}",
+                RequiresAuthorization = true
+            });
         }
 
         public static InfisicalEndpointDefinition Get(string name)
