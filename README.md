@@ -28,15 +28,74 @@ Import-Module -Name .\Module\PSInfisicalAPI
 
 The module exports 34 cmdlets. Discovery cmdlets (`Get-Infisical*`) use a `List` (default) / single-record parameter-set pair: invoking without the identity parameter returns the collection, supplying the identity parameter returns one record.
 
-| Area                  | Cmdlets                                                                                                                                                                                          |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Session               | `Connect-Infisical`, `Disconnect-Infisical`                                                                                                                                                      |
-| Secrets               | `Get-InfisicalSecret`, `New-InfisicalSecret`, `Update-InfisicalSecret`, `Remove-InfisicalSecret`, `Copy-InfisicalSecret`, `ConvertTo-InfisicalSecretDictionary`, `Export-InfisicalSecrets`       |
-| Projects              | `Get-InfisicalProject`, `New-InfisicalProject`, `Update-InfisicalProject`, `Remove-InfisicalProject`                                                                                             |
-| Environments          | `Get-InfisicalEnvironment`, `New-InfisicalEnvironment`, `Update-InfisicalEnvironment`, `Remove-InfisicalEnvironment`                                                                             |
-| Folders               | `Get-InfisicalFolder`, `New-InfisicalFolder`, `Update-InfisicalFolder`, `Remove-InfisicalFolder`                                                                                                 |
-| Tags                  | `Get-InfisicalTag`, `New-InfisicalTag`, `Update-InfisicalTag`, `Remove-InfisicalTag`                                                                                                             |
-| PKI                   | `Get-InfisicalCertificateAuthority`, `Get-InfisicalPkiSubscriber`, `Get-InfisicalCertificate`, `Search-InfisicalCertificate`, `Request-InfisicalCertificate`, `ConvertTo-InfisicalCertificate`, `Install-InfisicalCertificate`, `Uninstall-InfisicalCertificate`, `Export-InfisicalCertificate` |
+### Session
+
+| Cmdlet                 | Purpose                                                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------------------- |
+| `Connect-Infisical`    | Establishes an authenticated session with an Infisical server and stores it for use by subsequent cmdlets. |
+| `Disconnect-Infisical` | Clears the current Infisical session from the module-level session manager.                        |
+
+### Secrets
+
+| Cmdlet                                | Purpose                                                                                            |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalSecret`                 | Lists or retrieves Infisical secrets within a project, environment, and optional folder path.      |
+| `New-InfisicalSecret`                 | Creates a new Infisical secret, with support for SecureString values and bulk creation.            |
+| `Update-InfisicalSecret`              | Updates an existing Infisical secret value, comment, name, or tags.                                |
+| `Remove-InfisicalSecret`              | Deletes one or many Infisical secrets by name.                                                     |
+| `Copy-InfisicalSecret`                | Duplicates one or more secrets into a different environment or secret path.                        |
+| `ConvertTo-InfisicalSecretDictionary` | Converts a stream of InfisicalSecret objects into a name-keyed Dictionary of SecureString or plain text values. |
+| `Export-InfisicalSecrets`             | Exports InfisicalSecret objects to disk or environment variables in a chosen file format.          |
+
+### Projects
+
+| Cmdlet                    | Purpose                                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalProject`    | Lists or retrieves Infisical projects accessible to the current identity.                          |
+| `New-InfisicalProject`    | Creates a new Infisical project in the active organization.                                        |
+| `Update-InfisicalProject` | Updates the name, description, or auto-capitalization flag on an existing project.                 |
+| `Remove-InfisicalProject` | Deletes an Infisical project.                                                                      |
+
+### Environments
+
+| Cmdlet                        | Purpose                                                                                            |
+| ----------------------------- | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalEnvironment`    | Lists or retrieves Infisical environments defined on a project.                                    |
+| `New-InfisicalEnvironment`    | Creates a new environment on an Infisical project.                                                 |
+| `Update-InfisicalEnvironment` | Updates the name, slug, or sort order of an existing Infisical environment.                        |
+| `Remove-InfisicalEnvironment` | Deletes an Infisical environment from a project.                                                   |
+
+### Folders
+
+| Cmdlet                   | Purpose                                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalFolder`    | Lists or retrieves Infisical folders at a given secret path.                                       |
+| `New-InfisicalFolder`    | Creates a new Infisical folder under the supplied parent path.                                     |
+| `Update-InfisicalFolder` | Renames an existing Infisical folder.                                                              |
+| `Remove-InfisicalFolder` | Deletes an Infisical folder and all secrets it contains.                                           |
+
+### Tags
+
+| Cmdlet                | Purpose                                                                                            |
+| --------------------- | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalTag`    | Lists or retrieves Infisical tags defined on a project.                                            |
+| `New-InfisicalTag`    | Creates a new Infisical tag on a project.                                                          |
+| `Update-InfisicalTag` | Updates the slug, name, or color of an existing Infisical tag.                                     |
+| `Remove-InfisicalTag` | Deletes an Infisical tag from a project.                                                           |
+
+### PKI
+
+| Cmdlet                              | Purpose                                                                                            |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalCertificateAuthority` | Lists or retrieves Infisical internal Certificate Authorities.                                     |
+| `Get-InfisicalPkiSubscriber`        | Lists or retrieves Infisical PKI subscribers in a project.                                         |
+| `Get-InfisicalCertificate`          | Lists or retrieves Infisical certificates in a project, with optional filters and automatic paging. |
+| `Search-InfisicalCertificate`       | Searches Infisical certificates with advanced filters and automatic paging.                        |
+| `Request-InfisicalCertificate`      | Requests a new Infisical certificate (local CSR + sign) or reuses a still-valid existing one.      |
+| `ConvertTo-InfisicalCertificate`    | Materializes an X509Certificate2 from an Infisical certificate record, bundle, or serial number.   |
+| `Install-InfisicalCertificate`      | Installs an Infisical certificate (and optional chain) into a Windows certificate store.           |
+| `Uninstall-InfisicalCertificate`    | Removes a certificate from a Windows certificate store by thumbprint, subject, or pipeline input.  |
+| `Export-InfisicalCertificate`       | Exports an Infisical certificate to disk in PEM, PFX, or CER format.                               |
 
 Use `Get-Help <Cmdlet> -Full` for parameter details and `Get-Help about_PSInfisicalAPI` for the module overview.
 
