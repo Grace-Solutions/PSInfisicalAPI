@@ -6,6 +6,32 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.04.0123
+
+- Build produced from commit 2cbd5c2008f5.
+
+## Unreleased (carried forward)
+
+- **M10 polish Ã¢â‚¬â€ formatting, type metadata, and PKI route aliases**:
+  - Added default table views and `DefaultDisplayPropertySet` entries for `InfisicalCertificateAuthority`, `InfisicalCertificate`, and `InfisicalCertificateBundle` in the module `Format.ps1xml` / `Types.ps1xml`.
+  - Realigned PKI endpoint registry to current Infisical paths: `ListInternalCertificateAuthorities` and `RetrieveInternalCertificateAuthority` now use `/api/v1/cert-manager/ca/internal[/{caId}]` as primary, with legacy `/api/v1/pki/ca/internal[/{caId}]` retained as a fallback alias. `GetCertificateBundle` and `RetrieveCertificate` similarly carry `cert-manager` fallback aliases.
+  - `InfisicalApiInvoker.InvokeWithCandidateFallback` walks the candidate list and falls back on `404`/`405`, used by `InfisicalPkiClient` so older self-hosted Infisical instances are tolerated transparently.
+
+## 2026.06.04.0114
+
+- Build produced from commit 2cbd5c2008f5.
+
+## Unreleased (carried forward)
+
+- **M10 Ã¢â‚¬â€ PKI Internal CAs, Certificates & Windows Store integration**:
+  - **`Get-InfisicalCertificateAuthority`** lists internal certificate authorities for the current project, or returns a single CA with `-CaId`.
+  - **`Search-InfisicalCertificate`** wraps `POST /api/v1/projects/{projectId}/certificates/search` with rich filters (`-CommonName`, `-FriendlyName`, `-Search`, `-Status`, `-CaId`, `-ProfileId`, `-ApplicationId`, `-EnrollmentType`, `-KeyAlgorithm`, `-SignatureAlgorithm`, `-Source`, `-NotAfterFrom/To`, `-NotBeforeFrom/To`, `-SortBy/-SortOrder`, `-Limit/-Offset`). Auto-paginates unless `-NoAutoPage` is set.
+  - **`ConvertTo-InfisicalCertificate`** accepts an `InfisicalCertificate`, `InfisicalCertificateBundle`, or `-SerialNumber`, fetches the bundle endpoint when needed, and emits a `System.Security.Cryptography.X509Certificates.X509Certificate2` with the private key attached. `-NoPrivateKey` skips key parsing; `-IncludeChain` additionally emits intermediates; `-KeyStorageFlags` controls import behavior.
+  - **`Install-InfisicalCertificate`** / **`Uninstall-InfisicalCertificate`** perform idempotent installs/removes against a Windows `X509Store` (`-StoreName`, `-StoreLocation`, defaults `My`/`CurrentUser`), matching by thumbprint. Install is a no-op when the thumbprint is already present unless `-Force` is supplied (which replaces the existing entry). Both honor `ShouldProcess` and accept pipeline input.
+  - **`Export-InfisicalCertificate`** writes PEM, PFX, or CER to disk via `-Format`, with `-Password` (SecureString) for PFX, `-IncludeChain` for full-chain PEM, `-NoPrivateKey` to omit the key, and `-Force` to overwrite.
+  - **BouncyCastle dependency**: Added `BouncyCastle.Cryptography` to bridge PEM/PKCS#8 parsing on .NET Standard 2.0 / Windows PowerShell 5.1 (where `X509Certificate2.CreateFromPem` and `RSA.ImportFromPem` are unavailable). The shared `PemCertificateBuilder` assembles cert + chain + key into an in-memory PKCS#12 blob and imports it back into `X509Certificate2`. The DLL ships in the published module bin directory.
+  - PKI endpoint registry entries for `ListInternalCertificateAuthorities` (`GET /api/v1/pki/ca/internal`), `RetrieveInternalCertificateAuthority` (`GET /api/v1/pki/ca/internal/{caId}`), `SearchCertificates` (`POST /api/v1/projects/{projectId}/certificates/search`), `RetrieveCertificate`, and `GetCertificateBundle` (`GET /api/v1/pki/certificates/{serialNumber}/bundle`).
+
 ## 2026.06.04.0020
 
 - Build produced from commit 211fbcf34dbb.
@@ -24,7 +50,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 ## 2026.06.03.2207
 
 - Build produced from commit 09c3d5c68bbc.
-- **M9 Ã¢â‚¬â€ Bulk, Duplicate & Inheritance**:
+- **M9 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Bulk, Duplicate & Inheritance**:
   - **Bulk parameter sets** added to `New-InfisicalSecret`, `Update-InfisicalSecret`, and `Remove-InfisicalSecret` accepting `-Secrets Hashtable[]`; client methods `CreateBatch`/`UpdateBatch`/`DeleteBatch` wrap `POST|PATCH|DELETE /api/v3/secrets/batch/raw`.
   - **`Copy-InfisicalSecret`** cmdlet added, wrapping `POST /api/v4/secrets/duplicate` with source/destination environment + path parameters and per-attribute copy toggles.
   - **Connection inheritance** centralized in `InfisicalCmdletBase` (`ResolveProjectId`/`ResolveEnvironment`/`ResolveSecretPath`/`ResolveApiVersion`/`ResolveOrganizationId`). Explicit parameters always win; missing values fall back to the active connection and emit a `-Verbose` line.

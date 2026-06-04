@@ -16,6 +16,7 @@ namespace PSInfisicalAPI.Endpoints
             RegisterEnvironments(Candidates);
             RegisterFolders(Candidates);
             RegisterTags(Candidates);
+            RegisterPki(Candidates);
         }
 
         private static void Add(Dictionary<string, List<InfisicalEndpointDefinition>> map, InfisicalEndpointDefinition definition)
@@ -492,6 +493,101 @@ namespace PSInfisicalAPI.Endpoints
                 Method = "DELETE",
                 Template = "/api/v1/workspace/{projectId}/tags/{tagId}",
                 RequiresAuthorization = true
+            });
+        }
+
+        private static void RegisterPki(Dictionary<string, List<InfisicalEndpointDefinition>> map)
+        {
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListInternalCertificateAuthorities,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/ca/internal",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListInternalCertificateAuthorities,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/pki/ca/internal",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.RetrieveInternalCertificateAuthority,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/ca/internal/{caId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.RetrieveInternalCertificateAuthority,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/pki/ca/internal/{caId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.SearchCertificates,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/projects/{projectId}/certificates/search",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.RetrieveCertificate,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/pki/certificates/{serialNumber}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.RetrieveCertificate,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/certificates/{serialNumber}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetCertificateBundle,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/pki/certificates/{serialNumber}/bundle",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetCertificateBundle,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/certificates/{serialNumber}/bundle",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
             });
         }
 
