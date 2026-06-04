@@ -26,7 +26,7 @@ Import-Module -Name .\Module\PSInfisicalAPI
 
 ## Cmdlets
 
-The module exports 34 cmdlets. Discovery cmdlets (`Get-Infisical*`) use a `List` (default) / single-record parameter-set pair: invoking without the identity parameter returns the collection, supplying the identity parameter returns one record.
+The module exports 37 cmdlets. Discovery cmdlets (`Get-Infisical*`) use a `List` (default) / single-record parameter-set pair: invoking without the identity parameter returns the collection, supplying the identity parameter returns one record.
 
 ### Session
 
@@ -96,6 +96,9 @@ The module exports 34 cmdlets. Discovery cmdlets (`Get-Infisical*`) use a `List`
 | `Install-InfisicalCertificate`      | Installs an Infisical certificate (and optional chain) into a Windows certificate store.           |
 | `Uninstall-InfisicalCertificate`    | Removes a certificate from a Windows certificate store by thumbprint, subject, or pipeline input.  |
 | `Export-InfisicalCertificate`       | Exports an Infisical certificate to disk in PEM, PFX, or CER format.                               |
+| `Get-InfisicalScepMdmProfile`       | Projects an Infisical certificate profile into a Windows SCEP MDM profile model.                   |
+| `Export-InfisicalScepMdmProfile`    | Writes a SCEP MDM profile to disk as a SyncML payload suitable for MDM delivery.                   |
+| `Write-InfisicalScepMdmProfileToWmi`| Submits a SCEP MDM profile to the local MDM Bridge WMI provider to trigger enrollment.             |
 
 Use `Get-Help <Cmdlet> -Full` for parameter details and `Get-Help about_PSInfisicalAPI` for the module overview.
 

@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+- `Get-InfisicalScepMdmProfile` added. Projects an `InfisicalCertificateProfile` (pipeline-bound) into a new `InfisicalScepMdmProfile` model that mirrors the Windows `ClientCertificateInstall/SCEP` CSP node set. `-ServerUrl` defaults to `{baseUri}/scep/{profileId}/pkiclient.exe` derived from the active connection (the `pkiclient.exe` suffix is the RFC 8894 / Cisco SCEP client compatibility holdover, not a server-side executable). `-UniqueId` defaults to a sanitized slug. `-Challenge` is a `SecureString` decrypted only when materializing the model. `KeyAlgorithm` and `EkuMapping` are inherited from the source profile defaults unless overridden.
+- `Export-InfisicalScepMdmProfile` added. Serializes the model via `InfisicalScepMdmProfile.ToSyncMl()` (XDocument build, XmlWriter emit, XmlReader round-trip validation) and writes the result to `-Path` as UTF-8 without BOM. Auto-creates the target directory, honors `-WhatIf`/`-Confirm`, and follows the project rule for `-Force`: if the destination exists without `-Force`, the cmdlet logs a warning and returns instead of throwing. `-PassThru` emits the resulting `FileInfo`.
+- `Write-InfisicalScepMdmProfileToWmi` added. Submits the same model to the local MDM Bridge WMI provider by invoking `New-CimInstance -Namespace root/cimv2/mdm/dmmap -ClassName MDM_ClientCertificateInstall_SCEP02 -Property <hashtable>` through the host runspace (no new package references). Guards: throws `PlatformNotSupportedException` off Windows; device-scope enrollment requires an elevated session unless `-SkipElevationCheck` is passed; supports `-WhatIf`/`-Confirm`; `-PassThru` emits the returned CIM instance. Override `-ClassName` when targeting a different SCEP CSP version on the host.
+
 ## 2026.06.04.2112
 
 - Build produced from commit 3754de74f6c8.

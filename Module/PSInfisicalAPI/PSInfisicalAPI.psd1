@@ -45,7 +45,10 @@
         'ConvertTo-InfisicalCertificate',
         'Install-InfisicalCertificate',
         'Uninstall-InfisicalCertificate',
-        'Export-InfisicalCertificate'
+        'Export-InfisicalCertificate',
+        'Get-InfisicalScepMdmProfile',
+        'Export-InfisicalScepMdmProfile',
+        'Write-InfisicalScepMdmProfileToWmi'
     )
     AliasesToExport      = @()
     VariablesToExport    = @()
