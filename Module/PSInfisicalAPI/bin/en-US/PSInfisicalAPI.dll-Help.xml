@@ -1477,6 +1477,121 @@ $UninstallInfisicalCertificateResult = Uninstall-InfisicalCertificate @Uninstall
     </command:examples>
   </command:command>
 
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalScepMdmProfile</command:name>
+      <maml:description><maml:para>Builds an Infisical SCEP MDM profile model from a certificate profile, suitable for SyncML export or local MDM enrollment.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalScepMdmProfile</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Projects an InfisicalCertificateProfile (pipeline-bound) into an InfisicalScepMdmProfile that mirrors the Windows ClientCertificateInstall/SCEP CSP node set. -Challenge is accepted as a SecureString and decrypted into the model only at write-time. -ServerUrl defaults to {baseUri}/scep/{profileId}/pkiclient.exe derived from the active connection. -UniqueId defaults to a sanitized form of the source profile slug. KeyAlgorithm and EkuMapping are inherited from the source profile defaults unless overridden.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>The SCEP endpoint URL ends in 'pkiclient.exe' for RFC 8894 / Cisco SCEP client compatibility. The source profile must have SCEP enrollment enabled on the server side for enrollment to succeed; this cmdlet does not validate that.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificateProfile -CertificateProfileId $ProfileId | Get-InfisicalScepMdmProfile -Challenge (Read-Host -AsSecureString 'SCEP challenge')</dev:code>
+        <dev:remarks><maml:para>Builds a default SCEP MDM profile with the server URL inferred from the active connection.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalScepMdmProfileParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalScepMdmProfileParameters.InputObject              = (Get-InfisicalCertificateProfile -CertificateProfileId $ProfileId)
+$GetInfisicalScepMdmProfileParameters.Challenge                = (Read-Host -AsSecureString 'SCEP challenge')
+$GetInfisicalScepMdmProfileParameters.UniqueId                 = 'WindowsClientAuth'
+$GetInfisicalScepMdmProfileParameters.Scope                    = 'Device'
+$GetInfisicalScepMdmProfileParameters.SubjectName              = "CN=$($env:COMPUTERNAME)"
+$GetInfisicalScepMdmProfileParameters.KeyLength                = 2048
+$GetInfisicalScepMdmProfileParameters.HashAlgorithm            = 'SHA256'
+$GetInfisicalScepMdmProfileParameters.ValidPeriod              = 'Years'
+$GetInfisicalScepMdmProfileParameters.ValidPeriodUnits         = 1
+$GetInfisicalScepMdmProfileParameters.Verbose                  = $True
 
+$GetInfisicalScepMdmProfileResult = Get-InfisicalScepMdmProfile @GetInfisicalScepMdmProfileParameters</dev:code>
+        <dev:remarks><maml:para>Builds a device-scope SCEP MDM profile with explicit subject and key parameters for downstream export or local enrollment.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Export-InfisicalScepMdmProfile</command:name>
+      <maml:description><maml:para>Writes an InfisicalScepMdmProfile to disk as a SyncML payload suitable for MDM delivery.</maml:para></maml:description>
+      <command:verb>Export</command:verb>
+      <command:noun>InfisicalScepMdmProfile</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Serializes the supplied InfisicalScepMdmProfile via ToSyncMl() and writes the result to -Path as UTF-8 (no BOM). Auto-creates the target directory. If the file exists and -Force is not specified the cmdlet logs a warning and returns instead of throwing. Honors -WhatIf and -Confirm. -PassThru emits the resulting FileInfo.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>The generated SyncML is round-trip-validated through XmlReader before being written. Pair with Write-InfisicalScepMdmProfileToWmi to apply the same model to the local MDM Bridge instead of exporting to a file.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>$Profile | Export-InfisicalScepMdmProfile -Path 'C:\Temp\scep.syncml' -Force</dev:code>
+        <dev:remarks><maml:para>Writes the SyncML payload for the supplied SCEP MDM profile, overwriting any existing file.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$ExportInfisicalScepMdmProfileParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$ExportInfisicalScepMdmProfileParameters.InputObject = $Profile
+$ExportInfisicalScepMdmProfileParameters.Path        = "C:\ProgramData\Infisical\scep-$($Profile.UniqueId).syncml"
+$ExportInfisicalScepMdmProfileParameters.Force       = $True
+$ExportInfisicalScepMdmProfileParameters.PassThru    = $True
+$ExportInfisicalScepMdmProfileParameters.Verbose     = $True
+
+$ExportInfisicalScepMdmProfileResult = Export-InfisicalScepMdmProfile @ExportInfisicalScepMdmProfileParameters</dev:code>
+        <dev:remarks><maml:para>Writes the SyncML payload to a per-profile path under ProgramData and returns the resulting FileInfo.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Write-InfisicalScepMdmProfileToWmi</command:name>
+      <maml:description><maml:para>Submits an InfisicalScepMdmProfile to the local Windows MDM Bridge WMI provider to trigger SCEP enrollment.</maml:para></maml:description>
+      <command:verb>Write</command:verb>
+      <command:noun>InfisicalScepMdmProfileToWmi</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Creates a new CIM instance under the MDM Bridge namespace (default: root/cimv2/mdm/dmmap, class MDM_ClientCertificateInstall_SCEP02) by invoking New-CimInstance through the host runspace. Honors -WhatIf and -Confirm. -PassThru emits the resulting CIM instance. Throws PlatformNotSupportedException off Windows. Device-scope enrollment requires an elevated session; pass -SkipElevationCheck to bypass the guard.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>The MDM Bridge WMI provider runs the enrollment asynchronously; success here means the enrollment was submitted, not that a certificate has been issued. Inspect the corresponding ClientCertificateInstall/SCEP/&lt;UniqueId&gt;/Install nodes for status. Override -ClassName when targeting a different SCEP CSP version on the host.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>$Profile | Write-InfisicalScepMdmProfileToWmi -PassThru</dev:code>
+        <dev:remarks><maml:para>Submits the SCEP MDM profile to the local MDM Bridge and emits the created CIM instance.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$WriteInfisicalScepMdmProfileToWmiParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$WriteInfisicalScepMdmProfileToWmiParameters.InputObject         = $Profile
+$WriteInfisicalScepMdmProfileToWmiParameters.Namespace           = 'root/cimv2/mdm/dmmap'
+$WriteInfisicalScepMdmProfileToWmiParameters.ClassName           = 'MDM_ClientCertificateInstall_SCEP02'
+$WriteInfisicalScepMdmProfileToWmiParameters.SkipElevationCheck  = $False
+$WriteInfisicalScepMdmProfileToWmiParameters.PassThru            = $True
+$WriteInfisicalScepMdmProfileToWmiParameters.Verbose             = $True
+
+$WriteInfisicalScepMdmProfileToWmiResult = Write-InfisicalScepMdmProfileToWmi @WriteInfisicalScepMdmProfileToWmiParameters</dev:code>
+        <dev:remarks><maml:para>Submits a device-scope SCEP enrollment through the MDM Bridge and returns the CIM instance for downstream inspection.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
 
 </helpItems>
