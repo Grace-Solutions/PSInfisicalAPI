@@ -21,12 +21,11 @@ namespace PSInfisicalAPI.Cmdlets
             try
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalPkiClient client = new InfisicalPkiClient(HttpClient, Logger);
 
                 if (string.Equals(ParameterSetName, "ById", StringComparison.Ordinal))
                 {
-                    InfisicalCertificateAuthority ca = client.GetInternalCertificateAuthority(connection, CaId, resolvedProjectId);
+                    InfisicalCertificateAuthority ca = client.GetInternalCertificateAuthority(connection, CaId, ProjectId);
                     if (ca != null)
                     {
                         WriteObject(ca);
@@ -35,7 +34,7 @@ namespace PSInfisicalAPI.Cmdlets
                     return;
                 }
 
-                InfisicalCertificateAuthority[] all = client.ListInternalCertificateAuthorities(connection, resolvedProjectId);
+                InfisicalCertificateAuthority[] all = client.ListInternalCertificateAuthorities(connection, ProjectId);
                 foreach (InfisicalCertificateAuthority ca in all)
                 {
                     WriteObject(ca);

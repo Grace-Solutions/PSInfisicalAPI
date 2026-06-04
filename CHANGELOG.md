@@ -6,6 +6,105 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.04.1825
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
+## 2026.06.04.1820
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
+- `Install-InfisicalCertificate` now routes chain certificates by self-signed status instead of dumping every chain entry into the Intermediate Certification Authorities store. Self-signed roots are installed into `StoreName.Root` (Trusted Root Certification Authorities) and non-self-signed intermediates are installed into `StoreName.CertificateAuthority` (Intermediate Certification Authorities). The leaf continues to use the user-specified `-StoreName`/`-StoreLocation` (default `My`/`CurrentUser`). `Request-InfisicalCertificate` already routed chain certs correctly; the same routing helper is now shared by both cmdlets.
+- `InfisicalCertificateRequestHelpers` exposes a new public `GetChainCertificateTargetStore(X509Certificate2)` classifier and a new `InstallChain(IEnumerable<X509Certificate2>, StoreLocation, bool, IInfisicalLogger, string)` overload. The existing `InstallChain(InfisicalSignedCertificate, ...)` overload now delegates to the new collection-based overload, so PKI chain-installation routing is centralized in one place.
+
+## 2026.06.04.1810
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
+- Authored MAML help (`Module/PSInfisicalAPI/en-US/PSInfisicalAPI.dll-Help.xml`) covering all 39 exported cmdlets. Every entry includes a synopsis, description, notes section, and two examples: a one-liner and an `OrderedDictionary` splat (with `OrdinalIgnoreCase`) that includes preceding `Get-` resolver commands wherever IDs or slugs are required.
+- `build.ps1` now stages the cmdlet help XML next to the deployed binary. After the publish step, every culture directory under `Module/PSInfisicalAPI/` (matching `xx` or `xx-XX`) that contains `PSInfisicalAPI.dll-Help.xml` is mirrored into `bin/<culture>/`. The script hard-fails if `bin/en-US/PSInfisicalAPI.dll-Help.xml` is missing or contains zero `<command:command>` entries.
+- `Test-ModuleImports` in `build.ps1` now dynamically enumerates exported cmdlets via `Get-Command -Module PSInfisicalAPI -CommandType Cmdlet`, cross-checks the result against an expected list of 39 cmdlet names (including the previously-missing `Copy-InfisicalSecret`), and for each cmdlet asserts that `Get-Help -Full` returns a non-empty synopsis (rejecting PowerShell's auto-generated cmdlet-name fallback), a non-empty description, and that `Get-Help -Examples` returns at least one example node whose `<dev:code>` block is non-empty.
+
+## 2026.06.04.1808
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
+## 2026.06.04.1658
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
+- `Request-InfisicalCertificate` reuse path now falls back to the Infisical certificate-bundle endpoint when the local trust stores do not contain the issuing intermediates or root. The cmdlet builds the local chain first; if the result has no intermediates and no root, it fetches `GetCertificateBundle(serialNumber)` and rebuilds the result with the bundle's chain PEM merged in. A new `-LocalChainOnly` switch opts out of the bundle fetch for strict offline behavior. Bundle-fetch failures are logged at verbose level and the cmdlet returns the local-only result.
+- `InfisicalCertificateRequestHelpers.BuildResultFromExistingLocal` adds a second overload that accepts an `InfisicalCertificateBundle`; when supplied, chain certs from the bundle are deduplicated by thumbprint and merged with the locally-resolved chain before classification.
+
+## 2026.06.04.1652
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
+## 2026.06.04.1651
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
+## 2026.06.04.1634
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
+## 2026.06.04.1631
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
+## 2026.06.04.1622
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
+- **PKI contract fixes and cmdlet expansion**:
+  - `InfisicalPkiClient` no longer auto-injects `connection.ProjectId` into PKI CA list/retrieve calls; only the caller's explicit `-ProjectId` is forwarded so that cert-manager primary routes (which do not accept the query parameter) succeed.
+  - List/single CA and single certificate response parsing now tolerate raw arrays, wrapper objects (`{certificate: {...}}`, `{certificates: [...]}`), and nested `configuration` blocks. `InfisicalCaMapper` reads CA detail fields from `configuration` first, falling back to top-level.
+  - `RetrieveCertificate(connection, identifier)` added on `InfisicalPkiClient`.
+- **New cmdlets**:
+  - **`Get-InfisicalCertificate`** — single-record retrieval by `-SerialNumber`/`-Id` (mandatory positional).
+  - **`Get-InfisicalCertificates`** — listing with light filtering (`-CommonName`, `-FriendlyName`, `-Status`, `-CaId`, `-Limit`, `-Offset`, `-NoAutoPage`). Auto-paginates by default.
+  - **`Request-InfisicalCertificate`** — generates a keypair locally (private key never leaves the device), submits a PKCS#10 CSR to either `pki-subscribers/{name}/sign-certificate` (`-PkiSubscriberSlug`) or `ca/{caId}/sign-certificate` (`-CertificateAuthorityId`), and returns a single `InfisicalCertificateResult` object with the leaf and chain pre-classified. The result exposes `Leaf : X509Certificate2`, `Intermediates : X509Certificate2[]`, `Root : X509Certificate2` (nullable), `Chain : X509Certificate2[]` (ordered leaf → intermediates → root, deduplicated by thumbprint), plus pass-through `SerialNumber`, `CertificatePem`, `CertificateChainPem`, and `PrivateKeyPem`. Supports `-Subject` (`IDictionary` with `CN`/`C`/`ST`/`L`/`O`/`OU`/`E` keys) merged with individual `-CommonName`/`-Country`/etc. parameters (individual params win), `-DnsName`/`-IpAddress` SANs (auto-populated from local FQDN when omitted). Idempotency: scans the local `X509Store` for an existing certificate matching `CN` and an Infisical-known serial number; returns the existing certificate wrapped in an `InfisicalCertificateResult` whose `Intermediates`/`Root`/`Chain` are populated by walking the local trust stores via `X509Chain` (no network calls, revocation checks disabled), and whose `CertificatePem`/`CertificateChainPem` are reconstructed from the resolved certs. Reuse is short-circuited unless `-Force` or `-AllowRenewal` (with optional `-RenewalThresholdDays`, default 30) requests a new one. Installation: `-Install` adds the leaf to `-StoreName`/`-StoreLocation` (default `My`/`CurrentUser`); `-InstallChain` additionally places intermediates into `CertificateAuthority` and self-signed roots into `Root` for the same `-StoreLocation`. `-KeyStorageFlags` is passed through to `X509Certificate2` import.
+  - **Multi-algorithm CSR support** on `Request-InfisicalCertificate` via split parameters: `-KeyAlgorithm` (`Rsa`/`Ecdsa`/`Ed25519`, default `Rsa`), `-KeySize` (`2048`/`3072`/`4096`, default `2048`, applies to RSA only), `-Curve` (`P256`/`P384`, default `P256`, applies to ECDSA only). Signature algorithms are picked automatically: SHA256WITHRSA for RSA, SHA256WITHECDSA / SHA384WITHECDSA for ECDSA P-256/P-384, and Ed25519 (pure-EdDSA) for Ed25519. The underlying `InfisicalCsrBuilder.Build(subject, dns, ip, options)` API was updated to take an `InfisicalCsrOptions` object in place of the prior `keySize` int.
+  - **Sign-certificate endpoint registrations**: `SignCertificateBySubscriber` and `SignCertificateByCa` registered with both `/api/v1/pki/...` and `/api/v1/cert-manager/...` candidate paths and marked `ContainsSecretMaterialInResponse = true`.
+
+## 2026.06.04.1554
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
+## 2026.06.04.1512
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
+## 2026.06.04.1508
+
+- Build produced from commit 19615363e356.
+
+## Unreleased (carried forward)
+
 - **CI â€” Gitea artifact upload fix**: Replaced `actions/upload-artifact@v4` and `actions/download-artifact@v4` with the Gitea-compatible forks `christopherhx/gitea-upload-artifact@v4` and `christopherhx/gitea-download-artifact@v4` in `.gitea/workflows/publish-psgallery.yml`. The upstream v4 actions abort on Gitea because Gitea is detected as GHES, which the upstream v4 actions do not support (see [go-gitea/gitea#28853](https://github.com/go-gitea/gitea/issues/28853)).
 
 ## 2026.06.04.0123

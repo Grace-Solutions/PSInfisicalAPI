@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Newtonsoft.Json.Linq;
 using PSInfisicalAPI.Connections;
 using PSInfisicalAPI.Endpoints;
 using PSInfisicalAPI.Errors;
@@ -8,6 +9,7 @@ using PSInfisicalAPI.Http;
 using PSInfisicalAPI.Logging;
 using PSInfisicalAPI.Models;
 using PSInfisicalAPI.Serialization;
+using System.Linq;
 
 namespace PSInfisicalAPI.Pki
 {
@@ -30,23 +32,23 @@ namespace PSInfisicalAPI.Pki
         public InfisicalCertificateAuthority[] ListInternalCertificateAuthorities(InfisicalConnection connection, string projectId)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
 
             List<KeyValuePair<string, string>> query = null;
-            if (!string.IsNullOrEmpty(resolvedProjectId))
+            if (!string.IsNullOrEmpty(projectId))
             {
-                query = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("projectId", resolvedProjectId) };
+                query = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("projectId", projectId) };
             }
 
             try
             {
                 _logger.Information(Component, "Attempting to list Infisical internal certificate authorities. Please Wait...");
                 InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.ListInternalCertificateAuthorities, "ListInternalCertificateAuthorities", null, query, null);
-                InfisicalInternalCaListResponseDto dto = _serializer.Deserialize<InfisicalInternalCaListResponseDto>(response.Body);
+                string body = response.Body;
                 response.Clear();
 
-                List<InfisicalInternalCaResponseDto> source = dto != null ? (dto.CertificateAuthorities ?? dto.Cas) : null;
-                InfisicalCertificateAuthority[] mapped = InfisicalCaMapper.MapMany(source, resolvedProjectId);
+                List<InfisicalInternalCaResponseDto> source = ParseCaListBody(body);
+                string fallbackProjectId = !string.IsNullOrEmpty(projectId) ? projectId : connection.ProjectId;
+                InfisicalCertificateAuthority[] mapped = InfisicalCaMapper.MapMany(source, fallbackProjectId);
                 _logger.Information(Component, "Infisical internal certificate authority list retrieval was successful.");
                 return mapped;
             }
@@ -63,21 +65,22 @@ namespace PSInfisicalAPI.Pki
             if (string.IsNullOrEmpty(caId)) { throw new InfisicalConfigurationException("CaId is required."); }
 
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "caId", caId } };
+            List<KeyValuePair<string, string>> query = null;
+            if (!string.IsNullOrEmpty(projectId))
+            {
+                query = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("projectId", projectId) };
+            }
 
             try
             {
                 _logger.Information(Component, string.Concat("Attempting to retrieve Infisical internal certificate authority '", caId, "'. Please Wait..."));
-                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.RetrieveInternalCertificateAuthority, "RetrieveInternalCertificateAuthority", pathParameters, null, null);
-                InfisicalInternalCaSingleResponseDto dto = _serializer.Deserialize<InfisicalInternalCaSingleResponseDto>(response.Body);
+                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.RetrieveInternalCertificateAuthority, "RetrieveInternalCertificateAuthority", pathParameters, query, null);
+                string body = response.Body;
                 response.Clear();
 
-                InfisicalInternalCaResponseDto inner = dto != null ? (dto.CertificateAuthority ?? dto.Ca) : null;
-                if (inner == null)
-                {
-                    inner = _serializer.Deserialize<InfisicalInternalCaResponseDto>(response.Body);
-                }
-
-                InfisicalCertificateAuthority mapped = InfisicalCaMapper.Map(inner, FirstNonEmpty(projectId, connection.ProjectId));
+                InfisicalInternalCaResponseDto inner = ParseCaSingleBody(body);
+                string fallbackProjectId = !string.IsNullOrEmpty(projectId) ? projectId : connection.ProjectId;
+                InfisicalCertificateAuthority mapped = InfisicalCaMapper.Map(inner, fallbackProjectId);
                 _logger.Information(Component, "Infisical internal certificate authority retrieval was successful.");
                 return mapped;
             }
@@ -86,6 +89,68 @@ namespace PSInfisicalAPI.Pki
                 _logger.Error(Component, "Infisical internal certificate authority retrieval failed.");
                 throw;
             }
+        }
+
+        public InfisicalCertificate RetrieveCertificate(InfisicalConnection connection, string identifier)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(identifier)) { throw new InfisicalConfigurationException("Identifier (serial number or id) is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "serialNumber", identifier } };
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to retrieve Infisical certificate '", identifier, "'. Please Wait..."));
+                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.RetrieveCertificate, "RetrieveCertificate", pathParameters, null, null);
+                string body = response.Body;
+                response.Clear();
+
+                InfisicalCertificateResponseDto inner = ParseCertificateSingleBody(body);
+                InfisicalCertificate mapped = InfisicalCertificateMapper.Map(inner, connection.ProjectId);
+                _logger.Information(Component, "Infisical certificate retrieval was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate retrieval failed.");
+                throw;
+            }
+        }
+
+        private List<InfisicalInternalCaResponseDto> ParseCaListBody(string body)
+        {
+            if (string.IsNullOrEmpty(body)) { return null; }
+            JToken token = JToken.Parse(body);
+            if (token.Type == JTokenType.Array)
+            {
+                return token.ToObject<List<InfisicalInternalCaResponseDto>>();
+            }
+
+            InfisicalInternalCaListResponseDto wrapper = token.ToObject<InfisicalInternalCaListResponseDto>();
+            return wrapper != null ? (wrapper.CertificateAuthorities ?? wrapper.Cas) : null;
+        }
+
+        private InfisicalInternalCaResponseDto ParseCaSingleBody(string body)
+        {
+            if (string.IsNullOrEmpty(body)) { return null; }
+            JToken token = JToken.Parse(body);
+            if (token.Type != JTokenType.Object) { return null; }
+            JObject obj = (JObject)token;
+
+            if (obj["certificateAuthority"] is JObject ca1) { return ca1.ToObject<InfisicalInternalCaResponseDto>(); }
+            if (obj["ca"] is JObject ca2) { return ca2.ToObject<InfisicalInternalCaResponseDto>(); }
+            return obj.ToObject<InfisicalInternalCaResponseDto>();
+        }
+
+        private InfisicalCertificateResponseDto ParseCertificateSingleBody(string body)
+        {
+            if (string.IsNullOrEmpty(body)) { return null; }
+            JToken token = JToken.Parse(body);
+            if (token.Type != JTokenType.Object) { return null; }
+            JObject obj = (JObject)token;
+
+            if (obj["certificate"] is JObject cert) { return cert.ToObject<InfisicalCertificateResponseDto>(); }
+            return obj.ToObject<InfisicalCertificateResponseDto>();
         }
 
         public InfisicalCertificateSearchResult SearchCertificates(InfisicalConnection connection, InfisicalCertificateSearchQuery query)
@@ -116,6 +181,93 @@ namespace PSInfisicalAPI.Pki
                 _logger.Error(Component, "Infisical certificate search failed.");
                 throw;
             }
+        }
+
+        public InfisicalSignedCertificate SignCertificateBySubscriber(InfisicalConnection connection, string subscriberName, string projectId, string csrPem)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(subscriberName)) { throw new InfisicalConfigurationException("SubscriberName is required."); }
+            if (string.IsNullOrEmpty(csrPem)) { throw new InfisicalConfigurationException("CSR is required."); }
+            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "subscriberName", subscriberName } };
+            InfisicalSignCertificateBySubscriberRequestDto request = new InfisicalSignCertificateBySubscriberRequestDto
+            {
+                ProjectId = resolvedProjectId,
+                Csr = csrPem
+            };
+            string body = _serializer.Serialize(request);
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to sign certificate via subscriber '", subscriberName, "'. Please Wait..."));
+                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.SignCertificateBySubscriber, "SignCertificateBySubscriber", pathParameters, null, body);
+                InfisicalSignCertificateResponseDto dto = _serializer.Deserialize<InfisicalSignCertificateResponseDto>(response.Body);
+                response.Clear();
+
+                InfisicalSignedCertificate signed = MapSigned(dto);
+                _logger.Information(Component, "Infisical certificate signing (subscriber) was successful.");
+                return signed;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate signing (subscriber) failed.");
+                throw;
+            }
+        }
+
+        public InfisicalSignedCertificate SignCertificateByCa(InfisicalConnection connection, string caId, string csrPem, string commonName, string altNames, string ttl, string notBefore, string notAfter, string friendlyName, string pkiCollectionId, IEnumerable<string> keyUsages, IEnumerable<string> extendedKeyUsages)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(caId)) { throw new InfisicalConfigurationException("CaId is required."); }
+            if (string.IsNullOrEmpty(csrPem)) { throw new InfisicalConfigurationException("CSR is required."); }
+            if (string.IsNullOrEmpty(ttl) && string.IsNullOrEmpty(notAfter)) { throw new InfisicalConfigurationException("Either Ttl or NotAfter must be provided."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "caId", caId } };
+            InfisicalSignCertificateByCaRequestDto request = new InfisicalSignCertificateByCaRequestDto
+            {
+                Csr = csrPem,
+                CommonName = commonName,
+                AltNames = altNames,
+                Ttl = ttl,
+                NotBefore = notBefore,
+                NotAfter = notAfter,
+                FriendlyName = friendlyName,
+                PkiCollectionId = pkiCollectionId,
+                KeyUsages = keyUsages != null ? keyUsages.ToList() : null,
+                ExtendedKeyUsages = extendedKeyUsages != null ? extendedKeyUsages.ToList() : null
+            };
+            string body = _serializer.Serialize(request);
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to sign certificate via CA '", caId, "'. Please Wait..."));
+                InfisicalHttpResponse response = _invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.SignCertificateByCa, "SignCertificateByCa", pathParameters, null, body);
+                InfisicalSignCertificateResponseDto dto = _serializer.Deserialize<InfisicalSignCertificateResponseDto>(response.Body);
+                response.Clear();
+
+                InfisicalSignedCertificate signed = MapSigned(dto);
+                _logger.Information(Component, "Infisical certificate signing (CA) was successful.");
+                return signed;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate signing (CA) failed.");
+                throw;
+            }
+        }
+
+        private static InfisicalSignedCertificate MapSigned(InfisicalSignCertificateResponseDto dto)
+        {
+            if (dto == null) { return null; }
+            return new InfisicalSignedCertificate
+            {
+                SerialNumber = dto.SerialNumber,
+                CertificatePem = dto.Certificate,
+                CertificateChainPem = dto.CertificateChain,
+                IssuingCaCertificatePem = dto.IssuingCaCertificate
+            };
         }
 
         public InfisicalCertificateBundle GetCertificateBundle(InfisicalConnection connection, string serialNumber)

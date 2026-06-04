@@ -44,7 +44,8 @@ namespace PSInfisicalAPI.Cmdlets
                 {
                     foreach (X509Certificate2 chainCert in ResolveChain())
                     {
-                        InstallCertificate(chainCert, StoreName.CertificateAuthority, StoreLocation);
+                        StoreName chainStore = InfisicalCertificateRequestHelpers.GetChainCertificateTargetStore(chainCert);
+                        InstallCertificate(chainCert, chainStore, StoreLocation);
                     }
                 }
 

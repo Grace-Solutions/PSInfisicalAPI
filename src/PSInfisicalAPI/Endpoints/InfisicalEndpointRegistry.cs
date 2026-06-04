@@ -589,6 +589,50 @@ namespace PSInfisicalAPI.Endpoints
                 RequiresAuthorization = true,
                 ContainsSecretMaterialInResponse = true
             });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.SignCertificateBySubscriber,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/pki/pki-subscribers/{subscriberName}/sign-certificate",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.SignCertificateBySubscriber,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/cert-manager/pki-subscribers/{subscriberName}/sign-certificate",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.SignCertificateByCa,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/pki/ca/{caId}/sign-certificate",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.SignCertificateByCa,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/cert-manager/ca/{caId}/sign-certificate",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
         }
 
         public static InfisicalEndpointDefinition Get(string name)

@@ -49,5 +49,7 @@ namespace PSInfisicalAPI.Endpoints
         public const string SearchCertificates = "SearchCertificates";
         public const string RetrieveCertificate = "RetrieveCertificate";
         public const string GetCertificateBundle = "GetCertificateBundle";
+        public const string SignCertificateBySubscriber = "SignCertificateBySubscriber";
+        public const string SignCertificateByCa = "SignCertificateByCa";
     }
 }
