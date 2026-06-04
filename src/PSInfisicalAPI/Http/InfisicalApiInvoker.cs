@@ -23,7 +23,8 @@ namespace PSInfisicalAPI.Http
             string operationName,
             IDictionary<string, string> pathParameters,
             IEnumerable<KeyValuePair<string, string>> queryParameters,
-            string body)
+            string body,
+            IDictionary<string, string> extraHeaders = null)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
             if (string.IsNullOrEmpty(endpointName)) { throw new ArgumentNullException(nameof(endpointName)); }
@@ -31,7 +32,7 @@ namespace PSInfisicalAPI.Http
             InfisicalEndpointDefinition definition = InfisicalEndpointRegistry.Get(endpointName);
             Uri uri = InfisicalUriBuilder.Build(connection.BaseUri, definition, pathParameters, queryParameters);
 
-            InfisicalHttpResponse response = ExecuteAuthorized(connection, definition, operationName, uri, body);
+            InfisicalHttpResponse response = ExecuteAuthorized(connection, definition, operationName, uri, body, extraHeaders);
 
             if (response.StatusCode >= 200 && response.StatusCode < 300)
             {
@@ -49,7 +50,8 @@ namespace PSInfisicalAPI.Http
             string operationName,
             IDictionary<string, string> pathParameters,
             IEnumerable<KeyValuePair<string, string>> queryParameters,
-            string body)
+            string body,
+            IDictionary<string, string> extraHeaders = null)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
             if (string.IsNullOrEmpty(endpointName)) { throw new ArgumentNullException(nameof(endpointName)); }
@@ -61,7 +63,7 @@ namespace PSInfisicalAPI.Http
             {
                 InfisicalEndpointDefinition definition = candidates[index];
                 Uri uri = InfisicalUriBuilder.Build(connection.BaseUri, definition, pathParameters, queryParameters);
-                InfisicalHttpResponse response = ExecuteAuthorized(connection, definition, operationName, uri, body);
+                InfisicalHttpResponse response = ExecuteAuthorized(connection, definition, operationName, uri, body, extraHeaders);
 
                 if (response.StatusCode >= 200 && response.StatusCode < 300)
                 {
@@ -95,7 +97,8 @@ namespace PSInfisicalAPI.Http
             InfisicalEndpointDefinition definition,
             string operationName,
             Uri uri,
-            string body)
+            string body,
+            IDictionary<string, string> extraHeaders = null)
         {
             Dictionary<string, string> headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             headers["Accept"] = "application/json";
@@ -116,6 +119,15 @@ namespace PSInfisicalAPI.Http
                 {
                     headers["Authorization"] = string.Concat("Bearer ", plainToken ?? string.Empty);
                 });
+            }
+
+            if (extraHeaders != null)
+            {
+                foreach (KeyValuePair<string, string> entry in extraHeaders)
+                {
+                    if (string.IsNullOrEmpty(entry.Key)) { continue; }
+                    headers[entry.Key] = entry.Value;
+                }
             }
 
             InfisicalHttpRequest request = new InfisicalHttpRequest

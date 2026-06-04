@@ -640,6 +640,233 @@ namespace PSInfisicalAPI.Pki
             }
         }
 
+        public InfisicalCertificateApplication[] ListCertificateApplications(InfisicalConnection connection, string projectId, int? limit, int? offset)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+
+            List<KeyValuePair<string, string>> query = new List<KeyValuePair<string, string>>();
+            if (limit.HasValue) { query.Add(new KeyValuePair<string, string>("limit", limit.Value.ToString(CultureInfo.InvariantCulture))); }
+            if (offset.HasValue) { query.Add(new KeyValuePair<string, string>("offset", offset.Value.ToString(CultureInfo.InvariantCulture))); }
+
+            Dictionary<string, string> headers = BuildProjectHeader(resolvedProjectId);
+
+            try
+            {
+                _logger.Information(Component, "Attempting to list Infisical certificate applications. Please Wait...");
+                InfisicalHttpResponse response = _invoker.Invoke(connection, InfisicalEndpointNames.ListCertificateApplications, "ListCertificateApplications", null, query, null, headers);
+                string body = response.Body;
+                response.Clear();
+
+                List<InfisicalCertificateApplicationResponseDto> source = ParseApplicationListBody(body);
+                InfisicalCertificateApplication[] mapped = InfisicalCertificateApplicationMapper.MapMany(source, resolvedProjectId);
+                _logger.Information(Component, "Infisical certificate application list retrieval was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate application list retrieval failed.");
+                throw;
+            }
+        }
+
+        public InfisicalCertificateApplication GetCertificateApplication(InfisicalConnection connection, string applicationId, string projectId)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(applicationId)) { throw new InfisicalConfigurationException("ApplicationId is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "applicationId", applicationId } };
+            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
+            Dictionary<string, string> headers = !string.IsNullOrEmpty(resolvedProjectId) ? BuildProjectHeader(resolvedProjectId) : null;
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to retrieve Infisical certificate application '", applicationId, "'. Please Wait..."));
+                InfisicalHttpResponse response = _invoker.Invoke(connection, InfisicalEndpointNames.GetCertificateApplication, "GetCertificateApplication", pathParameters, null, null, headers);
+                string body = response.Body;
+                response.Clear();
+
+                InfisicalCertificateApplicationResponseDto inner = ParseApplicationSingleBody(body);
+                InfisicalCertificateApplication mapped = InfisicalCertificateApplicationMapper.Map(inner, resolvedProjectId);
+                _logger.Information(Component, "Infisical certificate application retrieval was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate application retrieval failed.");
+                throw;
+            }
+        }
+
+        public InfisicalCertificateApplication GetCertificateApplicationByName(InfisicalConnection connection, string name, string projectId)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(name)) { throw new InfisicalConfigurationException("ApplicationName is required."); }
+            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
+            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "name", name } };
+            Dictionary<string, string> headers = BuildProjectHeader(resolvedProjectId);
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to retrieve Infisical certificate application '", name, "' by name. Please Wait..."));
+                InfisicalHttpResponse response = _invoker.Invoke(connection, InfisicalEndpointNames.GetCertificateApplicationByName, "GetCertificateApplicationByName", pathParameters, null, null, headers);
+                string body = response.Body;
+                response.Clear();
+
+                InfisicalCertificateApplicationResponseDto inner = ParseApplicationSingleBody(body);
+                InfisicalCertificateApplication mapped = InfisicalCertificateApplicationMapper.Map(inner, resolvedProjectId);
+                _logger.Information(Component, "Infisical certificate application (by name) retrieval was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate application (by name) retrieval failed.");
+                throw;
+            }
+        }
+
+        public InfisicalCertificateApplicationProfileAttachment[] ListCertificateApplicationProfiles(InfisicalConnection connection, string applicationId, string projectId)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(applicationId)) { throw new InfisicalConfigurationException("ApplicationId is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "applicationId", applicationId } };
+            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
+            Dictionary<string, string> headers = !string.IsNullOrEmpty(resolvedProjectId) ? BuildProjectHeader(resolvedProjectId) : null;
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to list profile attachments for Infisical certificate application '", applicationId, "'. Please Wait..."));
+                InfisicalHttpResponse response = _invoker.Invoke(connection, InfisicalEndpointNames.ListCertificateApplicationProfiles, "ListCertificateApplicationProfiles", pathParameters, null, null, headers);
+                string body = response.Body;
+                response.Clear();
+
+                List<InfisicalCertificateApplicationProfileAttachmentDto> source = ParseApplicationProfilesBody(body);
+                InfisicalCertificateApplicationProfileAttachment[] mapped = InfisicalCertificateApplicationMapper.MapAttachments(source);
+                _logger.Information(Component, "Infisical certificate application profile attachment listing was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate application profile attachment listing failed.");
+                throw;
+            }
+        }
+
+        public InfisicalCertificateApplicationEnrollment GetCertificateApplicationEnrollment(InfisicalConnection connection, string applicationId, string profileId, string projectId)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(applicationId)) { throw new InfisicalConfigurationException("ApplicationId is required."); }
+            if (string.IsNullOrEmpty(profileId)) { throw new InfisicalConfigurationException("ProfileId is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string>
+            {
+                { "applicationId", applicationId },
+                { "profileId", profileId }
+            };
+            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
+            Dictionary<string, string> headers = !string.IsNullOrEmpty(resolvedProjectId) ? BuildProjectHeader(resolvedProjectId) : null;
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to retrieve enrollment for application '", applicationId, "' / profile '", profileId, "'. Please Wait..."));
+                InfisicalHttpResponse response = _invoker.Invoke(connection, InfisicalEndpointNames.GetCertificateApplicationEnrollment, "GetCertificateApplicationEnrollment", pathParameters, null, null, headers);
+                InfisicalCertificateApplicationEnrollmentResponseDto dto = _serializer.Deserialize<InfisicalCertificateApplicationEnrollmentResponseDto>(response.Body);
+                response.Clear();
+
+                InfisicalCertificateApplicationEnrollment mapped = InfisicalCertificateApplicationMapper.MapEnrollment(dto);
+                _logger.Information(Component, "Infisical certificate application enrollment retrieval was successful.");
+                return mapped;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical certificate application enrollment retrieval failed.");
+                throw;
+            }
+        }
+
+        public string GenerateScepDynamicChallenge(InfisicalConnection connection, string applicationId, string profileId)
+        {
+            if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+            if (string.IsNullOrEmpty(applicationId)) { throw new InfisicalConfigurationException("ApplicationId is required."); }
+            if (string.IsNullOrEmpty(profileId)) { throw new InfisicalConfigurationException("ProfileId is required."); }
+
+            Dictionary<string, string> pathParameters = new Dictionary<string, string>
+            {
+                { "applicationId", applicationId },
+                { "profileId", profileId }
+            };
+            Dictionary<string, string> headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "Accept", "text/plain" }
+            };
+
+            try
+            {
+                _logger.Information(Component, string.Concat("Attempting to generate SCEP dynamic challenge for application '", applicationId, "' / profile '", profileId, "'. Please Wait..."));
+                InfisicalHttpResponse response = _invoker.Invoke(connection, InfisicalEndpointNames.GenerateScepDynamicChallenge, "GenerateScepDynamicChallenge", pathParameters, null, string.Empty, headers);
+                string body = response.Body != null ? response.Body.Trim() : null;
+                response.Clear();
+
+                if (string.IsNullOrEmpty(body)) { throw new InfisicalApiException("SCEP dynamic challenge response was empty."); }
+                _logger.Information(Component, "Infisical SCEP dynamic challenge generation was successful.");
+                return body;
+            }
+            catch (Exception)
+            {
+                _logger.Error(Component, "Infisical SCEP dynamic challenge generation failed.");
+                throw;
+            }
+        }
+
+        private static Dictionary<string, string> BuildProjectHeader(string projectId)
+        {
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "x-infisical-project-id", projectId }
+            };
+        }
+
+        private List<InfisicalCertificateApplicationResponseDto> ParseApplicationListBody(string body)
+        {
+            if (string.IsNullOrEmpty(body)) { return null; }
+            JToken token = JToken.Parse(body);
+            if (token.Type == JTokenType.Array)
+            {
+                return token.ToObject<List<InfisicalCertificateApplicationResponseDto>>();
+            }
+
+            InfisicalCertificateApplicationListResponseDto wrapper = token.ToObject<InfisicalCertificateApplicationListResponseDto>();
+            return wrapper != null ? wrapper.Applications : null;
+        }
+
+        private InfisicalCertificateApplicationResponseDto ParseApplicationSingleBody(string body)
+        {
+            if (string.IsNullOrEmpty(body)) { return null; }
+            JToken token = JToken.Parse(body);
+            if (token.Type != JTokenType.Object) { return null; }
+            JObject obj = (JObject)token;
+
+            if (obj["application"] is JObject inner) { return inner.ToObject<InfisicalCertificateApplicationResponseDto>(); }
+            return obj.ToObject<InfisicalCertificateApplicationResponseDto>();
+        }
+
+        private List<InfisicalCertificateApplicationProfileAttachmentDto> ParseApplicationProfilesBody(string body)
+        {
+            if (string.IsNullOrEmpty(body)) { return null; }
+            JToken token = JToken.Parse(body);
+            if (token.Type == JTokenType.Array)
+            {
+                return token.ToObject<List<InfisicalCertificateApplicationProfileAttachmentDto>>();
+            }
+
+            InfisicalCertificateApplicationProfilesResponseDto wrapper = token.ToObject<InfisicalCertificateApplicationProfilesResponseDto>();
+            return wrapper != null ? wrapper.Profiles : null;
+        }
+
         internal static InfisicalCertificateSearchRequestDto BuildSearchRequest(InfisicalCertificateSearchQuery query)
         {
             return new InfisicalCertificateSearchRequestDto

@@ -63,5 +63,13 @@ namespace PSInfisicalAPI.Endpoints
         public const string GetCertificatePolicy = "GetCertificatePolicy";
 
         public const string ListCertificateAuthorities = "ListCertificateAuthorities";
+
+        public const string ListCertificateApplications = "ListCertificateApplications";
+        public const string GetCertificateApplication = "GetCertificateApplication";
+        public const string GetCertificateApplicationByName = "GetCertificateApplicationByName";
+        public const string ListCertificateApplicationProfiles = "ListCertificateApplicationProfiles";
+        public const string GetCertificateApplicationEnrollment = "GetCertificateApplicationEnrollment";
+
+        public const string GenerateScepDynamicChallenge = "GenerateScepDynamicChallenge";
     }
 }

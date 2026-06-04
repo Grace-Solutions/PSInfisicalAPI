@@ -703,6 +703,67 @@ namespace PSInfisicalAPI.Endpoints
                 Template = "/api/v1/cert-manager/ca",
                 RequiresAuthorization = true
             });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListCertificateApplications,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/applications",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetCertificateApplication,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/applications/{applicationId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetCertificateApplicationByName,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/applications/by-name/{name}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListCertificateApplicationProfiles,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/applications/{applicationId}/profiles",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetCertificateApplicationEnrollment,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/applications/{applicationId}/profiles/{profileId}/enrollment",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GenerateScepDynamicChallenge,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "POST",
+                Template = "/scep/applications/{applicationId}/profiles/{profileId}/challenge",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
         }
 
         public static InfisicalEndpointDefinition Get(string name)
