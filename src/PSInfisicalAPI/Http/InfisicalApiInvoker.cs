@@ -135,15 +135,14 @@ namespace PSInfisicalAPI.Http
 
         private static InfisicalApiException BuildApiException(InfisicalHttpResponse response, InfisicalEndpointDefinition definition)
         {
-            InfisicalApiException exception = new InfisicalApiException(string.Concat(
-                "Infisical API returned ",
-                response.StatusCode.ToString(CultureInfo.InvariantCulture),
-                " (", response.ReasonPhrase ?? string.Empty, ")."));
+            string message = InfisicalApiErrorEnvelope.BuildExceptionMessage(response.StatusCode, response.ReasonPhrase, response.Body);
+            InfisicalApiException exception = new InfisicalApiException(message);
             exception.StatusCode = response.StatusCode;
             exception.ReasonPhrase = response.ReasonPhrase;
             exception.EndpointName = definition.Name;
             exception.RequestMethod = definition.Method;
             exception.SanitizedBody = response.Body;
+            InfisicalApiErrorEnvelope.Enrich(exception, response.Body);
             return exception;
         }
     }

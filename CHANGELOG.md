@@ -6,6 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+- Infisical API error responses are now parsed to surface the server-side `message`, `error`, and `reqId` fields. The 4xx/5xx exception message includes the human-readable explanation (e.g. "The project is of type secret-manager") instead of an opaque `Infisical API returned 400 (Bad Request)`. The `InfisicalApiException` gains `ApiErrorMessage` and `ApiRequestId` properties; `InfisicalErrorDetails` carries the same fields so PowerShell error records and logger output expose them.
+
 ## 2026.06.04.1920
 
 - Build produced from commit 0f8f44afdb38.

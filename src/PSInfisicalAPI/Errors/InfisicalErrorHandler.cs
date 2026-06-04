@@ -26,6 +26,8 @@ namespace PSInfisicalAPI.Errors
                 details.StatusCode = apiException.StatusCode;
                 details.ReasonPhrase = apiException.ReasonPhrase;
                 details.ApiErrorCode = apiException.ApiErrorCode;
+                details.ApiErrorMessage = apiException.ApiErrorMessage;
+                details.ApiRequestId = apiException.ApiRequestId;
                 details.SanitizedBody = apiException.SanitizedBody;
                 details.EndpointName = apiException.EndpointName;
                 details.RequestMethod = apiException.RequestMethod;
@@ -68,6 +70,16 @@ namespace PSInfisicalAPI.Errors
             if (!string.IsNullOrEmpty(details.ApiErrorCode))
             {
                 logger.Error(Component, string.Concat("API Error Code: ", details.ApiErrorCode));
+            }
+
+            if (!string.IsNullOrEmpty(details.ApiErrorMessage))
+            {
+                logger.Error(Component, string.Concat("API Error Message: ", details.ApiErrorMessage));
+            }
+
+            if (!string.IsNullOrEmpty(details.ApiRequestId))
+            {
+                logger.Error(Component, string.Concat("API Request Id: ", details.ApiRequestId));
             }
 
             if (details.LineNumber.HasValue)
