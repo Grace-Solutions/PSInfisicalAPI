@@ -62,12 +62,24 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter]
         public SwitchParameter PassThru { get; set; }
 
+        [Parameter]
+        public SwitchParameter SkipCertificateCheck { get; set; }
+
+        [Parameter]
+        public SwitchParameter AllowInsecureTransport { get; set; }
+
+        protected override bool ShouldSkipCertificateCheck()
+        {
+            return SkipCertificateCheck.IsPresent;
+        }
+
         protected override void ProcessRecord()
         {
             try
             {
                 ResolveMissingParametersFromEnvironment();
                 ValidateRequiredParameters();
+                ValidateTransportSafety();
 
                 IInfisicalAuthProvider provider;
                 InfisicalAuthenticationRequest request;
@@ -179,7 +191,9 @@ namespace PSInfisicalAPI.Cmdlets
                     ConnectedAtUtc = DateTimeOffset.UtcNow,
                     ExpiresAtUtc = authResult.ExpiresAtUtc,
                     IsConnected = true,
-                    AccessToken = authResult.AccessToken
+                    AccessToken = authResult.AccessToken,
+                    SkipCertificateCheck = SkipCertificateCheck.IsPresent,
+                    AllowInsecureTransport = AllowInsecureTransport.IsPresent
                 };
 
                 InfisicalSessionManager.SetCurrent(connection);
@@ -192,6 +206,26 @@ namespace PSInfisicalAPI.Cmdlets
             catch (Exception exception)
             {
                 ThrowTerminatingForException(Component, "Connect", exception);
+            }
+        }
+
+        private void ValidateTransportSafety()
+        {
+            bool isHttp = BaseUri != null && string.Equals(BaseUri.Scheme, "http", StringComparison.OrdinalIgnoreCase);
+
+            if (isHttp && !AllowInsecureTransport.IsPresent)
+            {
+                throw new InfisicalConfigurationException("BaseUri '" + BaseUri + "' is not HTTPS. Re-run Connect-Infisical with -AllowInsecureTransport to permit plaintext.");
+            }
+
+            if (SkipCertificateCheck.IsPresent)
+            {
+                Logger.Warning(Component, "SkipCertificateCheck is enabled. TLS certificate validation is disabled for this session. Do not use in production.");
+            }
+
+            if (AllowInsecureTransport.IsPresent && isHttp)
+            {
+                Logger.Warning(Component, "AllowInsecureTransport is enabled and BaseUri uses HTTP. Credentials and secrets will traverse the network unencrypted. Do not use in production.");
             }
         }
 

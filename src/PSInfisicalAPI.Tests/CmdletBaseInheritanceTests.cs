@@ -84,5 +84,38 @@ namespace PSInfisicalAPI.Tests
             Assert.Equal("explicit-org", cmdlet.CallResolveOrganizationId(ConnectionWithDefaults(), "explicit-org"));
             Assert.Empty(logger.VerboseEntries);
         }
+
+        [Fact]
+        public void InfisicalConnection_Defaults_TransportFlags_To_False()
+        {
+            InfisicalConnection connection = new InfisicalConnection();
+            Assert.False(connection.SkipCertificateCheck);
+            Assert.False(connection.AllowInsecureTransport);
+        }
+
+        [Fact]
+        public void ShouldSkipCertificateCheck_Reads_From_Current_Session()
+        {
+            InfisicalConnection previous = InfisicalSessionManager.Current;
+            try
+            {
+                TestCmdlet cmdlet = CreateCmdletWith(new RecordingLogger());
+                MethodInfo virt = typeof(InfisicalCmdletBase).GetMethod("ShouldSkipCertificateCheck", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                InfisicalSessionManager.SetCurrent(null);
+                Assert.False((bool)virt.Invoke(cmdlet, null));
+
+                InfisicalConnection session = ConnectionWithDefaults();
+                session.IsConnected = true;
+                session.SkipCertificateCheck = true;
+                InfisicalSessionManager.SetCurrent(session);
+
+                Assert.True((bool)virt.Invoke(cmdlet, null));
+            }
+            finally
+            {
+                InfisicalSessionManager.SetCurrent(previous);
+            }
+        }
     }
 }
