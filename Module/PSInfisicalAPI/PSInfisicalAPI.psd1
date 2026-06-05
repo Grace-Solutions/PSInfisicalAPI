@@ -40,7 +40,6 @@
         'Get-InfisicalCertificateProfile',
         'Get-InfisicalCertificatePolicy',
         'Get-InfisicalCertificate',
-        'Search-InfisicalCertificate',
         'Request-InfisicalCertificate',
         'ConvertTo-InfisicalCertificate',
         'Install-InfisicalCertificate',
