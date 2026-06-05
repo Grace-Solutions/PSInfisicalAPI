@@ -10,7 +10,7 @@ namespace PSInfisicalAPI.Pki
         [JsonProperty("projectId")] public string ProjectId { get; set; }
         [JsonProperty("name")] public string Name { get; set; }
         [JsonProperty("description")] public string Description { get; set; }
-        [JsonProperty("subject")] public InfisicalCertificatePolicySubjectDto Subject { get; set; }
+        [JsonProperty("subject")] public JToken SubjectRaw { get; set; }
         [JsonProperty("sans")] public JToken SansRaw { get; set; }
         [JsonProperty("keyUsages")] public InfisicalCertificatePolicyUsagesDto KeyUsages { get; set; }
         [JsonProperty("extendedKeyUsages")] public InfisicalCertificatePolicyUsagesDto ExtendedKeyUsages { get; set; }
