@@ -134,15 +134,32 @@ jobs:
           RUN_ID: ${{ github.run_id }}
         run: |
           $ErrorActionPreference = 'Stop'
-          if ([string]::IsNullOrWhiteSpace($env:GITEA_TOKEN)) {
-              throw "github.token is not available; cannot call the Gitea release API."
-          }
+          Set-StrictMode -Version Latest
+          trap { Write-Host "==> RELEASE STEP FAILED: $($_ | Out-String)"; Write-Host ($_.ScriptStackTrace); exit 1 }
 
+          Write-Host "==> [1/8] Validating inputs"
+          Write-Host "       TAG=$($env:TAG)"
+          Write-Host "       VERSION=$($env:VERSION)"
+          Write-Host "       REPO=$($env:REPO)"
+          Write-Host "       API_URL=$($env:API_URL)"
+          Write-Host "       SERVER_URL=$($env:SERVER_URL)"
+          Write-Host "       PR_NUMBER=$($env:PR_NUMBER)"
+          Write-Host "       RUN_ID=$($env:RUN_ID)"
+          if ([string]::IsNullOrWhiteSpace($env:GITEA_TOKEN)) { throw "github.token is empty." }
+          if ([string]::IsNullOrWhiteSpace($env:TAG))         { throw "TAG is empty." }
+          if ([string]::IsNullOrWhiteSpace($env:VERSION))     { throw "VERSION is empty." }
+          if ([string]::IsNullOrWhiteSpace($env:API_URL))     { throw "API_URL is empty." }
+          if ([string]::IsNullOrWhiteSpace($env:REPO))        { throw "REPO is empty." }
+          if ([string]::IsNullOrWhiteSpace($env:COMMIT_SHA))  { throw "COMMIT_SHA is empty." }
+
+          Write-Host "==> [2/8] Deriving metadata"
           $shortSha = $env:COMMIT_SHA.Substring(0, [Math]::Min(12, $env:COMMIT_SHA.Length))
           $buildUtc = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
           $runUrl   = "$($env:SERVER_URL)/$($env:REPO)/actions/runs/$($env:RUN_ID)"
           $prUrl    = "$($env:SERVER_URL)/$($env:REPO)/pulls/$($env:PR_NUMBER)"
+          Write-Host "       shortSha=$shortSha"
 
+          Write-Host "==> [3/8] Extracting CHANGELOG section"
           $changelogSection = ''
           if (Test-Path 'CHANGELOG.md') {
               $lines = [System.IO.File]::ReadAllLines('CHANGELOG.md')
@@ -155,27 +172,31 @@ jobs:
                   $changelogSection = ($lines[$start..($end - 1)] -join "`n").Trim()
               }
           }
+          Write-Host "       CHANGELOG section length: $($changelogSection.Length) chars"
 
-          $body = @"
-          **PSInfisicalAPI $($env:VERSION)**
-
-          | Field | Value |
-          | --- | --- |
-          | Version | ``$($env:VERSION)`` |
-          | Tag | ``$($env:TAG)`` |
-          | Commit | [``$shortSha``]($($env:SERVER_URL)/$($env:REPO)/commit/$($env:COMMIT_SHA)) |
-          | Built (UTC) | $buildUtc |
-          | Merged PR | [#$($env:PR_NUMBER) $($env:PR_TITLE)]($prUrl) by @$($env:PR_AUTHOR) |
-          | Workflow run | [$($env:RUN_ID)]($runUrl) |
-
-          ## Changes
-          $(if ($changelogSection) { $changelogSection } else { '_No CHANGELOG section found for this version._' })
-
-          ## Install
-          ``````powershell
-          Install-Module -Name PSInfisicalAPI -RequiredVersion $($env:VERSION) -Scope CurrentUser
-          ``````
-          "@
+          Write-Host "==> [4/8] Building release body"
+          $changelogText = if ($changelogSection) { $changelogSection } else { '_No CHANGELOG section found for this version._' }
+          $sb = New-Object System.Text.StringBuilder
+          [void]$sb.AppendLine("**PSInfisicalAPI $($env:VERSION)**")
+          [void]$sb.AppendLine('')
+          [void]$sb.AppendLine('| Field | Value |')
+          [void]$sb.AppendLine('| --- | --- |')
+          [void]$sb.AppendLine("| Version | ``$($env:VERSION)`` |")
+          [void]$sb.AppendLine("| Tag | ``$($env:TAG)`` |")
+          [void]$sb.AppendLine("| Commit | [``$shortSha``]($($env:SERVER_URL)/$($env:REPO)/commit/$($env:COMMIT_SHA)) |")
+          [void]$sb.AppendLine("| Built (UTC) | $buildUtc |")
+          [void]$sb.AppendLine("| Merged PR | [#$($env:PR_NUMBER) $($env:PR_TITLE)]($prUrl) by @$($env:PR_AUTHOR) |")
+          [void]$sb.AppendLine("| Workflow run | [$($env:RUN_ID)]($runUrl) |")
+          [void]$sb.AppendLine('')
+          [void]$sb.AppendLine('## Changes')
+          [void]$sb.AppendLine($changelogText)
+          [void]$sb.AppendLine('')
+          [void]$sb.AppendLine('## Install')
+          [void]$sb.AppendLine('```powershell')
+          [void]$sb.AppendLine("Install-Module -Name PSInfisicalAPI -RequiredVersion $($env:VERSION) -Scope CurrentUser")
+          [void]$sb.AppendLine('```')
+          $body = $sb.ToString()
+          Write-Host "       body length: $($body.Length) chars"
 
           $headers = @{
               Authorization = "token $($env:GITEA_TOKEN)"
@@ -183,18 +204,26 @@ jobs:
           }
           $createUri = "$($env:API_URL)/repos/$($env:REPO)/releases"
 
+          Write-Host "==> [5/8] Checking for existing release tag: $createUri/tags/$($env:TAG)"
           $existing = $null
           try {
               $existing = Invoke-RestMethod -Method Get -Headers $headers `
                   -Uri "$createUri/tags/$($env:TAG)" -ErrorAction Stop
           } catch {
-              if ($_.Exception.Response.StatusCode.value__ -ne 404) { throw }
+              $status = $null
+              try { $status = $_.Exception.Response.StatusCode.value__ } catch { }
+              if ($status -ne 404) {
+                  Write-Host "       Lookup failed (status=$status): $($_.Exception.Message)"
+                  throw
+              }
+              Write-Host "       No existing release (404)."
           }
           if ($existing) {
-              Write-Host "Release tag '$($env:TAG)' already exists (id=$($existing.id)); skipping release creation."
+              Write-Host "       Release tag '$($env:TAG)' already exists (id=$($existing.id)); skipping creation."
               return
           }
 
+          Write-Host "==> [6/8] Creating release"
           $payload = @{
               tag_name         = $env:TAG
               target_commitish = $env:COMMIT_SHA
@@ -203,17 +232,23 @@ jobs:
               draft            = $false
               prerelease       = $false
           } | ConvertTo-Json -Depth 4
+          Write-Host "       payload bytes: $([System.Text.Encoding]::UTF8.GetByteCount($payload))"
 
           $release = Invoke-RestMethod -Method Post -Uri $createUri -Headers $headers `
               -ContentType 'application/json' -Body $payload
-          Write-Host "Created release id=$($release.id) at $($release.html_url)"
+          Write-Host "       Created release id=$($release.id) at $($release.html_url)"
 
+          Write-Host "==> [7/8] Locating release asset"
           $assetPath = Join-Path $PWD "PSInfisicalAPI-$($env:VERSION).zip"
-          $uploadUri = "$createUri/$($release.id)/assets?name=PSInfisicalAPI-$($env:VERSION).zip"
+          if (-not (Test-Path $assetPath)) { throw "Release asset not found at: $assetPath" }
           $fileBytes = [System.IO.File]::ReadAllBytes($assetPath)
+          Write-Host "       Asset: $assetPath ($([math]::Round($fileBytes.Length / 1KB, 1)) KB)"
+
+          Write-Host "==> [8/8] Uploading asset"
+          $uploadUri = "$createUri/$($release.id)/assets?name=PSInfisicalAPI-$($env:VERSION).zip"
           Invoke-RestMethod -Method Post -Uri $uploadUri -Headers $headers `
               -ContentType 'application/zip' -Body $fileBytes | Out-Null
-          Write-Host "Uploaded asset: PSInfisicalAPI-$($env:VERSION).zip"
+          Write-Host "==> Done: uploaded PSInfisicalAPI-$($env:VERSION).zip"
 
   publish:
     needs: release
