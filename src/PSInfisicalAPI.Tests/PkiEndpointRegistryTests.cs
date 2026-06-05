@@ -86,7 +86,6 @@ namespace PSInfisicalAPI.Tests
             Assert.NotNull(cmdletType.GetProperty("Limit"));
             Assert.NotNull(cmdletType.GetProperty("Offset"));
             Assert.NotNull(cmdletType.GetProperty("NoAutoPage"));
-            Assert.NotNull(cmdletType.GetProperty("List"));
         }
 
         [Fact]

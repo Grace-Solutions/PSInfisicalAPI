@@ -14,8 +14,6 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Id")]
         public string ProjectId { get; set; }
 
-        [Parameter(ParameterSetName = "List")] public SwitchParameter List { get; set; }
-
         [Parameter(ParameterSetName = "List")]
         [ValidateSet("secret-manager", "cert-manager", "kms", "ssh", "secret-scanning", "pam", "ai")]
         public string Type { get; set; }

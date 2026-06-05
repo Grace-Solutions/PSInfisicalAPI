@@ -16,8 +16,6 @@ namespace PSInfisicalAPI.Cmdlets
 
         [Parameter(Mandatory = true)] public string ProjectId { get; set; }
 
-        [Parameter(ParameterSetName = "List")] public SwitchParameter List { get; set; }
-
         protected override void ProcessRecord()
         {
             try

@@ -16,7 +16,6 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Id", "Identifier")]
         public string SerialNumber { get; set; }
 
-        [Parameter(ParameterSetName = "List")] public SwitchParameter List { get; set; }
         [Parameter(ParameterSetName = "List", Mandatory = true)] public string ProjectId { get; set; }
         [Parameter(ParameterSetName = "List")] public string CommonName { get; set; }
         [Parameter(ParameterSetName = "List")] public string FriendlyName { get; set; }

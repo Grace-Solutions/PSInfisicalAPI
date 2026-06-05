@@ -26,7 +26,6 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter(ParameterSetName = "Single")] public int? Version { get; set; }
         [Parameter(ParameterSetName = "Single")] public InfisicalSecretType Type { get; set; } = InfisicalSecretType.Shared;
 
-        [Parameter(ParameterSetName = "List")] public SwitchParameter List { get; set; }
         [Parameter(ParameterSetName = "List")] public SwitchParameter Recursive { get; set; }
         [Parameter(ParameterSetName = "List")] public SwitchParameter IncludePersonalOverrides { get; set; }
         [Parameter(ParameterSetName = "List")] public Hashtable MetadataFilter { get; set; }
