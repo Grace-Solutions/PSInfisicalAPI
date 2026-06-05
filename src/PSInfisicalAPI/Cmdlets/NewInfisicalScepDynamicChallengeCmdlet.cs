@@ -12,7 +12,7 @@ namespace PSInfisicalAPI.Cmdlets
     public sealed class NewInfisicalScepDynamicChallengeCmdlet : InfisicalCmdletBase
     {
         [Parameter(Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
-        [Alias("Id", "ApplicationId")]
+        [Alias("Id")]
         public string ApplicationId { get; set; }
 
         [Parameter(Mandatory = true, Position = 1, ValueFromPipelineByPropertyName = true)]

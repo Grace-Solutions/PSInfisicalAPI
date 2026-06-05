@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.05.0015
+
+- Build produced from commit fb27ab8a8503.
+
+## Unreleased (carried forward)
+
+- Fixed `ParameterNameConflictsWithAlias` registration error on `Get-InfisicalCertificateApplication`, `Get-InfisicalCertificateApplicationEnrollment`, and `New-InfisicalScepDynamicChallenge`. The cmdlets each declared an `[Alias]` entry that matched the parameter's own name, which PowerShell rejects at bind time and made the cmdlets unusable.
+
 ## 2026.06.04.2335
 
 - Build produced from commit 3c39a99b9a4c.

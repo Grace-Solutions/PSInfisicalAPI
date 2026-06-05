@@ -11,11 +11,11 @@ namespace PSInfisicalAPI.Cmdlets
     public sealed class GetInfisicalCertificateApplicationCmdlet : InfisicalCmdletBase
     {
         [Parameter(ParameterSetName = "ById", Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
-        [Alias("Id", "ApplicationId")]
+        [Alias("ApplicationId")]
         public string Id { get; set; }
 
         [Parameter(ParameterSetName = "ByName", Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
-        [Alias("Name", "ApplicationName")]
+        [Alias("Name")]
         public string ApplicationName { get; set; }
 
         [Parameter] public string ProjectId { get; set; }
