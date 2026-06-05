@@ -15,6 +15,8 @@ namespace PSInfisicalAPI.Connections
         public DateTimeOffset ConnectedAtUtc { get; set; }
         public DateTimeOffset? ExpiresAtUtc { get; set; }
         public bool IsConnected { get; set; }
+        public bool SkipCertificateCheck { get; set; }
+        public bool AllowInsecureTransport { get; set; }
 
         public Dictionary<string, string> ResolvedEndpointVersions { get; } = new Dictionary<string, string>(StringComparer.Ordinal);
 

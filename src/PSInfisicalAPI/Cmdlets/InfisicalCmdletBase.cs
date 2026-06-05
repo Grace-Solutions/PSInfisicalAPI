@@ -31,11 +31,17 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 if (_httpClient == null)
                 {
-                    _httpClient = new InfisicalHttpClient(Logger);
+                    _httpClient = new InfisicalHttpClient(Logger, 100, ShouldSkipCertificateCheck());
                 }
 
                 return _httpClient;
             }
+        }
+
+        protected virtual bool ShouldSkipCertificateCheck()
+        {
+            InfisicalConnection current = InfisicalSessionManager.Current;
+            return current != null && current.SkipCertificateCheck;
         }
 
         protected void ThrowTerminatingForException(string component, string operation, Exception exception)

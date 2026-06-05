@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Security;
+using System.Reflection;
 using System.Text;
 using PSInfisicalAPI.Errors;
 using PSInfisicalAPI.Logging;
@@ -11,13 +13,18 @@ namespace PSInfisicalAPI.Http
     public sealed class InfisicalHttpClient : IInfisicalHttpClient
     {
         private const string Component = "HttpClient";
+        private static readonly PropertyInfo PerRequestCertCallbackProperty =
+            typeof(HttpWebRequest).GetProperty("ServerCertificateValidationCallback");
+
         private readonly IInfisicalLogger _logger;
         private readonly int _timeoutSeconds;
+        private readonly bool _skipCertificateCheck;
 
-        public InfisicalHttpClient(IInfisicalLogger logger, int timeoutSeconds = 100)
+        public InfisicalHttpClient(IInfisicalLogger logger, int timeoutSeconds = 100, bool skipCertificateCheck = false)
         {
             _logger = logger ?? NullInfisicalLogger.Instance;
             _timeoutSeconds = timeoutSeconds;
+            _skipCertificateCheck = skipCertificateCheck;
         }
 
         public InfisicalHttpResponse Send(InfisicalHttpRequest request)
@@ -43,6 +50,11 @@ namespace PSInfisicalAPI.Http
             webRequest.Timeout = _timeoutSeconds * 1000;
             webRequest.ReadWriteTimeout = _timeoutSeconds * 1000;
             webRequest.UseDefaultCredentials = true;
+
+            if (_skipCertificateCheck)
+            {
+                ApplyInsecureCertificateBypass(webRequest);
+            }
 
             IWebProxy systemProxy = WebRequest.GetSystemWebProxy();
             if (systemProxy != null)
@@ -93,6 +105,20 @@ namespace PSInfisicalAPI.Http
 
                 throw new InfisicalHttpException(string.Concat("HTTP request failed: ", webException.Message), webException);
             }
+        }
+
+        private void ApplyInsecureCertificateBypass(HttpWebRequest webRequest)
+        {
+            RemoteCertificateValidationCallback callback = (sender, certificate, chain, errors) => true;
+
+            if (PerRequestCertCallbackProperty != null && PerRequestCertCallbackProperty.CanWrite)
+            {
+                PerRequestCertCallbackProperty.SetValue(webRequest, callback, null);
+                return;
+            }
+
+            _logger.Warning(Component, "Per-request ServerCertificateValidationCallback unavailable on this runtime; falling back to global ServicePointManager override for this process.");
+            ServicePointManager.ServerCertificateValidationCallback = callback;
         }
 
         private static void ApplyHeaders(HttpWebRequest webRequest, IDictionary<string, string> headers)
