@@ -1060,7 +1060,7 @@ $GetInfisicalCertificateAuthorityResult = Get-InfisicalCertificateAuthority @Get
     <maml:alertSet>
       <maml:title>Notes</maml:title>
       <maml:alert>
-        <maml:para>For advanced filtering (validity window, key algorithm, extended key usage, etc.) use Search-InfisicalCertificate instead. Single mode returns metadata only; to obtain certificate and chain PEM material use ConvertTo-InfisicalCertificate or Export-InfisicalCertificate. Accepts pipeline input by property name on -SerialNumber.</maml:para>
+        <maml:para>Single mode returns metadata only; to obtain certificate and chain PEM material use ConvertTo-InfisicalCertificate or Export-InfisicalCertificate. Accepts pipeline input by property name on -SerialNumber.</maml:para>
       </maml:alert>
     </maml:alertSet>
     <command:examples>
@@ -1215,50 +1215,6 @@ $GetInfisicalCertificatePolicyParameters.Verbose   = $True
 
 $GetInfisicalCertificatePolicyResult = Get-InfisicalCertificatePolicy @GetInfisicalCertificatePolicyParameters</dev:code>
         <dev:remarks><maml:para>Filters policies whose name equals 'codesigning' and refetches the canonical record for the first match using a splatted parameter set.</maml:para></dev:remarks>
-      </command:example>
-    </command:examples>
-  </command:command>
-
-  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
-    <command:details>
-      <command:name>Search-InfisicalCertificate</command:name>
-      <maml:description><maml:para>Searches Infisical certificates with advanced filters and automatic paging.</maml:para></maml:description>
-      <command:verb>Search</command:verb>
-      <command:noun>InfisicalCertificate</command:noun>
-    </command:details>
-    <maml:description>
-      <maml:para>Performs a server-side search across certificates with filters for friendly name, common name, free-text search, status, CA/profile/application/enrollment scope, key/signature algorithm, source, and validity window (-NotBeforeFrom/-NotBeforeTo/-NotAfterFrom/-NotAfterTo). Results are paged automatically unless -NoAutoPage is supplied. -ProjectId is required.</maml:para>
-    </maml:description>
-    <maml:alertSet>
-      <maml:title>Notes</maml:title>
-      <maml:alert>
-        <maml:para>Use -SortBy together with -SortOrder ('asc'/'desc') to control result ordering. Pair with Get-InfisicalCertificate or Export-InfisicalCertificate to drill into specific hits.</maml:para>
-      </maml:alert>
-    </maml:alertSet>
-    <command:examples>
-      <command:example>
-        <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>Search-InfisicalCertificate -Search $env:COMPUTERNAME -Status 'active'</dev:code>
-        <dev:remarks><maml:para>Finds active certificates whose searchable fields contain the local hostname.</maml:para></dev:remarks>
-      </command:example>
-      <command:example>
-        <maml:title>EXAMPLE 2</maml:title>
-        <dev:code>$GetInfisicalCertificateAuthorityListResult = Get-InfisicalCertificateAuthority | Where-Object { $_.FriendlyName -eq 'Issuing CA - Platform' }
-
-$SearchInfisicalCertificateParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
-$SearchInfisicalCertificateParameters.ProjectId     = $ProjectId
-$SearchInfisicalCertificateParameters.CommonName    = $env:COMPUTERNAME
-$SearchInfisicalCertificateParameters.Status        = 'active'
-$SearchInfisicalCertificateParameters.CaId          = @($GetInfisicalCertificateAuthorityListResult.Id)
-$SearchInfisicalCertificateParameters.KeyAlgorithm  = @('RSA')
-$SearchInfisicalCertificateParameters.NotAfterTo    = (Get-Date).AddDays(30)
-$SearchInfisicalCertificateParameters.SortBy        = 'notAfter'
-$SearchInfisicalCertificateParameters.SortOrder     = 'asc'
-$SearchInfisicalCertificateParameters.Limit         = 100
-$SearchInfisicalCertificateParameters.Verbose       = $True
-
-$SearchInfisicalCertificateResult = Search-InfisicalCertificate @SearchInfisicalCertificateParameters</dev:code>
-        <dev:remarks><maml:para>Searches for RSA certificates from a specific CA, scoped to the local hostname, that expire within the next 30 days, sorted soonest-first.</maml:para></dev:remarks>
       </command:example>
     </command:examples>
   </command:command>
