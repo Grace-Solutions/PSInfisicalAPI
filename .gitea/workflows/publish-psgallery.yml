@@ -278,7 +278,21 @@ jobs:
               throw "Microsoft.PowerShell.PSResourceGet is not installed on the host runner. Provision it (Install-Module Microsoft.PowerShell.PSResourceGet -Scope AllUsers)."
           }
           Import-Module Microsoft.PowerShell.PSResourceGet -ErrorAction Stop
-          Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion v2
+
+          $storeDir = Join-Path $HOME '.local/share/PSResourceGet'
+          if (-not (Test-Path $storeDir)) {
+              Write-Host "==> Creating PSResourceGet store directory: $storeDir"
+              New-Item -ItemType Directory -Path $storeDir -Force | Out-Null
+          }
+
+          $existing = Get-PSResourceRepository -Name PSGallery -ErrorAction SilentlyContinue
+          if (-not $existing) {
+              Write-Host "==> Registering PSGallery repository"
+              Register-PSResourceRepository -PSGallery -Trusted -ErrorAction Stop
+          } else {
+              Write-Host "==> PSGallery already registered; ensuring Trusted + ApiVersion v2"
+              Set-PSResourceRepository -Name PSGallery -Trusted -ApiVersion v2 -ErrorAction Stop
+          }
           Get-PSResourceRepository -Name PSGallery | Format-Table Name,Uri,Trusted,ApiVersion
 
       - name: Verify PowerShell Gallery API key is configured
