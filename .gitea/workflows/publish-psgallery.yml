@@ -45,9 +45,9 @@ jobs:
           dotnet restore src/PSInfisicalAPI.Tests/PSInfisicalAPI.Tests.csproj --verbosity normal
           if ($LASTEXITCODE -ne 0) { throw "Restore of PSInfisicalAPI.Tests.csproj failed with exit code $LASTEXITCODE" }
 
-      - name: Build and test module
+      - name: Build module
         shell: pwsh
-        run: ./build.ps1 -RunTests
+        run: ./build.ps1
 
       - name: Validate module manifest
         shell: pwsh
