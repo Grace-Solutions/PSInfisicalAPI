@@ -863,11 +863,13 @@ namespace PSInfisicalAPI.Pki
                 Limit = query.Limit,
                 CaIds = query.CaIds,
                 ProfileIds = query.ProfileIds,
+                ApplicationId = query.ApplicationId,
                 ApplicationIds = query.ApplicationIds,
                 EnrollmentTypes = query.EnrollmentTypes,
                 ExtendedKeyUsage = query.ExtendedKeyUsage,
                 KeyAlgorithm = query.KeyAlgorithm,
                 SignatureAlgorithm = query.SignatureAlgorithm,
+                KeySizes = query.KeySizes,
                 Source = query.Source,
                 FromDate = FormatTimestamp(query.FromDate),
                 ToDate = FormatTimestamp(query.ToDate),
@@ -875,10 +877,23 @@ namespace PSInfisicalAPI.Pki
                 NotAfterTo = FormatTimestamp(query.NotAfterTo),
                 NotBeforeFrom = FormatTimestamp(query.NotBeforeFrom),
                 NotBeforeTo = FormatTimestamp(query.NotBeforeTo),
+                Metadata = BuildMetadataEntries(query.Metadata),
                 SortBy = query.SortBy,
                 SortOrder = query.SortOrder,
                 ForPkiSync = query.ForPkiSync
             };
+        }
+
+        private static InfisicalCertificateSearchMetadataEntryDto[] BuildMetadataEntries(IDictionary<string, string> source)
+        {
+            if (source == null || source.Count == 0) { return null; }
+            List<InfisicalCertificateSearchMetadataEntryDto> entries = new List<InfisicalCertificateSearchMetadataEntryDto>(source.Count);
+            foreach (KeyValuePair<string, string> pair in source)
+            {
+                if (string.IsNullOrEmpty(pair.Key)) { continue; }
+                entries.Add(new InfisicalCertificateSearchMetadataEntryDto { Key = pair.Key, Value = pair.Value });
+            }
+            return entries.Count == 0 ? null : entries.ToArray();
         }
 
         private static string FormatTimestamp(DateTimeOffset? value)

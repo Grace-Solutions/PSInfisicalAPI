@@ -90,7 +90,6 @@ The module exports 37 cmdlets. Discovery cmdlets (`Get-Infisical*`) use a `List`
 | `Get-InfisicalCertificateAuthority` | Lists or retrieves Infisical internal Certificate Authorities.                                     |
 | `Get-InfisicalPkiSubscriber`        | Lists or retrieves Infisical PKI subscribers in a project.                                         |
 | `Get-InfisicalCertificate`          | Lists or retrieves Infisical certificates in a project, with optional filters and automatic paging. |
-| `Search-InfisicalCertificate`       | Searches Infisical certificates with advanced filters and automatic paging.                        |
 | `Request-InfisicalCertificate`      | Requests a new Infisical certificate (local CSR + sign) or reuses a still-valid existing one.      |
 | `ConvertTo-InfisicalCertificate`    | Materializes an X509Certificate2 from an Infisical certificate record, bundle, or serial number.   |
 | `Install-InfisicalCertificate`      | Installs an Infisical certificate (and optional chain) into a Windows certificate store.           |

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace PSInfisicalAPI.Pki
 {
@@ -13,11 +14,13 @@ namespace PSInfisicalAPI.Pki
         public int? Limit { get; set; }
         public string[] CaIds { get; set; }
         public string[] ProfileIds { get; set; }
+        public string ApplicationId { get; set; }
         public string[] ApplicationIds { get; set; }
         public string[] EnrollmentTypes { get; set; }
         public string ExtendedKeyUsage { get; set; }
         public string[] KeyAlgorithm { get; set; }
         public string SignatureAlgorithm { get; set; }
+        public int[] KeySizes { get; set; }
         public string[] Source { get; set; }
         public DateTimeOffset? FromDate { get; set; }
         public DateTimeOffset? ToDate { get; set; }
@@ -25,6 +28,7 @@ namespace PSInfisicalAPI.Pki
         public DateTimeOffset? NotAfterTo { get; set; }
         public DateTimeOffset? NotBeforeFrom { get; set; }
         public DateTimeOffset? NotBeforeTo { get; set; }
+        public IDictionary<string, string> Metadata { get; set; }
         public string SortBy { get; set; }
         public string SortOrder { get; set; }
         public bool? ForPkiSync { get; set; }

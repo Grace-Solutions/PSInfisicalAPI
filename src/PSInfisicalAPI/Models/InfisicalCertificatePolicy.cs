@@ -8,7 +8,7 @@ namespace PSInfisicalAPI.Models
         public string ProjectId { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public InfisicalCertificatePolicySubject Subject { get; set; }
+        public InfisicalCertificatePolicySubject[] Subject { get; set; }
         public InfisicalCertificatePolicySan[] Sans { get; set; }
         public InfisicalCertificatePolicyUsages KeyUsages { get; set; }
         public InfisicalCertificatePolicyUsages ExtendedKeyUsages { get; set; }

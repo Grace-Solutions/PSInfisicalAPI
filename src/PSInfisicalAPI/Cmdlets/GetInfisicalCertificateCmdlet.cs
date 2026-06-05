@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Management.Automation;
 using PSInfisicalAPI.Connections;
 using PSInfisicalAPI.Models;
@@ -14,12 +16,38 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Id", "Identifier")]
         public string SerialNumber { get; set; }
 
-        [Parameter(ParameterSetName = "List")] public SwitchParameter List { get; set; }
         [Parameter(ParameterSetName = "List", Mandatory = true)] public string ProjectId { get; set; }
         [Parameter(ParameterSetName = "List")] public string CommonName { get; set; }
         [Parameter(ParameterSetName = "List")] public string FriendlyName { get; set; }
+        [Parameter(ParameterSetName = "List")] public string Search { get; set; }
         [Parameter(ParameterSetName = "List")] public string Status { get; set; }
         [Parameter(ParameterSetName = "List")] public string[] CaId { get; set; }
+        [Parameter(ParameterSetName = "List")] public string[] ProfileId { get; set; }
+        [Parameter(ParameterSetName = "List")] public string ApplicationId { get; set; }
+        [Parameter(ParameterSetName = "List")] public string[] ApplicationIds { get; set; }
+        [Parameter(ParameterSetName = "List")] public string[] EnrollmentType { get; set; }
+        [Parameter(ParameterSetName = "List")] public string ExtendedKeyUsage { get; set; }
+        [Parameter(ParameterSetName = "List")] public string[] KeyAlgorithm { get; set; }
+        [Parameter(ParameterSetName = "List")] public string SignatureAlgorithm { get; set; }
+        [Parameter(ParameterSetName = "List")] public int[] KeySize { get; set; }
+        [Parameter(ParameterSetName = "List")] public string[] Source { get; set; }
+        [Parameter(ParameterSetName = "List")] public DateTimeOffset? FromDate { get; set; }
+        [Parameter(ParameterSetName = "List")] public DateTimeOffset? ToDate { get; set; }
+        [Parameter(ParameterSetName = "List")] public DateTimeOffset? NotAfterFrom { get; set; }
+        [Parameter(ParameterSetName = "List")] public DateTimeOffset? NotAfterTo { get; set; }
+        [Parameter(ParameterSetName = "List")] public DateTimeOffset? NotBeforeFrom { get; set; }
+        [Parameter(ParameterSetName = "List")] public DateTimeOffset? NotBeforeTo { get; set; }
+        [Parameter(ParameterSetName = "List")] public Hashtable Metadata { get; set; }
+        [Parameter(ParameterSetName = "List")] public SwitchParameter ForPkiSync { get; set; }
+
+        [Parameter(ParameterSetName = "List")]
+        [ValidateSet("notAfter", "notBefore", "createdAt", "commonName", "keyAlgorithm", "status")]
+        public string SortBy { get; set; }
+
+        [Parameter(ParameterSetName = "List")]
+        [ValidateSet("asc", "desc")]
+        public string SortOrder { get; set; }
+
         [Parameter(ParameterSetName = "List")] public int? Limit { get; set; }
         [Parameter(ParameterSetName = "List")] public int? Offset { get; set; }
         [Parameter(ParameterSetName = "List")] public SwitchParameter NoAutoPage { get; set; }
@@ -47,8 +75,28 @@ namespace PSInfisicalAPI.Cmdlets
                     ProjectId = ProjectId,
                     CommonName = CommonName,
                     FriendlyName = FriendlyName,
+                    Search = Search,
                     Status = Status,
                     CaIds = CaId,
+                    ProfileIds = ProfileId,
+                    ApplicationId = ApplicationId,
+                    ApplicationIds = ApplicationIds,
+                    EnrollmentTypes = EnrollmentType,
+                    ExtendedKeyUsage = ExtendedKeyUsage,
+                    KeyAlgorithm = KeyAlgorithm,
+                    SignatureAlgorithm = SignatureAlgorithm,
+                    KeySizes = KeySize,
+                    Source = Source,
+                    FromDate = FromDate,
+                    ToDate = ToDate,
+                    NotAfterFrom = NotAfterFrom,
+                    NotAfterTo = NotAfterTo,
+                    NotBeforeFrom = NotBeforeFrom,
+                    NotBeforeTo = NotBeforeTo,
+                    Metadata = ToStringDictionary(Metadata),
+                    SortBy = SortBy,
+                    SortOrder = SortOrder,
+                    ForPkiSync = ForPkiSync.IsPresent ? (bool?)true : null,
                     Limit = Limit ?? 100,
                     Offset = Offset ?? 0
                 };
@@ -86,6 +134,18 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 ThrowTerminatingForException("GetInfisicalCertificateCmdlet", "GetCertificate", exception);
             }
+        }
+
+        private static Dictionary<string, string> ToStringDictionary(Hashtable hashtable)
+        {
+            if (hashtable == null) { return null; }
+            Dictionary<string, string> result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (DictionaryEntry entry in hashtable)
+            {
+                if (entry.Key == null) { continue; }
+                result[entry.Key.ToString()] = entry.Value != null ? entry.Value.ToString() : null;
+            }
+            return result;
         }
     }
 }

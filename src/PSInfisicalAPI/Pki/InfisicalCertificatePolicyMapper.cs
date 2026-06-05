@@ -21,7 +21,7 @@ namespace PSInfisicalAPI.Pki
                 ProjectId = !string.IsNullOrEmpty(dto.ProjectId) ? dto.ProjectId : fallbackProjectId,
                 Name = dto.Name,
                 Description = dto.Description,
-                Subject = MapSubject(dto.Subject),
+                Subject = MapSubjects(dto.SubjectRaw),
                 Sans = MapSans(dto.SansRaw),
                 KeyUsages = MapUsages(dto.KeyUsages),
                 ExtendedKeyUsages = MapUsages(dto.ExtendedKeyUsages),
@@ -52,8 +52,32 @@ namespace PSInfisicalAPI.Pki
             return results.ToArray();
         }
 
-        private static InfisicalCertificatePolicySubject MapSubject(InfisicalCertificatePolicySubjectDto dto)
+        private static InfisicalCertificatePolicySubject[] MapSubjects(JToken token)
         {
+            if (token == null || token.Type == JTokenType.Null) { return null; }
+
+            List<InfisicalCertificatePolicySubject> results = new List<InfisicalCertificatePolicySubject>();
+            if (token.Type == JTokenType.Array)
+            {
+                foreach (JToken child in (JArray)token)
+                {
+                    InfisicalCertificatePolicySubject mapped = MapSubjectObject(child);
+                    if (mapped != null) { results.Add(mapped); }
+                }
+            }
+            else if (token.Type == JTokenType.Object)
+            {
+                InfisicalCertificatePolicySubject mapped = MapSubjectObject(token);
+                if (mapped != null) { results.Add(mapped); }
+            }
+
+            return results.Count > 0 ? results.ToArray() : null;
+        }
+
+        private static InfisicalCertificatePolicySubject MapSubjectObject(JToken token)
+        {
+            if (token == null || token.Type != JTokenType.Object) { return null; }
+            InfisicalCertificatePolicySubjectDto dto = token.ToObject<InfisicalCertificatePolicySubjectDto>();
             if (dto == null) { return null; }
             return new InfisicalCertificatePolicySubject
             {

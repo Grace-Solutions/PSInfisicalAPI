@@ -70,11 +70,13 @@ namespace PSInfisicalAPI.Pki
         [JsonProperty("limit", NullValueHandling = NullValueHandling.Ignore)] public int? Limit { get; set; }
         [JsonProperty("caIds", NullValueHandling = NullValueHandling.Ignore)] public string[] CaIds { get; set; }
         [JsonProperty("profileIds", NullValueHandling = NullValueHandling.Ignore)] public string[] ProfileIds { get; set; }
+        [JsonProperty("applicationId", NullValueHandling = NullValueHandling.Ignore)] public string ApplicationId { get; set; }
         [JsonProperty("applicationIds", NullValueHandling = NullValueHandling.Ignore)] public string[] ApplicationIds { get; set; }
         [JsonProperty("enrollmentTypes", NullValueHandling = NullValueHandling.Ignore)] public string[] EnrollmentTypes { get; set; }
         [JsonProperty("extendedKeyUsage", NullValueHandling = NullValueHandling.Ignore)] public string ExtendedKeyUsage { get; set; }
         [JsonProperty("keyAlgorithm", NullValueHandling = NullValueHandling.Ignore)] public string[] KeyAlgorithm { get; set; }
         [JsonProperty("signatureAlgorithm", NullValueHandling = NullValueHandling.Ignore)] public string SignatureAlgorithm { get; set; }
+        [JsonProperty("keySizes", NullValueHandling = NullValueHandling.Ignore)] public int[] KeySizes { get; set; }
         [JsonProperty("source", NullValueHandling = NullValueHandling.Ignore)] public string[] Source { get; set; }
         [JsonProperty("fromDate", NullValueHandling = NullValueHandling.Ignore)] public string FromDate { get; set; }
         [JsonProperty("toDate", NullValueHandling = NullValueHandling.Ignore)] public string ToDate { get; set; }
@@ -82,9 +84,16 @@ namespace PSInfisicalAPI.Pki
         [JsonProperty("notAfterTo", NullValueHandling = NullValueHandling.Ignore)] public string NotAfterTo { get; set; }
         [JsonProperty("notBeforeFrom", NullValueHandling = NullValueHandling.Ignore)] public string NotBeforeFrom { get; set; }
         [JsonProperty("notBeforeTo", NullValueHandling = NullValueHandling.Ignore)] public string NotBeforeTo { get; set; }
+        [JsonProperty("metadata", NullValueHandling = NullValueHandling.Ignore)] public InfisicalCertificateSearchMetadataEntryDto[] Metadata { get; set; }
         [JsonProperty("sortBy", NullValueHandling = NullValueHandling.Ignore)] public string SortBy { get; set; }
         [JsonProperty("sortOrder", NullValueHandling = NullValueHandling.Ignore)] public string SortOrder { get; set; }
         [JsonProperty("forPkiSync", NullValueHandling = NullValueHandling.Ignore)] public bool? ForPkiSync { get; set; }
+    }
+
+    internal sealed class InfisicalCertificateSearchMetadataEntryDto
+    {
+        [JsonProperty("key")] public string Key { get; set; }
+        [JsonProperty("value", NullValueHandling = NullValueHandling.Ignore)] public string Value { get; set; }
     }
 
     internal sealed class InfisicalCertificateBundleResponseDto

@@ -18,8 +18,6 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter(Mandatory = true)] public string Environment { get; set; }
         [Parameter] public string Path { get; set; }
 
-        [Parameter(ParameterSetName = "List")] public SwitchParameter List { get; set; }
-
         protected override void ProcessRecord()
         {
             try
