@@ -12,6 +12,7 @@ namespace PSInfisicalAPI.Tests
         private static readonly Type CertDtoType = ModuleAssembly.GetType("PSInfisicalAPI.Pki.InfisicalCertificateResponseDto", true);
         private static readonly Type CaMapperType = ModuleAssembly.GetType("PSInfisicalAPI.Pki.InfisicalCaMapper", true);
         private static readonly Type CaDtoType = ModuleAssembly.GetType("PSInfisicalAPI.Pki.InfisicalInternalCaResponseDto", true);
+        private static readonly Type CaConfigDtoType = ModuleAssembly.GetType("PSInfisicalAPI.Pki.InfisicalInternalCaConfigurationDto", true);
         private static readonly Type BundleDtoType = ModuleAssembly.GetType("PSInfisicalAPI.Pki.InfisicalCertificateBundleResponseDto", true);
 
         private static InfisicalCertificate InvokeCertMap(object dto, string fallbackProjectId)
@@ -88,6 +89,43 @@ namespace PSInfisicalAPI.Tests
             Assert.Equal("active", mapped.Status);
             Assert.Equal("Internal Root CA", mapped.CommonName);
             Assert.Equal("proj-fallback", mapped.ProjectId);
+        }
+
+        [Fact]
+        public void CaMap_Prefers_Configuration_Fields_Over_TopLevel()
+        {
+            object cfg = Activator.CreateInstance(CaConfigDtoType);
+            CaConfigDtoType.GetProperty("FriendlyName").SetValue(cfg, "C=US, CN=GSPA Intermediate");
+            CaConfigDtoType.GetProperty("CommonName").SetValue(cfg, "GSPA Intermediate");
+            CaConfigDtoType.GetProperty("OrganizationName").SetValue(cfg, "GSPA");
+            CaConfigDtoType.GetProperty("OrganizationUnit").SetValue(cfg, "MECM");
+            CaConfigDtoType.GetProperty("Country").SetValue(cfg, "US");
+            CaConfigDtoType.GetProperty("KeyAlgorithm").SetValue(cfg, "RSA_2048");
+            CaConfigDtoType.GetProperty("DistinguishedName").SetValue(cfg, "CN=GSPA Intermediate");
+            CaConfigDtoType.GetProperty("SerialNumber").SetValue(cfg, "74a4b62197ad");
+            CaConfigDtoType.GetProperty("MaxPathLength").SetValue(cfg, 0);
+            CaConfigDtoType.GetProperty("Type").SetValue(cfg, "intermediate");
+
+            object dto = Activator.CreateInstance(CaDtoType);
+            CaDtoType.GetProperty("Id").SetValue(dto, "ca-9");
+            CaDtoType.GetProperty("Name").SetValue(dto, "intermediate-ca");
+            CaDtoType.GetProperty("Type").SetValue(dto, "internal");
+            CaDtoType.GetProperty("Status").SetValue(dto, "active");
+            CaDtoType.GetProperty("Configuration").SetValue(dto, cfg);
+
+            InfisicalCertificateAuthority mapped = InvokeCaMap(dto, "proj-fallback");
+            Assert.Equal("ca-9", mapped.Id);
+            Assert.Equal("intermediate-ca", mapped.Name);
+            Assert.Equal("internal", mapped.Type);
+            Assert.Equal("C=US, CN=GSPA Intermediate", mapped.FriendlyName);
+            Assert.Equal("GSPA Intermediate", mapped.CommonName);
+            Assert.Equal("GSPA", mapped.OrganizationName);
+            Assert.Equal("MECM", mapped.OrganizationUnit);
+            Assert.Equal("US", mapped.Country);
+            Assert.Equal("RSA_2048", mapped.KeyAlgorithm);
+            Assert.Equal("CN=GSPA Intermediate", mapped.DistinguishedName);
+            Assert.Equal("74a4b62197ad", mapped.SerialNumber);
+            Assert.Equal(0, mapped.MaxPathLength);
         }
 
         [Fact]

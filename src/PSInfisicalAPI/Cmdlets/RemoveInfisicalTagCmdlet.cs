@@ -12,7 +12,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Id")]
         public string TagId { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
         [Parameter] public SwitchParameter PassThru { get; set; }
 
         protected override void ProcessRecord()
@@ -25,9 +25,8 @@ namespace PSInfisicalAPI.Cmdlets
                 }
 
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalTagClient client = new InfisicalTagClient(HttpClient, Logger);
-                client.Delete(connection, resolvedProjectId, TagId);
+                client.Delete(connection, ProjectId, TagId);
 
                 if (PassThru.IsPresent)
                 {

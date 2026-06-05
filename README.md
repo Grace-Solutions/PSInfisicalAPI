@@ -26,14 +26,79 @@ Import-Module -Name .\Module\PSInfisicalAPI
 
 ## Cmdlets
 
-| Cmdlet                                | Purpose                                                                    |
-| ------------------------------------- | -------------------------------------------------------------------------- |
-| `Connect-Infisical`                   | Establish a session using Universal Auth or a pre-issued access token.     |
-| `Disconnect-Infisical`                | Clear the current session.                                                 |
-| `Get-InfisicalSecrets`                | List secrets at a given path / environment.                                |
-| `Get-InfisicalSecret`                 | Retrieve a single secret by name.                                          |
-| `ConvertTo-InfisicalSecretDictionary` | Convert secret objects into a `Hashtable` keyed by `SecretKey`.            |
-| `Export-InfisicalSecrets`             | Export secrets to JSON, YAML, XML, or `.env` format.                       |
+The module exports 37 cmdlets. Discovery cmdlets (`Get-Infisical*`) use a `List` (default) / single-record parameter-set pair: invoking without the identity parameter returns the collection, supplying the identity parameter returns one record.
+
+### Session
+
+| Cmdlet                 | Purpose                                                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------------------- |
+| `Connect-Infisical`    | Establishes an authenticated session with an Infisical server and stores it for use by subsequent cmdlets. |
+| `Disconnect-Infisical` | Clears the current Infisical session from the module-level session manager.                        |
+
+### Secrets
+
+| Cmdlet                                | Purpose                                                                                            |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalSecret`                 | Lists or retrieves Infisical secrets within a project, environment, and optional folder path.      |
+| `New-InfisicalSecret`                 | Creates a new Infisical secret, with support for SecureString values and bulk creation.            |
+| `Update-InfisicalSecret`              | Updates an existing Infisical secret value, comment, name, or tags.                                |
+| `Remove-InfisicalSecret`              | Deletes one or many Infisical secrets by name.                                                     |
+| `Copy-InfisicalSecret`                | Duplicates one or more secrets into a different environment or secret path.                        |
+| `ConvertTo-InfisicalSecretDictionary` | Converts a stream of InfisicalSecret objects into a name-keyed Dictionary of SecureString or plain text values. |
+| `Export-InfisicalSecrets`             | Exports InfisicalSecret objects to disk or environment variables in a chosen file format.          |
+
+### Projects
+
+| Cmdlet                    | Purpose                                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalProject`    | Lists or retrieves Infisical projects accessible to the current identity.                          |
+| `New-InfisicalProject`    | Creates a new Infisical project in the active organization.                                        |
+| `Update-InfisicalProject` | Updates the name, description, or auto-capitalization flag on an existing project.                 |
+| `Remove-InfisicalProject` | Deletes an Infisical project.                                                                      |
+
+### Environments
+
+| Cmdlet                        | Purpose                                                                                            |
+| ----------------------------- | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalEnvironment`    | Lists or retrieves Infisical environments defined on a project.                                    |
+| `New-InfisicalEnvironment`    | Creates a new environment on an Infisical project.                                                 |
+| `Update-InfisicalEnvironment` | Updates the name, slug, or sort order of an existing Infisical environment.                        |
+| `Remove-InfisicalEnvironment` | Deletes an Infisical environment from a project.                                                   |
+
+### Folders
+
+| Cmdlet                   | Purpose                                                                                            |
+| ------------------------ | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalFolder`    | Lists or retrieves Infisical folders at a given secret path.                                       |
+| `New-InfisicalFolder`    | Creates a new Infisical folder under the supplied parent path.                                     |
+| `Update-InfisicalFolder` | Renames an existing Infisical folder.                                                              |
+| `Remove-InfisicalFolder` | Deletes an Infisical folder and all secrets it contains.                                           |
+
+### Tags
+
+| Cmdlet                | Purpose                                                                                            |
+| --------------------- | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalTag`    | Lists or retrieves Infisical tags defined on a project.                                            |
+| `New-InfisicalTag`    | Creates a new Infisical tag on a project.                                                          |
+| `Update-InfisicalTag` | Updates the slug, name, or color of an existing Infisical tag.                                     |
+| `Remove-InfisicalTag` | Deletes an Infisical tag from a project.                                                           |
+
+### PKI
+
+| Cmdlet                              | Purpose                                                                                            |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalCertificateAuthority` | Lists or retrieves Infisical internal Certificate Authorities.                                     |
+| `Get-InfisicalPkiSubscriber`        | Lists or retrieves Infisical PKI subscribers in a project.                                         |
+| `Get-InfisicalCertificate`          | Lists or retrieves Infisical certificates in a project, with optional filters and automatic paging. |
+| `Search-InfisicalCertificate`       | Searches Infisical certificates with advanced filters and automatic paging.                        |
+| `Request-InfisicalCertificate`      | Requests a new Infisical certificate (local CSR + sign) or reuses a still-valid existing one.      |
+| `ConvertTo-InfisicalCertificate`    | Materializes an X509Certificate2 from an Infisical certificate record, bundle, or serial number.   |
+| `Install-InfisicalCertificate`      | Installs an Infisical certificate (and optional chain) into a Windows certificate store.           |
+| `Uninstall-InfisicalCertificate`    | Removes a certificate from a Windows certificate store by thumbprint, subject, or pipeline input.  |
+| `Export-InfisicalCertificate`       | Exports an Infisical certificate to disk in PEM, PFX, or CER format.                               |
+| `Get-InfisicalScepMdmProfile`       | Projects an Infisical certificate profile into a Windows SCEP MDM profile model.                   |
+| `Export-InfisicalScepMdmProfile`    | Writes a SCEP MDM profile to disk as a SyncML payload suitable for MDM delivery.                   |
+| `Write-InfisicalScepMdmProfileToWmi`| Submits a SCEP MDM profile to the local MDM Bridge WMI provider to trigger enrollment.             |
 
 Use `Get-Help <Cmdlet> -Full` for parameter details and `Get-Help about_PSInfisicalAPI` for the module overview.
 
@@ -51,7 +116,7 @@ $connection = Connect-Infisical `
     -ClientSecret   $secureSecret `
     -PassThru
 
-Get-InfisicalSecrets -SecretPath '/'
+Get-InfisicalSecret -SecretPath '/'
 Disconnect-Infisical
 ```
 
@@ -96,7 +161,7 @@ Sensitive values (`ClientSecret`, `AccessToken`) are read directly into a read-o
 [Environment]::SetEnvironmentVariable('INFISICAL_CLIENT_SECRET', 'super-secret-value',                   'User')
 
 Connect-Infisical
-Get-InfisicalSecrets
+Get-InfisicalSecret
 ```
 
 ### Mixed example (explicit values override discovery)
@@ -118,6 +183,65 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\build.ps1 -RunTests
 ```
 
 The script builds the binary, runs unit tests, publishes binaries into `Module/PSInfisicalAPI/bin/`, regenerates the manifest, and validates that the module imports.
+
+## Extending the module
+
+### Adding a new API endpoint
+
+All HTTP routes live in two files under `src/PSInfisicalAPI/Endpoints/`:
+
+- `InfisicalEndpointNames.cs` declares a `const string` identifier for each endpoint.
+- `InfisicalEndpointRegistry.cs` maps each identifier to one or more `InfisicalEndpointDefinition` records grouped by resource (`RegisterAuthentication`, `RegisterSecrets`, `RegisterPki`, etc.).
+
+To add a route:
+
+1. Add a constant in `InfisicalEndpointNames.cs` (e.g., `public const string ListPkiSubscribers = "ListPkiSubscribers";`).
+2. In the matching `Register<Resource>` method, call `Add(map, new InfisicalEndpointDefinition { ... })` with `Name`, `Resource`, `Version`, `Method`, `Template`, and the `RequiresAuthorization` / `ContainsSecretMaterialInRequest` / `ContainsSecretMaterialInResponse` flags. Use `{placeholder}` tokens in `Template`; they are substituted from the `pathParameters` dictionary passed by the caller.
+3. If the same logical operation has more than one upstream path (legacy + current), register both definitions under the same `Name` — `InvokeWithCandidateFallback` tries each in order until one succeeds.
+4. Invoke the endpoint from the appropriate client (`InfisicalPkiClient`, `InfisicalSecretsClient`, etc.) via `_invoker.InvokeWithCandidateFallback(connection, InfisicalEndpointNames.XYZ, "XYZ", pathParameters, query, body)`.
+
+### Adding a new cmdlet
+
+Cmdlets live in `src/PSInfisicalAPI/Cmdlets/` and derive from `InfisicalCmdletBase`, which exposes `HttpClient`, `Logger`, `ResolveProjectId`, and `ThrowTerminatingForException`. Follow the consolidated discovery pattern when the cmdlet supports both list and single-record retrieval:
+
+```csharp
+[Cmdlet(VerbsCommon.Get, "InfisicalPkiSubscriber", DefaultParameterSetName = "List")]
+[OutputType(typeof(InfisicalPkiSubscriber))]
+public sealed class GetInfisicalPkiSubscriberCmdlet : InfisicalCmdletBase
+{
+    [Parameter(ParameterSetName = "ByName", Mandatory = true, Position = 0, ValueFromPipelineByPropertyName = true)]
+    [Alias("SubscriberName", "Slug")]
+    public string Name { get; set; }
+
+    [Parameter] public string ProjectId { get; set; }
+
+    protected override void ProcessRecord() { /* dispatch on ParameterSetName */ }
+}
+```
+
+After adding (or removing) a cmdlet:
+
+1. Update `build.ps1` in **two** places — the `CmdletsToExport` array inside the generated manifest block, and the `$expectedCmds` array used by `Test-ModuleImports`. Both must list the same cmdlets; the build fails fast if they drift.
+2. Add a `<command:command>` entry in `Module/PSInfisicalAPI/en-US/PSInfisicalAPI.dll-Help.xml`. Each entry must include a non-empty `<maml:description>` synopsis (do not let it start with the cmdlet name — the validation gate rejects PowerShell's auto-generated fallback), a non-empty `<maml:description>` body, and at least one `<command:example>` with a non-empty `<dev:code>` block.
+3. For consolidated `List` / single-record cmdlets, ship **three examples**: two straight-line invocations (one per parameter set) and one `OrderedDictionary` splat. The splat must construct the dictionary with `OrdinalIgnoreCase` so parameter names round-trip case-insensitively:
+
+   ```powershell
+   $Params = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+   $Params.ProjectId = (Get-InfisicalProject | Select-Object -First 1).Id
+   $Result = Get-InfisicalPkiSubscriber @Params
+   ```
+4. Add a `## Unreleased` entry to `CHANGELOG.md` describing the change (mark removals of public cmdlets or parameters as **BREAKING**).
+5. Run `./build.ps1 -RunTests`. The script enforces the cmdlet list, runs the xUnit suite, and verifies that every exported cmdlet has a valid synopsis, description, and at least one non-empty example.
+
+### Committing source and build artifacts in lockstep
+
+The embedded `BuildCommitHash` in `Module/PSInfisicalAPI/PSInfisicalAPI.psd1` and the bundled DLL is captured from `git rev-parse HEAD` at build time. To keep the embedded hash truthful, commit source and build artifacts as two ordered commits:
+
+1. Stage and commit your source changes first. Suppose this produces commit `S`.
+2. Run `./build.ps1 -RunTests -CommitArtifacts`. The build picks up `S` as `HEAD`, embeds it as `BuildCommitHash`, then stages and commits **only** the build outputs (`Module/PSInfisicalAPI/bin/**`, `Module/PSInfisicalAPI/PSInfisicalAPI.psd1`, and the `CHANGELOG.md` build-stamp insertion). The commit message references `S` so the binary commit always traces back to its source.
+3. `git push`.
+
+`-CommitArtifacts` only touches the three artifact paths above; any other dirty files in your working tree are left alone. Use the older `-CommitOnSuccess` switch only when you intentionally want a single commit covering everything (`git add -A` + `git commit -m "Build <version>"`); the two switches are mutually exclusive.
 
 ## Continuous integration
 

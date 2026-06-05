@@ -28,12 +28,24 @@ namespace PSInfisicalAPI.Projects
 
         public InfisicalProject[] List(InfisicalConnection connection)
         {
+            return List(connection, null, false);
+        }
+
+        public InfisicalProject[] List(InfisicalConnection connection, string type, bool includeRoles)
+        {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
+
+            List<KeyValuePair<string, string>> queryParameters = new List<KeyValuePair<string, string>>();
+            queryParameters.Add(new KeyValuePair<string, string>("includeRoles", includeRoles ? "true" : "false"));
+            if (!string.IsNullOrEmpty(type))
+            {
+                queryParameters.Add(new KeyValuePair<string, string>("type", type));
+            }
 
             try
             {
                 _logger.Information(Component, "Attempting to list Infisical projects. Please Wait...");
-                InfisicalHttpResponse response = _invoker.Invoke(connection, InfisicalEndpointNames.ListProjects, "ListProjects", null, null, null);
+                InfisicalHttpResponse response = _invoker.Invoke(connection, InfisicalEndpointNames.ListProjects, "ListProjects", null, queryParameters, null);
                 InfisicalProjectListResponseDto dto = _serializer.Deserialize<InfisicalProjectListResponseDto>(response.Body);
                 response.Clear();
 

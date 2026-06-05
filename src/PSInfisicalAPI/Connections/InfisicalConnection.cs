@@ -12,9 +12,6 @@ namespace PSInfisicalAPI.Connections
         public string PinnedApiVersion { get; set; }
         public InfisicalAuthType AuthType { get; set; }
         public string OrganizationId { get; set; }
-        public string ProjectId { get; set; }
-        public string Environment { get; set; }
-        public string DefaultSecretPath { get; set; }
         public DateTimeOffset ConnectedAtUtc { get; set; }
         public DateTimeOffset? ExpiresAtUtc { get; set; }
         public bool IsConnected { get; set; }
@@ -26,8 +23,8 @@ namespace PSInfisicalAPI.Connections
         public override string ToString()
         {
             return string.Concat(
-                "Project=", ProjectId ?? "",
-                " Environment=", Environment ?? "",
+                "BaseUri=", BaseUri != null ? BaseUri.ToString() : "",
+                " AuthType=", AuthType.ToString(),
                 " Connected=", IsConnected ? "true" : "false");
         }
     }

@@ -29,16 +29,14 @@ namespace PSInfisicalAPI.Folders
         public InfisicalFolder[] List(InfisicalConnection connection, string projectId, string environment, string path)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            string resolvedEnvironment = FirstNonEmpty(environment, connection.Environment);
-            string resolvedPath = FirstNonEmpty(path, connection.DefaultSecretPath, "/");
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
-            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(environment)) { throw new InfisicalConfigurationException("Environment is required."); }
+            string resolvedPath = FirstNonEmpty(path, "/");
 
             List<KeyValuePair<string, string>> queryParameters = new List<KeyValuePair<string, string>>
             {
-                new KeyValuePair<string, string>("workspaceId", resolvedProjectId),
-                new KeyValuePair<string, string>("environment", resolvedEnvironment),
+                new KeyValuePair<string, string>("workspaceId", projectId),
+                new KeyValuePair<string, string>("environment", environment),
                 new KeyValuePair<string, string>("path", resolvedPath)
             };
 
@@ -49,7 +47,7 @@ namespace PSInfisicalAPI.Folders
                 InfisicalFolderListResponseDto dto = _serializer.Deserialize<InfisicalFolderListResponseDto>(response.Body);
                 response.Clear();
 
-                InfisicalFolder[] mapped = InfisicalFolderMapper.MapMany(dto != null ? dto.Folders : null, resolvedProjectId, resolvedEnvironment);
+                InfisicalFolder[] mapped = InfisicalFolderMapper.MapMany(dto != null ? dto.Folders : null, projectId, environment);
                 _logger.Information(Component, "Infisical folder list retrieval was successful.");
                 return mapped;
             }
@@ -80,17 +78,15 @@ namespace PSInfisicalAPI.Folders
         public InfisicalFolder Create(InfisicalConnection connection, string projectId, string environment, string name, string path)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            string resolvedEnvironment = FirstNonEmpty(environment, connection.Environment);
-            string resolvedPath = FirstNonEmpty(path, connection.DefaultSecretPath, "/");
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
-            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(environment)) { throw new InfisicalConfigurationException("Environment is required."); }
             if (string.IsNullOrEmpty(name)) { throw new InfisicalConfigurationException("Name is required."); }
+            string resolvedPath = FirstNonEmpty(path, "/");
 
             InfisicalFolderCreateRequestDto request = new InfisicalFolderCreateRequestDto
             {
-                WorkspaceId = resolvedProjectId,
-                Environment = resolvedEnvironment,
+                WorkspaceId = projectId,
+                Environment = environment,
                 Name = name,
                 Path = resolvedPath
             };
@@ -103,7 +99,7 @@ namespace PSInfisicalAPI.Folders
                 InfisicalFolderSingleResponseDto dto = _serializer.Deserialize<InfisicalFolderSingleResponseDto>(response.Body);
                 response.Clear();
 
-                InfisicalFolder mapped = InfisicalFolderMapper.Map(dto != null ? dto.Folder : null, resolvedProjectId, resolvedEnvironment);
+                InfisicalFolder mapped = InfisicalFolderMapper.Map(dto != null ? dto.Folder : null, projectId, environment);
                 _logger.Information(Component, "Infisical folder creation was successful.");
                 return mapped;
             }
@@ -117,19 +113,17 @@ namespace PSInfisicalAPI.Folders
         public InfisicalFolder Update(InfisicalConnection connection, string projectId, string environment, string folderId, string name, string path)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            string resolvedEnvironment = FirstNonEmpty(environment, connection.Environment);
-            string resolvedPath = FirstNonEmpty(path, connection.DefaultSecretPath, "/");
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
-            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(environment)) { throw new InfisicalConfigurationException("Environment is required."); }
             if (string.IsNullOrEmpty(folderId)) { throw new InfisicalConfigurationException("FolderId is required."); }
+            string resolvedPath = FirstNonEmpty(path, "/");
             if (string.IsNullOrEmpty(name)) { throw new InfisicalConfigurationException("Name is required."); }
 
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "folderId", folderId } };
             InfisicalFolderUpdateRequestDto request = new InfisicalFolderUpdateRequestDto
             {
-                WorkspaceId = resolvedProjectId,
-                Environment = resolvedEnvironment,
+                WorkspaceId = projectId,
+                Environment = environment,
                 Name = name,
                 Path = resolvedPath
             };
@@ -142,7 +136,7 @@ namespace PSInfisicalAPI.Folders
                 InfisicalFolderSingleResponseDto dto = _serializer.Deserialize<InfisicalFolderSingleResponseDto>(response.Body);
                 response.Clear();
 
-                InfisicalFolder mapped = InfisicalFolderMapper.Map(dto != null ? dto.Folder : null, resolvedProjectId, resolvedEnvironment);
+                InfisicalFolder mapped = InfisicalFolderMapper.Map(dto != null ? dto.Folder : null, projectId, environment);
                 _logger.Information(Component, "Infisical folder update was successful.");
                 return mapped;
             }
@@ -156,18 +150,16 @@ namespace PSInfisicalAPI.Folders
         public void Delete(InfisicalConnection connection, string projectId, string environment, string folderId, string path)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            string resolvedEnvironment = FirstNonEmpty(environment, connection.Environment);
-            string resolvedPath = FirstNonEmpty(path, connection.DefaultSecretPath, "/");
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
-            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(environment)) { throw new InfisicalConfigurationException("Environment is required."); }
             if (string.IsNullOrEmpty(folderId)) { throw new InfisicalConfigurationException("FolderId is required."); }
+            string resolvedPath = FirstNonEmpty(path, "/");
 
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "folderId", folderId } };
             List<KeyValuePair<string, string>> queryParameters = new List<KeyValuePair<string, string>>
             {
-                new KeyValuePair<string, string>("workspaceId", resolvedProjectId),
-                new KeyValuePair<string, string>("environment", resolvedEnvironment),
+                new KeyValuePair<string, string>("workspaceId", projectId),
+                new KeyValuePair<string, string>("environment", environment),
                 new KeyValuePair<string, string>("path", resolvedPath)
             };
 

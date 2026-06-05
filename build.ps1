@@ -15,8 +15,14 @@ param(
 
     [switch]$CommitOnSuccess,
 
+    [switch]$CommitArtifacts,
+
     [switch]$Force
 )
+
+if ($CommitOnSuccess.IsPresent -and $CommitArtifacts.IsPresent) {
+    throw "-CommitOnSuccess and -CommitArtifacts are mutually exclusive."
+}
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -100,7 +106,6 @@ function Write-Manifest {
     CmdletsToExport      = @(
         'Connect-Infisical',
         'Disconnect-Infisical',
-        'Get-InfisicalSecrets',
         'Get-InfisicalSecret',
         'New-InfisicalSecret',
         'Update-InfisicalSecret',
@@ -108,32 +113,39 @@ function Write-Manifest {
         'Copy-InfisicalSecret',
         'ConvertTo-InfisicalSecretDictionary',
         'Export-InfisicalSecrets',
-        'Get-InfisicalProjects',
         'Get-InfisicalProject',
         'New-InfisicalProject',
         'Update-InfisicalProject',
         'Remove-InfisicalProject',
-        'Get-InfisicalEnvironments',
         'Get-InfisicalEnvironment',
         'New-InfisicalEnvironment',
         'Update-InfisicalEnvironment',
         'Remove-InfisicalEnvironment',
-        'Get-InfisicalFolders',
         'Get-InfisicalFolder',
         'New-InfisicalFolder',
         'Update-InfisicalFolder',
         'Remove-InfisicalFolder',
-        'Get-InfisicalTags',
         'Get-InfisicalTag',
         'New-InfisicalTag',
         'Update-InfisicalTag',
         'Remove-InfisicalTag',
         'Get-InfisicalCertificateAuthority',
+        'Get-InfisicalPkiSubscriber',
+        'Get-InfisicalCertificateProfile',
+        'Get-InfisicalCertificatePolicy',
+        'Get-InfisicalCertificate',
         'Search-InfisicalCertificate',
+        'Request-InfisicalCertificate',
         'ConvertTo-InfisicalCertificate',
         'Install-InfisicalCertificate',
         'Uninstall-InfisicalCertificate',
-        'Export-InfisicalCertificate'
+        'Export-InfisicalCertificate',
+        'Get-InfisicalCertificateApplication',
+        'Get-InfisicalCertificateApplicationEnrollment',
+        'New-InfisicalScepDynamicChallenge',
+        'Get-InfisicalScepMdmProfile',
+        'Export-InfisicalScepMdmProfile',
+        'Write-InfisicalScepMdmProfileToWmi'
     )
     AliasesToExport      = @()
     VariablesToExport    = @()
@@ -193,15 +205,50 @@ if (`$null -eq `$manifest) {
 
 Import-Module -Name '$($ModuleDirectory.FullName)' -Force
 
-`$cmds = @('Connect-Infisical','Disconnect-Infisical','Get-InfisicalSecrets','Get-InfisicalSecret','New-InfisicalSecret','Update-InfisicalSecret','Remove-InfisicalSecret','ConvertTo-InfisicalSecretDictionary','Export-InfisicalSecrets','Get-InfisicalProjects','Get-InfisicalProject','New-InfisicalProject','Update-InfisicalProject','Remove-InfisicalProject','Get-InfisicalEnvironments','Get-InfisicalEnvironment','New-InfisicalEnvironment','Update-InfisicalEnvironment','Remove-InfisicalEnvironment','Get-InfisicalFolders','Get-InfisicalFolder','New-InfisicalFolder','Update-InfisicalFolder','Remove-InfisicalFolder','Get-InfisicalTags','Get-InfisicalTag','New-InfisicalTag','Update-InfisicalTag','Remove-InfisicalTag','Get-InfisicalCertificateAuthority','Search-InfisicalCertificate','ConvertTo-InfisicalCertificate','Install-InfisicalCertificate','Uninstall-InfisicalCertificate','Export-InfisicalCertificate')
-foreach (`$c in `$cmds) {
-    if (-not (Get-Command -Name `$c -Module PSInfisicalAPI -ErrorAction SilentlyContinue)) {
-        throw "Cmdlet not found: `$c"
+`$cmds = @(Get-Command -Module PSInfisicalAPI -CommandType Cmdlet)
+if (`$cmds.Count -eq 0) {
+    throw "No cmdlets were exported by the PSInfisicalAPI module."
+}
+
+`$expectedCmds = @('Connect-Infisical','Disconnect-Infisical','Get-InfisicalSecret','New-InfisicalSecret','Update-InfisicalSecret','Remove-InfisicalSecret','Copy-InfisicalSecret','ConvertTo-InfisicalSecretDictionary','Export-InfisicalSecrets','Get-InfisicalProject','New-InfisicalProject','Update-InfisicalProject','Remove-InfisicalProject','Get-InfisicalEnvironment','New-InfisicalEnvironment','Update-InfisicalEnvironment','Remove-InfisicalEnvironment','Get-InfisicalFolder','New-InfisicalFolder','Update-InfisicalFolder','Remove-InfisicalFolder','Get-InfisicalTag','New-InfisicalTag','Update-InfisicalTag','Remove-InfisicalTag','Get-InfisicalCertificateAuthority','Get-InfisicalPkiSubscriber','Get-InfisicalCertificateProfile','Get-InfisicalCertificatePolicy','Get-InfisicalCertificate','Search-InfisicalCertificate','Request-InfisicalCertificate','ConvertTo-InfisicalCertificate','Install-InfisicalCertificate','Uninstall-InfisicalCertificate','Export-InfisicalCertificate','Get-InfisicalCertificateApplication','Get-InfisicalCertificateApplicationEnrollment','New-InfisicalScepDynamicChallenge','Get-InfisicalScepMdmProfile','Export-InfisicalScepMdmProfile','Write-InfisicalScepMdmProfileToWmi')
+foreach (`$expected in `$expectedCmds) {
+    if (-not (Get-Command -Name `$expected -Module PSInfisicalAPI -ErrorAction SilentlyContinue)) {
+        throw "Cmdlet not found: `$expected"
+    }
+}
+
+foreach (`$cmd in `$cmds) {
+    `$name = `$cmd.Name
+    `$help = Get-Help -Name `$name -Full -ErrorAction SilentlyContinue
+    if (`$null -eq `$help) {
+        throw "Get-Help returned nothing for cmdlet: `$name"
     }
 
-    `$help = Get-Help -Name `$c -ErrorAction SilentlyContinue
-    if (`$null -eq `$help) {
-        throw "Get-Help returned nothing for cmdlet: `$c"
+    `$synopsis = (`$help.Synopsis | Out-String).Trim()
+    if ([string]::IsNullOrWhiteSpace(`$synopsis) -or `$synopsis.StartsWith(`$name, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Get-Help synopsis is missing or auto-generated for cmdlet: `$name"
+    }
+
+    `$description = (`$help.description | Out-String).Trim()
+    if ([string]::IsNullOrWhiteSpace(`$description)) {
+        throw "Get-Help description is empty for cmdlet: `$name"
+    }
+
+    `$examples = Get-Help -Name `$name -Examples -ErrorAction SilentlyContinue
+    if (`$null -eq `$examples -or `$null -eq `$examples.examples -or `$null -eq `$examples.examples.example) {
+        throw "Get-Help -Examples returned no examples for cmdlet: `$name"
+    }
+
+    `$exampleNodes = @(`$examples.examples.example)
+    if (`$exampleNodes.Count -lt 1) {
+        throw "Get-Help -Examples returned zero examples for cmdlet: `$name"
+    }
+
+    foreach (`$example in `$exampleNodes) {
+        `$code = (`$example.code | Out-String).Trim()
+        if ([string]::IsNullOrWhiteSpace(`$code)) {
+            throw "Example with empty code block found for cmdlet: `$name"
+        }
     }
 }
 
@@ -297,6 +344,35 @@ foreach ($assembly in $desiredAssemblies) {
     }
 }
 
+Write-Step "Staging cmdlet help XML next to module binary"
+$moduleCultureDirs = Get-ChildItem -LiteralPath $ModuleRoot.FullName -Directory -Force -ErrorAction SilentlyContinue |
+    Where-Object { $_.Name -match '^[a-z]{2}(-[A-Za-z0-9]+)*$' }
+foreach ($cultureDir in $moduleCultureDirs) {
+    $helpXmlSource = [System.IO.FileInfo][System.IO.Path]::Combine($cultureDir.FullName, 'PSInfisicalAPI.dll-Help.xml')
+    if (-not $helpXmlSource.Exists) { continue }
+
+    $binCultureDir = [System.IO.DirectoryInfo][System.IO.Path]::Combine($ModuleBinDir.FullName, $cultureDir.Name)
+    Ensure-Directory -Directory $binCultureDir
+    Copy-Item -LiteralPath $helpXmlSource.FullName -Destination $binCultureDir.FullName -Force
+}
+
+$primaryHelpXml = [System.IO.FileInfo][System.IO.Path]::Combine($ModuleBinDir.FullName, 'en-US', 'PSInfisicalAPI.dll-Help.xml')
+if (-not $primaryHelpXml.Exists) {
+    throw "Help XML not found at '$($primaryHelpXml.FullName)'. Ensure Module/PSInfisicalAPI/en-US/PSInfisicalAPI.dll-Help.xml exists."
+}
+
+try {
+    [xml]$helpDocument = Get-Content -LiteralPath $primaryHelpXml.FullName -Raw
+} catch {
+    throw "Help XML at '$($primaryHelpXml.FullName)' failed to parse as XML: $_"
+}
+
+$helpCommandCount = @($helpDocument.helpItems.command).Count
+if ($helpCommandCount -lt 1) {
+    throw "Help XML at '$($primaryHelpXml.FullName)' contains no <command:command> entries."
+}
+Write-Step "Help XML contains $helpCommandCount cmdlet entries."
+
 $manifestPath = [System.IO.FileInfo][System.IO.Path]::Combine($ModuleRoot.FullName, 'PSInfisicalAPI.psd1')
 Write-Manifest -Path $manifestPath -ModuleVersion $buildVersion -CommitHash $commitHash
 
@@ -326,6 +402,32 @@ if ($CommitOnSuccess.IsPresent) {
     if ($LASTEXITCODE -ne 0) { throw "git add failed." }
     & git commit -m "Build $buildVersion"
     if ($LASTEXITCODE -ne 0) { throw "git commit failed." }
+}
+
+if ($CommitArtifacts.IsPresent) {
+    Write-Step "Committing build artifacts (embedded BuildCommitHash=$commitHash)"
+    $artifactPaths = @(
+        [System.IO.Path]::Combine('Module', 'PSInfisicalAPI', 'bin'),
+        [System.IO.Path]::Combine('Module', 'PSInfisicalAPI', 'PSInfisicalAPI.psd1'),
+        'CHANGELOG.md'
+    )
+
+    foreach ($artifactPath in $artifactPaths) {
+        & git -C $RepositoryRoot.FullName add -- $artifactPath
+        if ($LASTEXITCODE -ne 0) { throw "git add '$artifactPath' failed." }
+    }
+
+    $stagedOutput = & git -C $RepositoryRoot.FullName diff --cached --name-only
+    if ($LASTEXITCODE -ne 0) { throw "git diff --cached failed." }
+    $stagedFiles = @($stagedOutput | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if ($stagedFiles.Count -eq 0) {
+        Write-Step "No build artifact changes to commit."
+    } else {
+        $subject = "Build artifacts for $commitHash"
+        $body    = "Auto-generated by build.ps1 -CommitArtifacts. Build $buildVersion. Module DLL and manifest embed BuildCommitHash=$commitHash, matching the source commit they were produced from."
+        & git -C $RepositoryRoot.FullName commit -m $subject -m $body
+        if ($LASTEXITCODE -ne 0) { throw "git commit failed." }
+    }
 }
 
 Write-Step "Build complete."

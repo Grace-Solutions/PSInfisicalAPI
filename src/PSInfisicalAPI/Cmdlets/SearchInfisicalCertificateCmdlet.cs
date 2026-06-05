@@ -11,7 +11,7 @@ namespace PSInfisicalAPI.Cmdlets
     [OutputType(typeof(InfisicalCertificate))]
     public sealed class SearchInfisicalCertificateCmdlet : InfisicalCmdletBase
     {
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
         [Parameter] public string FriendlyName { get; set; }
         [Parameter] public string CommonName { get; set; }
         [Parameter] public string Search { get; set; }
@@ -39,10 +39,9 @@ namespace PSInfisicalAPI.Cmdlets
             try
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalPkiClient client = new InfisicalPkiClient(HttpClient, Logger);
 
-                InfisicalCertificateSearchQuery query = BuildQuery(resolvedProjectId);
+                InfisicalCertificateSearchQuery query = BuildQuery(ProjectId);
                 int requestedLimit = query.Limit ?? 100;
                 query.Limit = requestedLimit;
                 query.Offset = query.Offset ?? 0;

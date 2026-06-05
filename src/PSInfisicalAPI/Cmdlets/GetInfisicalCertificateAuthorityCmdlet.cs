@@ -14,19 +14,22 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Id")]
         public string CaId { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
+
+        [Parameter(ParameterSetName = "List")]
+        [ValidateSet("Internal", "Acme", "Any")]
+        public string Kind { get; set; } = "Internal";
 
         protected override void ProcessRecord()
         {
             try
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalPkiClient client = new InfisicalPkiClient(HttpClient, Logger);
 
                 if (string.Equals(ParameterSetName, "ById", StringComparison.Ordinal))
                 {
-                    InfisicalCertificateAuthority ca = client.GetInternalCertificateAuthority(connection, CaId, resolvedProjectId);
+                    InfisicalCertificateAuthority ca = client.GetInternalCertificateAuthority(connection, CaId, ProjectId);
                     if (ca != null)
                     {
                         WriteObject(ca);
@@ -35,7 +38,20 @@ namespace PSInfisicalAPI.Cmdlets
                     return;
                 }
 
-                InfisicalCertificateAuthority[] all = client.ListInternalCertificateAuthorities(connection, resolvedProjectId);
+                InfisicalCertificateAuthority[] all;
+                if (string.Equals(Kind, "Internal", StringComparison.OrdinalIgnoreCase))
+                {
+                    all = client.ListInternalCertificateAuthorities(connection, ProjectId);
+                }
+                else
+                {
+                    all = client.ListAllCertificateAuthorities(connection, ProjectId);
+                    if (string.Equals(Kind, "Acme", StringComparison.OrdinalIgnoreCase))
+                    {
+                        all = FilterByType(all, "acme");
+                    }
+                }
+
                 foreach (InfisicalCertificateAuthority ca in all)
                 {
                     WriteObject(ca);
@@ -45,6 +61,21 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 ThrowTerminatingForException("GetInfisicalCertificateAuthorityCmdlet", "GetCertificateAuthority", exception);
             }
+        }
+
+        private static InfisicalCertificateAuthority[] FilterByType(InfisicalCertificateAuthority[] source, string type)
+        {
+            if (source == null || source.Length == 0) { return Array.Empty<InfisicalCertificateAuthority>(); }
+            System.Collections.Generic.List<InfisicalCertificateAuthority> kept = new System.Collections.Generic.List<InfisicalCertificateAuthority>();
+            foreach (InfisicalCertificateAuthority ca in source)
+            {
+                if (ca != null && string.Equals(ca.Type, type, StringComparison.OrdinalIgnoreCase))
+                {
+                    kept.Add(ca);
+                }
+            }
+
+            return kept.ToArray();
         }
     }
 }

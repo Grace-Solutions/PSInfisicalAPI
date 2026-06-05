@@ -33,18 +33,6 @@ namespace PSInfisicalAPI.Authentication
             new Regex(@".*INFISICAL.*ORG(ANIZATION)?.*ID.*", DefaultRegexOptions)
         };
 
-        public static readonly Regex[] ProjectIdPatterns = new[]
-        {
-            new Regex(@".*INFISICAL.*(PROJECT|WORKSPACE).*ID.*", DefaultRegexOptions)
-        };
-
-        public static readonly Regex[] EnvironmentPatterns = new[]
-        {
-            new Regex(@".*INFISICAL.*ENV(IRONMENT)?.*NAME.*", DefaultRegexOptions),
-            new Regex(@".*INFISICAL.*ENV(IRONMENT)?.*SLUG.*", DefaultRegexOptions),
-            new Regex(@".*INFISICAL.*ENV(IRONMENT)?.*", DefaultRegexOptions)
-        };
-
         public static readonly Regex[] ClientIdPatterns = new[]
         {
             new Regex(@".*INFISICAL.*CLIENT.*ID.*", DefaultRegexOptions),
@@ -62,12 +50,6 @@ namespace PSInfisicalAPI.Authentication
             new Regex(@".*INFISICAL.*ACCESS.*TOKEN.*", DefaultRegexOptions),
             new Regex(@".*INFISICAL.*AUTH.*TOKEN.*", DefaultRegexOptions),
             new Regex(@".*INFISICAL.*TOKEN.*", DefaultRegexOptions)
-        };
-
-        public static readonly Regex[] SecretPathPatterns = new[]
-        {
-            new Regex(@".*INFISICAL.*SECRET.*PATH.*", DefaultRegexOptions),
-            new Regex(@".*INFISICAL.*DEFAULT.*PATH.*", DefaultRegexOptions)
         };
 
         public static readonly Regex[] ApiVersionPatterns = new[]

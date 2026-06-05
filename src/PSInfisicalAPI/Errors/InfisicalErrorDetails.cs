@@ -10,6 +10,8 @@ namespace PSInfisicalAPI.Errors
         public int? StatusCode { get; set; }
         public string ReasonPhrase { get; set; }
         public string ApiErrorCode { get; set; }
+        public string ApiErrorMessage { get; set; }
+        public string ApiRequestId { get; set; }
         public string SanitizedBody { get; set; }
         public int? LineNumber { get; set; }
         public int? LinePosition { get; set; }

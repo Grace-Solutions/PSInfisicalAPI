@@ -26,8 +26,8 @@ namespace PSInfisicalAPI.Cmdlets
 
         [Parameter] public string NewSecretName { get; set; }
         [Parameter] public string SecretComment { get; set; }
-        [Parameter] public string ProjectId { get; set; }
-        [Parameter] public string Environment { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string Environment { get; set; }
         [Parameter] public string SecretPath { get; set; }
         [Parameter] public string ApiVersion { get; set; }
         [Parameter] public InfisicalSecretType Type { get; set; } = InfisicalSecretType.Shared;
@@ -39,9 +39,6 @@ namespace PSInfisicalAPI.Cmdlets
             try
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
-                string resolvedEnvironment = ResolveEnvironment(connection, Environment);
-                string resolvedSecretPath = ResolveSecretPath(connection, SecretPath);
                 string resolvedApiVersion = ResolveApiVersion(connection, ApiVersion);
 
                 if (string.Equals(ParameterSetName, "Bulk", StringComparison.Ordinal))
@@ -52,9 +49,9 @@ namespace PSInfisicalAPI.Cmdlets
 
                     InfisicalBulkUpdateSecretsRequest bulk = new InfisicalBulkUpdateSecretsRequest
                     {
-                        ProjectId = resolvedProjectId,
-                        Environment = resolvedEnvironment,
-                        SecretPath = resolvedSecretPath,
+                        ProjectId = ProjectId,
+                        Environment = Environment,
+                        SecretPath = SecretPath,
                         ApiVersion = resolvedApiVersion,
                         Secrets = InfisicalBulkSecretConverter.ToUpdateItems(Secrets)
                     };
@@ -81,9 +78,9 @@ namespace PSInfisicalAPI.Cmdlets
                     NewSecretName = NewSecretName,
                     SecretValue = plainValue,
                     SecretComment = SecretComment,
-                    ProjectId = resolvedProjectId,
-                    Environment = resolvedEnvironment,
-                    SecretPath = resolvedSecretPath,
+                    ProjectId = ProjectId,
+                    Environment = Environment,
+                    SecretPath = SecretPath,
                     Type = Type.ToString(),
                     ApiVersion = resolvedApiVersion,
                     SkipMultilineEncoding = SkipMultilineEncoding.IsPresent ? (bool?)true : null,

@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Management.Automation;
+using System.Reflection;
 using PSInfisicalAPI.Endpoints;
 using Xunit;
 
@@ -6,6 +9,65 @@ namespace PSInfisicalAPI.Tests
 {
     public class PkiEndpointRegistryTests
     {
+        private static readonly Assembly ModuleAssembly = typeof(PSInfisicalAPI.Connections.InfisicalConnection).Assembly;
+
+        [Fact]
+        public void GetInfisicalCertificate_Cmdlet_Is_Singular_With_SerialNumber_In_Single_ParameterSet()
+        {
+            Type cmdletType = ModuleAssembly.GetType("PSInfisicalAPI.Cmdlets.GetInfisicalCertificateCmdlet", true);
+            Assert.True(typeof(PSInfisicalAPI.Cmdlets.InfisicalCmdletBase).IsAssignableFrom(cmdletType));
+
+            CustomAttributeData cmdletData = null;
+            foreach (CustomAttributeData candidate in cmdletType.GetCustomAttributesData())
+            {
+                if (candidate.AttributeType == typeof(CmdletAttribute)) { cmdletData = candidate; break; }
+            }
+            Assert.NotNull(cmdletData);
+            Assert.Equal(2, cmdletData.ConstructorArguments.Count);
+            Assert.Equal(VerbsCommon.Get, cmdletData.ConstructorArguments[0].Value);
+            Assert.Equal("InfisicalCertificate", cmdletData.ConstructorArguments[1].Value);
+
+            string defaultParameterSetName = null;
+            foreach (CustomAttributeNamedArgument named in cmdletData.NamedArguments)
+            {
+                if (named.MemberName == "DefaultParameterSetName") { defaultParameterSetName = (string)named.TypedValue.Value; break; }
+            }
+            Assert.Equal("List", defaultParameterSetName);
+
+            PropertyInfo serialProp = cmdletType.GetProperty("SerialNumber");
+            Assert.NotNull(serialProp);
+
+            CustomAttributeData parameterAttr = null;
+            foreach (CustomAttributeData candidate in serialProp.GetCustomAttributesData())
+            {
+                if (candidate.AttributeType == typeof(ParameterAttribute)) { parameterAttr = candidate; break; }
+            }
+            Assert.NotNull(parameterAttr);
+
+            bool mandatory = false;
+            string parameterSetName = null;
+            foreach (CustomAttributeNamedArgument named in parameterAttr.NamedArguments)
+            {
+                if (named.MemberName == "Mandatory") { mandatory = (bool)named.TypedValue.Value; }
+                else if (named.MemberName == "ParameterSetName") { parameterSetName = (string)named.TypedValue.Value; }
+            }
+            Assert.True(mandatory);
+            Assert.Equal("Single", parameterSetName);
+        }
+
+        [Fact]
+        public void GetInfisicalCertificate_Cmdlet_Exposes_List_Filter_Properties()
+        {
+            Type cmdletType = ModuleAssembly.GetType("PSInfisicalAPI.Cmdlets.GetInfisicalCertificateCmdlet", true);
+            Assert.NotNull(cmdletType.GetProperty("CommonName"));
+            Assert.NotNull(cmdletType.GetProperty("FriendlyName"));
+            Assert.NotNull(cmdletType.GetProperty("CaId"));
+            Assert.NotNull(cmdletType.GetProperty("Limit"));
+            Assert.NotNull(cmdletType.GetProperty("Offset"));
+            Assert.NotNull(cmdletType.GetProperty("NoAutoPage"));
+            Assert.NotNull(cmdletType.GetProperty("List"));
+        }
+
         [Fact]
         public void Get_ListInternalCertificateAuthorities_Returns_CertManager_Primary()
         {

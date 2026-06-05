@@ -11,8 +11,8 @@ namespace PSInfisicalAPI.Cmdlets
     public sealed class NewInfisicalFolderCmdlet : InfisicalCmdletBase
     {
         [Parameter(Mandatory = true, Position = 0)] public string Name { get; set; }
-        [Parameter] public string ProjectId { get; set; }
-        [Parameter] public string Environment { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string Environment { get; set; }
         [Parameter] public string Path { get; set; }
 
         protected override void ProcessRecord()
@@ -25,11 +25,8 @@ namespace PSInfisicalAPI.Cmdlets
                 }
 
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
-                string resolvedEnvironment = ResolveEnvironment(connection, Environment);
-                string resolvedPath = ResolveSecretPath(connection, Path);
                 InfisicalFolderClient client = new InfisicalFolderClient(HttpClient, Logger);
-                InfisicalFolder folder = client.Create(connection, resolvedProjectId, resolvedEnvironment, Name, resolvedPath);
+                InfisicalFolder folder = client.Create(connection, ProjectId, Environment, Name, Path);
                 if (folder != null)
                 {
                     WriteObject(folder);

@@ -32,13 +32,11 @@ namespace PSInfisicalAPI.Secrets
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
             if (query == null) { throw new ArgumentNullException(nameof(query)); }
 
-            string resolvedProjectId = FirstNonEmpty(query.ProjectId, connection.ProjectId);
-
             List<KeyValuePair<string, string>> queryParameters = new List<KeyValuePair<string, string>>();
-            AddIfNotNull(queryParameters, "workspaceId", resolvedProjectId);
-            AddIfNotNull(queryParameters, "projectId", resolvedProjectId);
-            AddIfNotNull(queryParameters, "environment", FirstNonEmpty(query.Environment, connection.Environment));
-            AddIfNotNull(queryParameters, "secretPath", FirstNonEmpty(query.SecretPath, connection.DefaultSecretPath, "/"));
+            AddIfNotNull(queryParameters, "workspaceId", query.ProjectId);
+            AddIfNotNull(queryParameters, "projectId", query.ProjectId);
+            AddIfNotNull(queryParameters, "environment", query.Environment);
+            AddIfNotNull(queryParameters, "secretPath", FirstNonEmpty(query.SecretPath, "/"));
             queryParameters.Add(new KeyValuePair<string, string>("recursive", query.Recursive ? "true" : "false"));
             if (query.IncludeImports.HasValue) { queryParameters.Add(new KeyValuePair<string, string>("includeImports", query.IncludeImports.Value ? "true" : "false")); }
             if (query.IncludePersonalOverrides) { queryParameters.Add(new KeyValuePair<string, string>("includePersonalOverrides", "true")); }
@@ -96,13 +94,11 @@ namespace PSInfisicalAPI.Secrets
 
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "secretName", query.SecretName } };
 
-            string resolvedProjectId = FirstNonEmpty(query.ProjectId, connection.ProjectId);
-
             List<KeyValuePair<string, string>> queryParameters = new List<KeyValuePair<string, string>>();
-            AddIfNotNull(queryParameters, "workspaceId", resolvedProjectId);
-            AddIfNotNull(queryParameters, "projectId", resolvedProjectId);
-            AddIfNotNull(queryParameters, "environment", FirstNonEmpty(query.Environment, connection.Environment));
-            AddIfNotNull(queryParameters, "secretPath", FirstNonEmpty(query.SecretPath, connection.DefaultSecretPath, "/"));
+            AddIfNotNull(queryParameters, "workspaceId", query.ProjectId);
+            AddIfNotNull(queryParameters, "projectId", query.ProjectId);
+            AddIfNotNull(queryParameters, "environment", query.Environment);
+            AddIfNotNull(queryParameters, "secretPath", FirstNonEmpty(query.SecretPath, "/"));
             AddIfNotNull(queryParameters, "type", string.IsNullOrEmpty(query.Type) ? "shared" : query.Type.ToLowerInvariant());
             if (query.Version.HasValue) { queryParameters.Add(new KeyValuePair<string, string>("version", query.Version.Value.ToString(CultureInfo.InvariantCulture))); }
             if (query.ViewSecretValue.HasValue) { queryParameters.Add(new KeyValuePair<string, string>("viewSecretValue", query.ViewSecretValue.Value ? "true" : "false")); }
@@ -143,17 +139,15 @@ namespace PSInfisicalAPI.Secrets
             if (string.IsNullOrEmpty(request.SecretName)) { throw new InfisicalConfigurationException("SecretName is required."); }
             if (request.SecretValue == null) { throw new InfisicalConfigurationException("SecretValue is required."); }
 
-            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
-            string resolvedEnvironment = FirstNonEmpty(request.Environment, connection.Environment);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
-            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+            if (string.IsNullOrEmpty(request.ProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(request.Environment)) { throw new InfisicalConfigurationException("Environment is required."); }
 
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "secretName", request.SecretName } };
             InfisicalSecretCreateRequestDto dtoRequest = new InfisicalSecretCreateRequestDto
             {
-                WorkspaceId = resolvedProjectId,
-                Environment = resolvedEnvironment,
-                SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
+                WorkspaceId = request.ProjectId,
+                Environment = request.Environment,
+                SecretPath = FirstNonEmpty(request.SecretPath, "/"),
                 Type = string.IsNullOrEmpty(request.Type) ? "shared" : request.Type.ToLowerInvariant(),
                 SecretValue = request.SecretValue,
                 SecretComment = request.SecretComment,
@@ -186,17 +180,15 @@ namespace PSInfisicalAPI.Secrets
             if (request == null) { throw new ArgumentNullException(nameof(request)); }
             if (string.IsNullOrEmpty(request.SecretName)) { throw new InfisicalConfigurationException("SecretName is required."); }
 
-            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
-            string resolvedEnvironment = FirstNonEmpty(request.Environment, connection.Environment);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
-            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+            if (string.IsNullOrEmpty(request.ProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(request.Environment)) { throw new InfisicalConfigurationException("Environment is required."); }
 
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "secretName", request.SecretName } };
             InfisicalSecretUpdateRequestDto dtoRequest = new InfisicalSecretUpdateRequestDto
             {
-                WorkspaceId = resolvedProjectId,
-                Environment = resolvedEnvironment,
-                SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
+                WorkspaceId = request.ProjectId,
+                Environment = request.Environment,
+                SecretPath = FirstNonEmpty(request.SecretPath, "/"),
                 Type = string.IsNullOrEmpty(request.Type) ? "shared" : request.Type.ToLowerInvariant(),
                 SecretValue = request.SecretValue,
                 SecretComment = request.SecretComment,
@@ -230,10 +222,8 @@ namespace PSInfisicalAPI.Secrets
             if (request == null) { throw new ArgumentNullException(nameof(request)); }
             if (request.Secrets == null || request.Secrets.Length == 0) { throw new InfisicalConfigurationException("At least one secret is required."); }
 
-            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
-            string resolvedEnvironment = FirstNonEmpty(request.Environment, connection.Environment);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
-            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+            if (string.IsNullOrEmpty(request.ProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(request.Environment)) { throw new InfisicalConfigurationException("Environment is required."); }
 
             List<InfisicalSecretBatchCreateItemDto> items = new List<InfisicalSecretBatchCreateItemDto>(request.Secrets.Length);
             foreach (InfisicalBulkCreateSecretItem item in request.Secrets)
@@ -253,10 +243,10 @@ namespace PSInfisicalAPI.Secrets
 
             InfisicalSecretBatchCreateRequestDto dtoRequest = new InfisicalSecretBatchCreateRequestDto
             {
-                WorkspaceId = resolvedProjectId,
-                ProjectId = resolvedProjectId,
-                Environment = resolvedEnvironment,
-                SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
+                WorkspaceId = request.ProjectId,
+                ProjectId = request.ProjectId,
+                Environment = request.Environment,
+                SecretPath = FirstNonEmpty(request.SecretPath, "/"),
                 Secrets = items
             };
             string body = _serializer.Serialize(dtoRequest);
@@ -285,10 +275,8 @@ namespace PSInfisicalAPI.Secrets
             if (request == null) { throw new ArgumentNullException(nameof(request)); }
             if (request.Secrets == null || request.Secrets.Length == 0) { throw new InfisicalConfigurationException("At least one secret is required."); }
 
-            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
-            string resolvedEnvironment = FirstNonEmpty(request.Environment, connection.Environment);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
-            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+            if (string.IsNullOrEmpty(request.ProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(request.Environment)) { throw new InfisicalConfigurationException("Environment is required."); }
 
             List<InfisicalSecretBatchUpdateItemDto> items = new List<InfisicalSecretBatchUpdateItemDto>(request.Secrets.Length);
             foreach (InfisicalBulkUpdateSecretItem item in request.Secrets)
@@ -309,10 +297,10 @@ namespace PSInfisicalAPI.Secrets
 
             InfisicalSecretBatchUpdateRequestDto dtoRequest = new InfisicalSecretBatchUpdateRequestDto
             {
-                WorkspaceId = resolvedProjectId,
-                ProjectId = resolvedProjectId,
-                Environment = resolvedEnvironment,
-                SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
+                WorkspaceId = request.ProjectId,
+                ProjectId = request.ProjectId,
+                Environment = request.Environment,
+                SecretPath = FirstNonEmpty(request.SecretPath, "/"),
                 Mode = request.Mode,
                 Secrets = items
             };
@@ -342,10 +330,8 @@ namespace PSInfisicalAPI.Secrets
             if (request == null) { throw new ArgumentNullException(nameof(request)); }
             if (request.SecretNames == null || request.SecretNames.Length == 0) { throw new InfisicalConfigurationException("At least one secret name is required."); }
 
-            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
-            string resolvedEnvironment = FirstNonEmpty(request.Environment, connection.Environment);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
-            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+            if (string.IsNullOrEmpty(request.ProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(request.Environment)) { throw new InfisicalConfigurationException("Environment is required."); }
 
             List<InfisicalSecretBatchDeleteItemDto> items = new List<InfisicalSecretBatchDeleteItemDto>(request.SecretNames.Length);
             foreach (string name in request.SecretNames)
@@ -356,10 +342,10 @@ namespace PSInfisicalAPI.Secrets
 
             InfisicalSecretBatchDeleteRequestDto dtoRequest = new InfisicalSecretBatchDeleteRequestDto
             {
-                WorkspaceId = resolvedProjectId,
-                ProjectId = resolvedProjectId,
-                Environment = resolvedEnvironment,
-                SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
+                WorkspaceId = request.ProjectId,
+                ProjectId = request.ProjectId,
+                Environment = request.Environment,
+                SecretPath = FirstNonEmpty(request.SecretPath, "/"),
                 Secrets = items
             };
             string body = _serializer.Serialize(dtoRequest);
@@ -384,13 +370,11 @@ namespace PSInfisicalAPI.Secrets
             if (request == null) { throw new ArgumentNullException(nameof(request)); }
             if (request.SecretIds == null || request.SecretIds.Length == 0) { throw new InfisicalConfigurationException("At least one SecretId is required."); }
 
-            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
-            string resolvedSourceEnv = FirstNonEmpty(request.SourceEnvironment, connection.Environment);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
-            if (string.IsNullOrEmpty(resolvedSourceEnv)) { throw new InfisicalConfigurationException("SourceEnvironment is required."); }
+            if (string.IsNullOrEmpty(request.ProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(request.SourceEnvironment)) { throw new InfisicalConfigurationException("SourceEnvironment is required."); }
             if (string.IsNullOrEmpty(request.DestinationEnvironment)) { throw new InfisicalConfigurationException("DestinationEnvironment is required."); }
 
-            string resolvedSourcePath = FirstNonEmpty(request.SourceSecretPath, connection.DefaultSecretPath, "/");
+            string resolvedSourcePath = FirstNonEmpty(request.SourceSecretPath, "/");
             string resolvedDestPath = FirstNonEmpty(request.DestinationSecretPath, resolvedSourcePath);
 
             InfisicalSecretDuplicateAttributesDto attributes = null;
@@ -407,8 +391,8 @@ namespace PSInfisicalAPI.Secrets
 
             InfisicalSecretDuplicateRequestDto dtoRequest = new InfisicalSecretDuplicateRequestDto
             {
-                ProjectId = resolvedProjectId,
-                SourceEnvironment = resolvedSourceEnv,
+                ProjectId = request.ProjectId,
+                SourceEnvironment = request.SourceEnvironment,
                 DestinationEnvironment = request.DestinationEnvironment,
                 SourceSecretPath = resolvedSourcePath,
                 DestinationSecretPath = resolvedDestPath,
@@ -454,17 +438,15 @@ namespace PSInfisicalAPI.Secrets
             if (request == null) { throw new ArgumentNullException(nameof(request)); }
             if (string.IsNullOrEmpty(request.SecretName)) { throw new InfisicalConfigurationException("SecretName is required."); }
 
-            string resolvedProjectId = FirstNonEmpty(request.ProjectId, connection.ProjectId);
-            string resolvedEnvironment = FirstNonEmpty(request.Environment, connection.Environment);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
-            if (string.IsNullOrEmpty(resolvedEnvironment)) { throw new InfisicalConfigurationException("Environment is required."); }
+            if (string.IsNullOrEmpty(request.ProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(request.Environment)) { throw new InfisicalConfigurationException("Environment is required."); }
 
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "secretName", request.SecretName } };
             InfisicalSecretDeleteRequestDto dtoRequest = new InfisicalSecretDeleteRequestDto
             {
-                WorkspaceId = resolvedProjectId,
-                Environment = resolvedEnvironment,
-                SecretPath = FirstNonEmpty(request.SecretPath, connection.DefaultSecretPath, "/"),
+                WorkspaceId = request.ProjectId,
+                Environment = request.Environment,
+                SecretPath = FirstNonEmpty(request.SecretPath, "/"),
                 Type = string.IsNullOrEmpty(request.Type) ? "shared" : request.Type.ToLowerInvariant()
             };
             string body = _serializer.Serialize(dtoRequest);
@@ -625,15 +607,14 @@ namespace PSInfisicalAPI.Secrets
 
         private static InfisicalApiException BuildApiException(InfisicalHttpResponse response, InfisicalEndpointDefinition definition)
         {
-            InfisicalApiException exception = new InfisicalApiException(string.Concat(
-                "Infisical API returned ",
-                response.StatusCode.ToString(CultureInfo.InvariantCulture),
-                " (", response.ReasonPhrase ?? string.Empty, ")."));
+            string message = InfisicalApiErrorEnvelope.BuildExceptionMessage(response.StatusCode, response.ReasonPhrase, response.Body);
+            InfisicalApiException exception = new InfisicalApiException(message);
             exception.StatusCode = response.StatusCode;
             exception.ReasonPhrase = response.ReasonPhrase;
             exception.EndpointName = definition.Name;
             exception.RequestMethod = definition.Method;
             exception.SanitizedBody = response.Body;
+            InfisicalApiErrorEnvelope.Enrich(exception, response.Body);
             return exception;
         }
 

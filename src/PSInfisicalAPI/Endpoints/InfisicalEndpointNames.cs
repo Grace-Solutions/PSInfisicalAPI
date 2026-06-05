@@ -49,5 +49,27 @@ namespace PSInfisicalAPI.Endpoints
         public const string SearchCertificates = "SearchCertificates";
         public const string RetrieveCertificate = "RetrieveCertificate";
         public const string GetCertificateBundle = "GetCertificateBundle";
+        public const string SignCertificateBySubscriber = "SignCertificateBySubscriber";
+        public const string SignCertificateByCa = "SignCertificateByCa";
+        public const string IssueCertificateByProfile = "IssueCertificateByProfile";
+
+        public const string ListPkiSubscribers = "ListPkiSubscribers";
+        public const string GetPkiSubscriber = "GetPkiSubscriber";
+
+        public const string ListCertificateProfiles = "ListCertificateProfiles";
+        public const string GetCertificateProfile = "GetCertificateProfile";
+
+        public const string ListCertificatePolicies = "ListCertificatePolicies";
+        public const string GetCertificatePolicy = "GetCertificatePolicy";
+
+        public const string ListCertificateAuthorities = "ListCertificateAuthorities";
+
+        public const string ListCertificateApplications = "ListCertificateApplications";
+        public const string GetCertificateApplication = "GetCertificateApplication";
+        public const string GetCertificateApplicationByName = "GetCertificateApplicationByName";
+        public const string ListCertificateApplicationProfiles = "ListCertificateApplicationProfiles";
+        public const string GetCertificateApplicationEnrollment = "GetCertificateApplicationEnrollment";
+
+        public const string GenerateScepDynamicChallenge = "GenerateScepDynamicChallenge";
     }
 }

@@ -12,7 +12,7 @@ namespace PSInfisicalAPI.Cmdlets
     {
         [Parameter(Mandatory = true, Position = 0)] public string Name { get; set; }
         [Parameter(Mandatory = true, Position = 1)] public string Slug { get; set; }
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
         [Parameter] public int? Position { get; set; }
 
         protected override void ProcessRecord()
@@ -25,9 +25,8 @@ namespace PSInfisicalAPI.Cmdlets
                 }
 
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalEnvironmentClient client = new InfisicalEnvironmentClient(HttpClient, Logger);
-                InfisicalEnvironment env = client.Create(connection, resolvedProjectId, Name, Slug, Position);
+                InfisicalEnvironment env = client.Create(connection, ProjectId, Name, Slug, Position);
                 if (env != null)
                 {
                     WriteObject(env);

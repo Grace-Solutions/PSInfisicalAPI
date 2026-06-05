@@ -29,10 +29,9 @@ namespace PSInfisicalAPI.Environments
         public InfisicalEnvironment[] List(InfisicalConnection connection, string projectId)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
 
-            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", resolvedProjectId } };
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", projectId } };
 
             try
             {
@@ -43,7 +42,7 @@ namespace PSInfisicalAPI.Environments
 
                 InfisicalEnvironmentWorkspaceDto workspace = dto != null ? (dto.Workspace ?? dto.Project) : null;
                 List<InfisicalEnvironmentResponseDto> envs = workspace != null ? workspace.Environments : null;
-                InfisicalEnvironment[] mapped = InfisicalEnvironmentMapper.MapMany(envs, resolvedProjectId);
+                InfisicalEnvironment[] mapped = InfisicalEnvironmentMapper.MapMany(envs, projectId);
                 _logger.Information(Component, "Infisical environment list retrieval was successful.");
                 return mapped;
             }
@@ -57,11 +56,10 @@ namespace PSInfisicalAPI.Environments
         public InfisicalEnvironment Retrieve(InfisicalConnection connection, string projectId, string environmentSlugOrId)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
             if (string.IsNullOrEmpty(environmentSlugOrId)) { throw new InfisicalConfigurationException("Environment is required."); }
 
-            InfisicalEnvironment[] all = List(connection, resolvedProjectId);
+            InfisicalEnvironment[] all = List(connection, projectId);
             foreach (InfisicalEnvironment env in all)
             {
                 if (string.Equals(env.Id, environmentSlugOrId, StringComparison.OrdinalIgnoreCase) ||
@@ -77,12 +75,11 @@ namespace PSInfisicalAPI.Environments
         public InfisicalEnvironment Create(InfisicalConnection connection, string projectId, string name, string slug, int? position)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
             if (string.IsNullOrEmpty(name)) { throw new InfisicalConfigurationException("Name is required."); }
             if (string.IsNullOrEmpty(slug)) { throw new InfisicalConfigurationException("Slug is required."); }
 
-            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", resolvedProjectId } };
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", projectId } };
             InfisicalEnvironmentCreateRequestDto request = new InfisicalEnvironmentCreateRequestDto { Name = name, Slug = slug, Position = position };
             string body = _serializer.Serialize(request);
 
@@ -93,7 +90,7 @@ namespace PSInfisicalAPI.Environments
                 InfisicalEnvironmentSingleResponseDto dto = _serializer.Deserialize<InfisicalEnvironmentSingleResponseDto>(response.Body);
                 response.Clear();
 
-                InfisicalEnvironment mapped = InfisicalEnvironmentMapper.Map(dto != null ? dto.Environment : null, resolvedProjectId);
+                InfisicalEnvironment mapped = InfisicalEnvironmentMapper.Map(dto != null ? dto.Environment : null, projectId);
                 _logger.Information(Component, "Infisical environment creation was successful.");
                 return mapped;
             }
@@ -107,11 +104,10 @@ namespace PSInfisicalAPI.Environments
         public InfisicalEnvironment Update(InfisicalConnection connection, string projectId, string environmentId, string name, string slug, int? position)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
             if (string.IsNullOrEmpty(environmentId)) { throw new InfisicalConfigurationException("EnvironmentId is required."); }
 
-            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", resolvedProjectId }, { "environmentId", environmentId } };
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", projectId }, { "environmentId", environmentId } };
             InfisicalEnvironmentUpdateRequestDto request = new InfisicalEnvironmentUpdateRequestDto { Name = name, Slug = slug, Position = position };
             string body = _serializer.Serialize(request);
 
@@ -122,7 +118,7 @@ namespace PSInfisicalAPI.Environments
                 InfisicalEnvironmentSingleResponseDto dto = _serializer.Deserialize<InfisicalEnvironmentSingleResponseDto>(response.Body);
                 response.Clear();
 
-                InfisicalEnvironment mapped = InfisicalEnvironmentMapper.Map(dto != null ? dto.Environment : null, resolvedProjectId);
+                InfisicalEnvironment mapped = InfisicalEnvironmentMapper.Map(dto != null ? dto.Environment : null, projectId);
                 _logger.Information(Component, "Infisical environment update was successful.");
                 return mapped;
             }
@@ -136,11 +132,10 @@ namespace PSInfisicalAPI.Environments
         public void Delete(InfisicalConnection connection, string projectId, string environmentId)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
             if (string.IsNullOrEmpty(environmentId)) { throw new InfisicalConfigurationException("EnvironmentId is required."); }
 
-            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", resolvedProjectId }, { "environmentId", environmentId } };
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", projectId }, { "environmentId", environmentId } };
 
             try
             {
@@ -156,11 +151,5 @@ namespace PSInfisicalAPI.Environments
             }
         }
 
-        private static string FirstNonEmpty(params string[] values)
-        {
-            if (values == null) { return null; }
-            foreach (string value in values) { if (!string.IsNullOrEmpty(value)) { return value; } }
-            return null;
-        }
     }
 }

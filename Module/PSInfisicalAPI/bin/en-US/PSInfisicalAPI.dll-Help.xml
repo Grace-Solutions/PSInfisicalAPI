@@ -1,0 +1,1696 @@
+<?xml version="1.0" encoding="utf-8"?>
+<helpItems schema="maml" xmlns="http://msh">
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Connect-Infisical</command:name>
+      <maml:description><maml:para>Establishes an authenticated session with an Infisical server and stores it for use by subsequent cmdlets.</maml:para></maml:description>
+      <command:verb>Connect</command:verb>
+      <command:noun>Infisical</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Authenticates against an Infisical instance using one of the supported auth providers (UniversalAuth, Token, JWT, OIDC, LDAP, Azure, GCP IAM) and stores the resulting connection in the module-level session manager. Subsequent cmdlets pick up the connection automatically. If parameters such as BaseUri, OrganizationId, ClientId, or ClientSecret are not supplied, the cmdlet attempts to resolve them from a curated list of environment-variable name patterns across Process, User, and Machine scopes. The connection no longer carries a default ProjectId, Environment, or SecretPath; downstream cmdlets accept those as explicit (mandatory where applicable) parameters.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Use -PassThru to emit the resulting InfisicalConnection object; by default the connection is stored silently. SecureString-typed parameters such as ClientSecret, AccessToken, Jwt, and Password are never logged.</maml:para>
+        <maml:para>The cmdlet pins the API version to the bound value when -ApiVersion is supplied explicitly; otherwise the default 'v4' is used and remains overridable per-call.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Connect-Infisical -BaseUri 'https://app.infisical.com' -ClientId $ClientId -ClientSecret $ClientSecret -OrganizationId $OrgId</dev:code>
+        <dev:remarks><maml:para>Performs a Universal-Auth machine-identity login and stores the resulting session for subsequent cmdlets.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$ConnectInfisicalParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$ConnectInfisicalParameters.BaseUri        = 'https://app.infisical.com'
+$ConnectInfisicalParameters.OrganizationId = $OrganizationId
+$ConnectInfisicalParameters.ClientId       = $ClientId
+$ConnectInfisicalParameters.ClientSecret   = $ClientSecret
+$ConnectInfisicalParameters.ApiVersion     = 'v4'
+$ConnectInfisicalParameters.PassThru       = $True
+$ConnectInfisicalParameters.Verbose        = $True
+
+$ConnectInfisicalResult = Connect-Infisical @ConnectInfisicalParameters</dev:code>
+        <dev:remarks><maml:para>Builds an ordered parameter dictionary, splats it onto Connect-Infisical, and captures the returned InfisicalConnection for later reuse.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Disconnect-Infisical</command:name>
+      <maml:description><maml:para>Clears the current Infisical session from the module-level session manager.</maml:para></maml:description>
+      <command:verb>Disconnect</command:verb>
+      <command:noun>Infisical</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Removes the cached InfisicalConnection so subsequent cmdlets that require an active session will fail until Connect-Infisical is invoked again. The cmdlet does not contact the Infisical server.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Use -PassThru to receive a status object that includes the disconnect timestamp; by default the cmdlet returns no output.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Disconnect-Infisical</dev:code>
+        <dev:remarks><maml:para>Clears the active Infisical session silently.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$DisconnectInfisicalParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$DisconnectInfisicalParameters.PassThru = $True
+$DisconnectInfisicalParameters.Verbose  = $True
+
+$DisconnectInfisicalResult = Disconnect-Infisical @DisconnectInfisicalParameters</dev:code>
+        <dev:remarks><maml:para>Disconnects and captures a status object that includes IsConnected and DisconnectedAtUtc for logging.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalSecret</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical secrets within a project, environment, and optional folder path.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalSecret</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) enumerates secrets under the supplied project and environment, optionally recursing through subfolders and filtering by metadata or tag slugs. When -SecretName is supplied (Single parameter set) the cmdlet returns one secret by name; -Version and -Type tune the single-record fetch. -ProjectId and -Environment are mandatory in both modes; -SecretPath defaults to '/' and -ApiVersion defaults to the value pinned on the active InfisicalConnection.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Use -Recursive together with -SecretPath to walk an entire folder subtree in List mode. Pipe the result into ConvertTo-InfisicalSecretDictionary for hashtable-style lookup. The returned InfisicalSecret stores the value as SecureString; call .GetPlainTextValue() to materialize the cleartext value only when strictly required.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' -SecretPath '/Windows' -Recursive</dev:code>
+        <dev:remarks><maml:para>Lists every secret under /Windows in the dev environment of the specified project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalSecret -SecretName 'DATABASE_URL'</dev:code>
+        <dev:remarks><maml:para>Retrieves the DATABASE_URL secret from the project and environment pinned by Connect-Infisical.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalSecretParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalSecretParameters.ProjectId                = $ProjectId
+$GetInfisicalSecretParameters.Environment              = 'dev'
+$GetInfisicalSecretParameters.SecretPath               = "/Windows/$($CallingScriptPath.BaseName)"
+$GetInfisicalSecretParameters.Recursive                = $True
+$GetInfisicalSecretParameters.ExpandSecretReferences   = $True
+$GetInfisicalSecretParameters.IncludeImports           = $True
+$GetInfisicalSecretParameters.IncludePersonalOverrides = $True
+$GetInfisicalSecretParameters.Verbose                  = $True
+
+$GetInfisicalSecretResult = Get-InfisicalSecret @GetInfisicalSecretParameters</dev:code>
+        <dev:remarks><maml:para>Lists secrets under a script-specific subpath with imports, personal overrides, and reference expansion enabled.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>New-InfisicalSecret</command:name>
+      <maml:description><maml:para>Creates a new Infisical secret, with support for SecureString values and bulk creation.</maml:para></maml:description>
+      <command:verb>New</command:verb>
+      <command:noun>InfisicalSecret</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Creates one or many secrets. Three parameter sets are supported: PlainText (SecretName + SecretValue), SecureString (SecretName + SecureSecretValue), and Bulk (an array of hashtables piped or supplied via -Secrets). Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Pass -SkipMultilineEncoding when the value already contains literal newlines that the server should preserve verbatim. Use -TagIds to attach tag references at creation time.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>New-InfisicalSecret -SecretName 'API_KEY' -SecretValue 'super-secret-value' -ProjectId $ProjectId -Environment 'dev'</dev:code>
+        <dev:remarks><maml:para>Creates a single shared secret in the specified project/environment.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalTagResult = Get-InfisicalTag -ProjectId $ProjectId
+
+$NewInfisicalSecretParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$NewInfisicalSecretParameters.SecretName    = 'API_KEY'
+$NewInfisicalSecretParameters.SecretValue   = 'super-secret-value'
+$NewInfisicalSecretParameters.SecretComment = 'Issued by deployment pipeline'
+$NewInfisicalSecretParameters.ProjectId     = $ProjectId
+$NewInfisicalSecretParameters.Environment   = 'dev'
+$NewInfisicalSecretParameters.SecretPath    = "/Windows/$($CallingScriptPath.BaseName)"
+$NewInfisicalSecretParameters.TagIds        = @($GetInfisicalTagResult[0].Id)
+$NewInfisicalSecretParameters.Verbose       = $True
+
+$NewInfisicalSecretResult = New-InfisicalSecret @NewInfisicalSecretParameters</dev:code>
+        <dev:remarks><maml:para>Looks up tags to attach, then creates a single secret with a comment and tag association under a script-specific subpath.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Update-InfisicalSecret</command:name>
+      <maml:description><maml:para>Updates an existing Infisical secret value, comment, name, or tags.</maml:para></maml:description>
+      <command:verb>Update</command:verb>
+      <command:noun>InfisicalSecret</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Updates one or many secrets. Supports PlainText, SecureString, and Bulk parameter sets. Use -NewSecretName to rename a secret, -SecretComment to update its comment, and -TagIds to replace tag associations. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Only the parameters you bind are sent; omitted scalar parameters are not modified server-side. The Bulk parameter set accepts pipeline input of hashtables containing SecretName/SecretValue/etc.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Update-InfisicalSecret -SecretName 'API_KEY' -SecretValue 'rotated-value' -ProjectId $ProjectId -Environment 'dev'</dev:code>
+        <dev:remarks><maml:para>Rotates the API_KEY secret in the specified project/environment.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$UpdateInfisicalSecretParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$UpdateInfisicalSecretParameters.SecretName    = 'API_KEY'
+$UpdateInfisicalSecretParameters.NewSecretName = 'API_KEY_V2'
+$UpdateInfisicalSecretParameters.SecretValue   = 'rotated-value'
+$UpdateInfisicalSecretParameters.SecretComment = 'Rotated by scheduled job'
+$UpdateInfisicalSecretParameters.ProjectId     = $ProjectId
+$UpdateInfisicalSecretParameters.Environment   = 'dev'
+$UpdateInfisicalSecretParameters.SecretPath    = "/Windows/$($CallingScriptPath.BaseName)"
+$UpdateInfisicalSecretParameters.Verbose       = $True
+
+$UpdateInfisicalSecretResult = Update-InfisicalSecret @UpdateInfisicalSecretParameters</dev:code>
+        <dev:remarks><maml:para>Rotates the value, renames the secret, and updates its comment in a single call.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Remove-InfisicalSecret</command:name>
+      <maml:description><maml:para>Deletes one or many Infisical secrets by name.</maml:para></maml:description>
+      <command:verb>Remove</command:verb>
+      <command:noun>InfisicalSecret</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Deletes a single secret (Single parameter set) or a batch of secrets by name (Bulk parameter set). High ConfirmImpact triggers prompts by default. -PassThru emits the removed secret names.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Removal is irreversible from this cmdlet's perspective; rely on Infisical's audit log or secret-version history for forensics. Honors -WhatIf and -Confirm.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Remove-InfisicalSecret -SecretName 'API_KEY_V1' -ProjectId $ProjectId -Environment 'dev' -Confirm:$False</dev:code>
+        <dev:remarks><maml:para>Deletes a single secret without prompting.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$RemoveInfisicalSecretParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$RemoveInfisicalSecretParameters.SecretNames = @('LEGACY_KEY_1','LEGACY_KEY_2','LEGACY_KEY_3')
+$RemoveInfisicalSecretParameters.ProjectId   = $ProjectId
+$RemoveInfisicalSecretParameters.Environment = 'dev'
+$RemoveInfisicalSecretParameters.SecretPath  = "/Windows/$($CallingScriptPath.BaseName)"
+$RemoveInfisicalSecretParameters.PassThru    = $True
+$RemoveInfisicalSecretParameters.Confirm     = $False
+$RemoveInfisicalSecretParameters.Verbose     = $True
+
+$RemoveInfisicalSecretResult = Remove-InfisicalSecret @RemoveInfisicalSecretParameters</dev:code>
+        <dev:remarks><maml:para>Bulk-deletes three legacy secrets and returns the removed names for audit logging.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Copy-InfisicalSecret</command:name>
+      <maml:description><maml:para>Duplicates one or more secrets into a different environment or secret path.</maml:para></maml:description>
+      <command:verb>Copy</command:verb>
+      <command:noun>InfisicalSecret</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Server-side duplicates an array of secret IDs into a destination environment (and optional destination path), with switches that control whether the value, comment, tags, and metadata are copied. Use Get-InfisicalSecret followed by selection of the desired Id values to feed -SecretId.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Set -OverwriteExisting to replace same-named secrets at the destination. Without -CopySecretValue, the destination secrets are created with empty values, preserving only metadata.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' | Select-Object -ExpandProperty Id | Copy-InfisicalSecret -ProjectId $ProjectId -SourceEnvironment 'dev' -DestinationEnvironment 'staging' -CopySecretValue</dev:code>
+        <dev:remarks><maml:para>Copies all secrets from dev into staging, including their values.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalSecretResult = Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' -SecretPath '/Windows' -Recursive
+
+$CopyInfisicalSecretParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$CopyInfisicalSecretParameters.SecretId               = $GetInfisicalSecretResult.Id
+$CopyInfisicalSecretParameters.ProjectId              = $ProjectId
+$CopyInfisicalSecretParameters.SourceEnvironment      = 'dev'
+$CopyInfisicalSecretParameters.SourceSecretPath       = '/Windows'
+$CopyInfisicalSecretParameters.DestinationEnvironment = 'staging'
+$CopyInfisicalSecretParameters.DestinationSecretPath  = '/Windows'
+$CopyInfisicalSecretParameters.OverwriteExisting      = $True
+$CopyInfisicalSecretParameters.CopySecretValue        = $True
+$CopyInfisicalSecretParameters.CopySecretComment      = $True
+$CopyInfisicalSecretParameters.CopyTags               = $True
+$CopyInfisicalSecretParameters.CopyMetadata           = $True
+$CopyInfisicalSecretParameters.Verbose                = $True
+
+$CopyInfisicalSecretResult = Copy-InfisicalSecret @CopyInfisicalSecretParameters</dev:code>
+        <dev:remarks><maml:para>Promotes every Windows secret from dev into staging with full value/comment/tag/metadata propagation.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>ConvertTo-InfisicalSecretDictionary</command:name>
+      <maml:description><maml:para>Converts a stream of InfisicalSecret objects into a name-keyed Dictionary of SecureString or plain text values.</maml:para></maml:description>
+      <command:verb>ConvertTo</command:verb>
+      <command:noun>InfisicalSecretDictionary</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Aggregates an incoming pipeline of InfisicalSecret objects into a case-insensitive Dictionary keyed by SecretName. By default values are SecureString; pass -AsPlainText to materialize string values. Duplicate keys are handled via the -DuplicateKeyBehavior parameter (Error, FirstWins, LastWins).</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Use this conversion before splatting secrets into another process (-AsPlainText) or before passing them to libraries that expect SecureString-keyed lookups (default).</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' | ConvertTo-InfisicalSecretDictionary -AsPlainText</dev:code>
+        <dev:remarks><maml:para>Builds a plain-text dictionary of every secret in the dev environment of the specified project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalSecretResult = Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' -SecretPath "/Windows/$($CallingScriptPath.BaseName)" -Recursive
+
+$ConvertToInfisicalSecretDictionaryParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$ConvertToInfisicalSecretDictionaryParameters.InputObject          = $GetInfisicalSecretResult
+$ConvertToInfisicalSecretDictionaryParameters.DuplicateKeyBehavior = 'LastWins'
+$ConvertToInfisicalSecretDictionaryParameters.AsPlainText          = $True
+$ConvertToInfisicalSecretDictionaryParameters.Verbose              = $True
+
+$ConvertToInfisicalSecretDictionaryResult = ConvertTo-InfisicalSecretDictionary @ConvertToInfisicalSecretDictionaryParameters</dev:code>
+        <dev:remarks><maml:para>Aggregates recursive secret results into a plain-text dictionary, with the last value winning on key collisions.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Export-InfisicalSecrets</command:name>
+      <maml:description><maml:para>Exports InfisicalSecret objects to disk or environment variables in a chosen file format.</maml:para></maml:description>
+      <command:verb>Export</command:verb>
+      <command:noun>InfisicalSecrets</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Buffers an incoming pipeline of InfisicalSecret objects and writes them to a file in the requested format (DotEnv, Json, Yaml, EnvironmentVariables, etc.) or sets them as environment variables on the chosen scope (Process, User, Machine). -Encoding controls text encoding for file outputs.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>EnvironmentVariables format does not require -Path; all other formats do. User/Machine scopes require appropriate privileges (Machine scope requires elevation on Windows).</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' | Export-InfisicalSecrets -Format DotEnv -Path '.\.env' -Force</dev:code>
+        <dev:remarks><maml:para>Writes the dev environment's secrets for the specified project to a .env file.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalSecretResult = Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' -SecretPath "/Windows/$($CallingScriptPath.BaseName)" -Recursive
+
+$ExportInfisicalSecretsParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$ExportInfisicalSecretsParameters.InputObject = $GetInfisicalSecretResult
+$ExportInfisicalSecretsParameters.Format      = 'EnvironmentVariables'
+$ExportInfisicalSecretsParameters.Scope       = 'Process'
+$ExportInfisicalSecretsParameters.Force       = $True
+$ExportInfisicalSecretsParameters.Verbose     = $True
+
+$ExportInfisicalSecretsResult = Export-InfisicalSecrets @ExportInfisicalSecretsParameters</dev:code>
+        <dev:remarks><maml:para>Projects the recursive secret result into Process-scope environment variables for the current PowerShell session.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalProject</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical projects accessible to the current identity.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalProject</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) returns every project the active session can see; project visibility is governed by Infisical's role assignments. -Type filters the list to a single product surface (secret-manager, cert-manager, kms, ssh, secret-scanning, pam, ai). -IncludeRoles asks the server to return the caller's role bindings on each project. When -ProjectId is supplied (Single parameter set) the cmdlet returns the one matching record.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>The List-mode result is an array of InfisicalProject objects; pipe into Where-Object or Select-Object to filter by Slug, Name, or Id. The cmdlet accepts pipeline input by property name on -ProjectId.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalProject</dev:code>
+        <dev:remarks><maml:para>Lists every project the current session can see.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalProject -ProjectId $ProjectId</dev:code>
+        <dev:remarks><maml:para>Retrieves the canonical record for a single project by id.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>Get-InfisicalProject -Type 'cert-manager' -IncludeRoles</dev:code>
+        <dev:remarks><maml:para>Lists every Certificate Manager project visible to the session, including the caller's role bindings.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 4</maml:title>
+        <dev:code>$GetInfisicalProjectListResult = Get-InfisicalProject -Type 'secret-manager' | Where-Object { $_.Slug -ilike 'platform-*' }
+
+$GetInfisicalProjectParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalProjectParameters.ProjectId = $GetInfisicalProjectListResult[0].Id
+$GetInfisicalProjectParameters.Verbose   = $True
+
+$GetInfisicalProjectResult = Get-InfisicalProject @GetInfisicalProjectParameters</dev:code>
+        <dev:remarks><maml:para>Filters Secret Manager projects to slugs that begin with 'platform-' and refetches the first match by id.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>New-InfisicalProject</command:name>
+      <maml:description><maml:para>Creates a new Infisical project in the active organization.</maml:para></maml:description>
+      <command:verb>New</command:verb>
+      <command:noun>InfisicalProject</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Creates a project with the supplied name and optional slug, description, type, and organization id. If -OrganizationId is not supplied, the active session's organization is used. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Slug must be unique within the organization; if not supplied, the server derives one from the project name.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>New-InfisicalProject -ProjectName 'Platform Telemetry'</dev:code>
+        <dev:remarks><maml:para>Creates a new project named 'Platform Telemetry' in the active organization.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$NewInfisicalProjectParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$NewInfisicalProjectParameters.ProjectName    = 'Platform Telemetry'
+$NewInfisicalProjectParameters.Slug           = 'platform-telemetry'
+$NewInfisicalProjectParameters.Description    = 'Secrets for platform telemetry pipeline'
+$NewInfisicalProjectParameters.Type           = 'secret-manager'
+$NewInfisicalProjectParameters.OrganizationId = $ConnectInfisicalParameters.OrganizationId
+$NewInfisicalProjectParameters.Verbose        = $True
+
+$NewInfisicalProjectResult = New-InfisicalProject @NewInfisicalProjectParameters</dev:code>
+        <dev:remarks><maml:para>Creates a project with an explicit slug, description, and type bound to a specific organization id.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Update-InfisicalProject</command:name>
+      <maml:description><maml:para>Updates the name, description, or auto-capitalization flag on an existing project.</maml:para></maml:description>
+      <command:verb>Update</command:verb>
+      <command:noun>InfisicalProject</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Updates mutable attributes on a project. -ProjectId is required. Only parameters that are bound are sent to the server. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>AutoCapitalization controls whether secret names submitted in mixed case are stored uppercase server-side; setting it false preserves the literal case supplied by clients.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Update-InfisicalProject -Name 'Platform Telemetry (v2)'</dev:code>
+        <dev:remarks><maml:para>Renames the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalProjectResult = Get-InfisicalProject | Where-Object { $_.Slug -eq 'platform-telemetry' }
+
+$UpdateInfisicalProjectParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$UpdateInfisicalProjectParameters.ProjectId          = $GetInfisicalProjectResult.Id
+$UpdateInfisicalProjectParameters.Name               = 'Platform Telemetry (v2)'
+$UpdateInfisicalProjectParameters.Description        = 'Migrated to v2 pipeline'
+$UpdateInfisicalProjectParameters.AutoCapitalization = $False
+$UpdateInfisicalProjectParameters.Verbose            = $True
+
+$UpdateInfisicalProjectResult = Update-InfisicalProject @UpdateInfisicalProjectParameters</dev:code>
+        <dev:remarks><maml:para>Locates the project by slug, renames it, updates the description, and disables auto-capitalization.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Remove-InfisicalProject</command:name>
+      <maml:description><maml:para>Deletes an Infisical project.</maml:para></maml:description>
+      <command:verb>Remove</command:verb>
+      <command:noun>InfisicalProject</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Deletes a project by Id. -ProjectId is required. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed project id.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>This is destructive and removes all secrets, environments, folders, and tags within the project. Honors -WhatIf and -Confirm.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Remove-InfisicalProject -Confirm:$False</dev:code>
+        <dev:remarks><maml:para>Deletes the supplied project without prompting.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalProjectResult = Get-InfisicalProject | Where-Object { $_.Slug -eq 'sandbox-temp' }
+
+$RemoveInfisicalProjectParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$RemoveInfisicalProjectParameters.ProjectId = $GetInfisicalProjectResult.Id
+$RemoveInfisicalProjectParameters.PassThru  = $True
+$RemoveInfisicalProjectParameters.Confirm   = $False
+$RemoveInfisicalProjectParameters.Verbose   = $True
+
+$RemoveInfisicalProjectResult = Remove-InfisicalProject @RemoveInfisicalProjectParameters</dev:code>
+        <dev:remarks><maml:para>Finds the sandbox project by slug, removes it without confirmation, and emits the removed project id for logging.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalEnvironment</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical environments defined on a project.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalEnvironment</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) returns every environment configured on the supplied project. When -EnvironmentSlugOrId is supplied (Single parameter set) the cmdlet returns one environment by slug or id. -ProjectId is required in both modes.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Each InfisicalEnvironment carries both Id and Slug; downstream cmdlets accept either form on -Environment-like parameters. Accepts pipeline input by property name on -EnvironmentSlugOrId.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalEnvironment</dev:code>
+        <dev:remarks><maml:para>Lists every environment defined on the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalEnvironment -EnvironmentSlugOrId 'dev'</dev:code>
+        <dev:remarks><maml:para>Retrieves the 'dev' environment from the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalProjectResult = Get-InfisicalProject | Where-Object { $_.Slug -eq 'platform-telemetry' }
+
+$GetInfisicalEnvironmentParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalEnvironmentParameters.EnvironmentSlugOrId = 'dev'
+$GetInfisicalEnvironmentParameters.ProjectId           = $GetInfisicalProjectResult.Id
+$GetInfisicalEnvironmentParameters.Verbose             = $True
+
+$GetInfisicalEnvironmentResult = Get-InfisicalEnvironment @GetInfisicalEnvironmentParameters</dev:code>
+        <dev:remarks><maml:para>Resolves a project by slug and re-fetches the dev environment record by slug under that project.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>New-InfisicalEnvironment</command:name>
+      <maml:description><maml:para>Creates a new environment on an Infisical project.</maml:para></maml:description>
+      <command:verb>New</command:verb>
+      <command:noun>InfisicalEnvironment</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Creates an environment with the supplied display name and slug, optionally setting its sort -Position. -ProjectId is required. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Slugs must be unique within the project and are used as the canonical -Environment value across all other cmdlets.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>New-InfisicalEnvironment -Name 'Staging' -Slug 'staging'</dev:code>
+        <dev:remarks><maml:para>Adds a Staging environment to the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalProjectResult = Get-InfisicalProject | Where-Object { $_.Slug -eq 'platform-telemetry' }
+
+$NewInfisicalEnvironmentParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$NewInfisicalEnvironmentParameters.ProjectId = $GetInfisicalProjectResult.Id
+$NewInfisicalEnvironmentParameters.Name      = 'Staging'
+$NewInfisicalEnvironmentParameters.Slug      = 'staging'
+$NewInfisicalEnvironmentParameters.Position  = 20
+$NewInfisicalEnvironmentParameters.Verbose   = $True
+
+$NewInfisicalEnvironmentResult = New-InfisicalEnvironment @NewInfisicalEnvironmentParameters</dev:code>
+        <dev:remarks><maml:para>Adds a Staging environment at sort position 20 on the resolved project.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Update-InfisicalEnvironment</command:name>
+      <maml:description><maml:para>Updates the name, slug, or sort order of an existing Infisical environment.</maml:para></maml:description>
+      <command:verb>Update</command:verb>
+      <command:noun>InfisicalEnvironment</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Updates an environment identified by -EnvironmentId. -ProjectId is required. Only bound parameters are sent to the server. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Changing -Slug can break downstream automation that pins to the previous slug. Coordinate slug rotation with consumers.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Update-InfisicalEnvironment -EnvironmentId $EnvId -Name 'Pre-Production'</dev:code>
+        <dev:remarks><maml:para>Renames an environment in the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalEnvironmentResult = Get-InfisicalEnvironment | Where-Object { $_.Slug -eq 'staging' }
+
+$UpdateInfisicalEnvironmentParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$UpdateInfisicalEnvironmentParameters.EnvironmentId = $GetInfisicalEnvironmentResult.Id
+$UpdateInfisicalEnvironmentParameters.ProjectId     = $ProjectId
+$UpdateInfisicalEnvironmentParameters.Name          = 'Pre-Production'
+$UpdateInfisicalEnvironmentParameters.Slug          = 'preprod'
+$UpdateInfisicalEnvironmentParameters.Position      = 25
+$UpdateInfisicalEnvironmentParameters.Verbose       = $True
+
+$UpdateInfisicalEnvironmentResult = Update-InfisicalEnvironment @UpdateInfisicalEnvironmentParameters</dev:code>
+        <dev:remarks><maml:para>Locates the staging environment, renames it to Pre-Production, rotates its slug, and updates its sort order.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Remove-InfisicalEnvironment</command:name>
+      <maml:description><maml:para>Deletes an Infisical environment from a project.</maml:para></maml:description>
+      <command:verb>Remove</command:verb>
+      <command:noun>InfisicalEnvironment</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Removes an environment by Id. -ProjectId is required. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed environment id.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Removing an environment deletes every secret and folder scoped to it. Honors -WhatIf and -Confirm.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Remove-InfisicalEnvironment -EnvironmentId $EnvId -Confirm:$False</dev:code>
+        <dev:remarks><maml:para>Deletes an environment without prompting.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalEnvironmentResult = Get-InfisicalEnvironment | Where-Object { $_.Slug -eq 'sandbox' }
+
+$RemoveInfisicalEnvironmentParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$RemoveInfisicalEnvironmentParameters.EnvironmentId = $GetInfisicalEnvironmentResult.Id
+$RemoveInfisicalEnvironmentParameters.ProjectId     = $ProjectId
+$RemoveInfisicalEnvironmentParameters.PassThru      = $True
+$RemoveInfisicalEnvironmentParameters.Confirm       = $False
+$RemoveInfisicalEnvironmentParameters.Verbose       = $True
+
+$RemoveInfisicalEnvironmentResult = Remove-InfisicalEnvironment @RemoveInfisicalEnvironmentParameters</dev:code>
+        <dev:remarks><maml:para>Removes the sandbox environment without prompting and emits its id for the audit trail.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalFolder</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical folders at a given secret path.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalFolder</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) enumerates folders directly under the supplied -Path within the project and environment. When -FolderNameOrId is supplied (Single parameter set) the cmdlet returns one folder by name or id under -Path. -ProjectId and -Environment are required in both modes; -Path defaults to '/'.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>List mode is a non-recursive listing of immediate subfolders. To enumerate secrets across a folder subtree use Get-InfisicalSecret -Recursive. Accepts pipeline input by property name on -FolderNameOrId.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalFolder -ProjectId $ProjectId -Environment 'dev' -Path '/Windows'</dev:code>
+        <dev:remarks><maml:para>Lists every folder directly under /Windows in the supplied project and environment.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalFolder -FolderNameOrId 'Deployments' -ProjectId $ProjectId -Environment 'dev' -Path '/Windows'</dev:code>
+        <dev:remarks><maml:para>Retrieves the Deployments folder under /Windows in the supplied project and environment.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalFolderListResult = Get-InfisicalFolder -Path '/Windows' | Where-Object { $_.Name -eq 'Deployments' }
+
+$GetInfisicalFolderParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalFolderParameters.FolderNameOrId = $GetInfisicalFolderListResult.Id
+$GetInfisicalFolderParameters.ProjectId      = $ProjectId
+$GetInfisicalFolderParameters.Environment    = 'dev'
+$GetInfisicalFolderParameters.Path           = '/Windows'
+$GetInfisicalFolderParameters.Verbose        = $True
+
+$GetInfisicalFolderResult = Get-InfisicalFolder @GetInfisicalFolderParameters</dev:code>
+        <dev:remarks><maml:para>Locates the folder by name first, then re-fetches it by id to refresh the canonical record.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>New-InfisicalFolder</command:name>
+      <maml:description><maml:para>Creates a new Infisical folder under the supplied parent path.</maml:para></maml:description>
+      <command:verb>New</command:verb>
+      <command:noun>InfisicalFolder</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Creates a folder with the supplied -Name beneath the supplied -Path. -ProjectId and -Environment are required; -Path defaults to '/'. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Folder names are case-sensitive and must be unique within a parent path; the cmdlet does not create intermediate folders.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>New-InfisicalFolder -Name 'Deployments' -ProjectId $ProjectId -Environment 'dev' -Path '/Windows'</dev:code>
+        <dev:remarks><maml:para>Creates the Deployments folder under /Windows in the supplied project and environment.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$NewInfisicalFolderParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$NewInfisicalFolderParameters.Name        = $CallingScriptPath.BaseName
+$NewInfisicalFolderParameters.ProjectId   = $ProjectId
+$NewInfisicalFolderParameters.Environment = 'dev'
+$NewInfisicalFolderParameters.Path        = '/Windows'
+$NewInfisicalFolderParameters.Verbose     = $True
+
+$NewInfisicalFolderResult = New-InfisicalFolder @NewInfisicalFolderParameters</dev:code>
+        <dev:remarks><maml:para>Creates a script-named folder under /Windows in the supplied project and environment.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Update-InfisicalFolder</command:name>
+      <maml:description><maml:para>Renames an existing Infisical folder.</maml:para></maml:description>
+      <command:verb>Update</command:verb>
+      <command:noun>InfisicalFolder</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Renames a folder identified by -FolderId to the supplied -Name. -ProjectId and -Environment are required; -Path defaults to '/'. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Renaming a folder rewrites the path component for every secret beneath it; coordinate with consumers that pin to the previous path.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Update-InfisicalFolder -FolderId $FolderId -Name 'Deployments-Archive'</dev:code>
+        <dev:remarks><maml:para>Renames a folder in the supplied project/environment.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalFolderResult = Get-InfisicalFolder -Path '/Windows' | Where-Object { $_.Name -eq 'Deployments' }
+
+$UpdateInfisicalFolderParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$UpdateInfisicalFolderParameters.FolderId    = $GetInfisicalFolderResult.Id
+$UpdateInfisicalFolderParameters.Name        = 'Deployments-Archive'
+$UpdateInfisicalFolderParameters.ProjectId   = $ProjectId
+$UpdateInfisicalFolderParameters.Environment = 'dev'
+$UpdateInfisicalFolderParameters.Path        = '/Windows'
+$UpdateInfisicalFolderParameters.Verbose     = $True
+
+$UpdateInfisicalFolderResult = Update-InfisicalFolder @UpdateInfisicalFolderParameters</dev:code>
+        <dev:remarks><maml:para>Resolves the folder by name and renames it to Deployments-Archive.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Remove-InfisicalFolder</command:name>
+      <maml:description><maml:para>Deletes an Infisical folder and all secrets it contains.</maml:para></maml:description>
+      <command:verb>Remove</command:verb>
+      <command:noun>InfisicalFolder</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Removes a folder by Id from the supplied -Path. -ProjectId and -Environment are required; -Path defaults to '/'. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed folder id.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>This is destructive and removes every secret and subfolder under the target folder. Honors -WhatIf and -Confirm.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Remove-InfisicalFolder -FolderId $FolderId -Confirm:$False</dev:code>
+        <dev:remarks><maml:para>Deletes a folder from the supplied project/environment without prompting.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalFolderResult = Get-InfisicalFolder -Path '/Windows' | Where-Object { $_.Name -eq $CallingScriptPath.BaseName }
+
+$RemoveInfisicalFolderParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$RemoveInfisicalFolderParameters.FolderId    = $GetInfisicalFolderResult.Id
+$RemoveInfisicalFolderParameters.ProjectId   = $ProjectId
+$RemoveInfisicalFolderParameters.Environment = 'dev'
+$RemoveInfisicalFolderParameters.Path        = '/Windows'
+$RemoveInfisicalFolderParameters.PassThru    = $True
+$RemoveInfisicalFolderParameters.Confirm     = $False
+$RemoveInfisicalFolderParameters.Verbose     = $True
+
+$RemoveInfisicalFolderResult = Remove-InfisicalFolder @RemoveInfisicalFolderParameters</dev:code>
+        <dev:remarks><maml:para>Resolves the script-named folder under /Windows and removes it without prompting, returning its id for logging.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalTag</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical tags defined on a project.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalTag</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) returns every tag configured on the project. When -TagSlugOrId is supplied (Single parameter set) the cmdlet returns the one matching record. -ProjectId is required in both modes.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Tag Ids returned here are the values to pass on -TagIds when creating or updating secrets. Accepts pipeline input by property name on -TagSlugOrId.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalTag</dev:code>
+        <dev:remarks><maml:para>Lists every tag defined on the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalTag -TagSlugOrId 'critical'</dev:code>
+        <dev:remarks><maml:para>Retrieves the 'critical' tag from the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalProjectResult = Get-InfisicalProject | Where-Object { $_.Slug -eq 'platform-telemetry' }
+
+$GetInfisicalTagParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalTagParameters.TagSlugOrId = 'critical'
+$GetInfisicalTagParameters.ProjectId   = $GetInfisicalProjectResult.Id
+$GetInfisicalTagParameters.Verbose     = $True
+
+$GetInfisicalTagResult = Get-InfisicalTag @GetInfisicalTagParameters</dev:code>
+        <dev:remarks><maml:para>Resolves a project by slug and refetches the 'critical' tag from that project.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>New-InfisicalTag</command:name>
+      <maml:description><maml:para>Creates a new Infisical tag on a project.</maml:para></maml:description>
+      <command:verb>New</command:verb>
+      <command:noun>InfisicalTag</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Creates a tag with the supplied -Slug, optional -Name and -Color. -ProjectId is required. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Tag slugs must be unique within the project and are the canonical reference used by tag-filtered secret lookups.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>New-InfisicalTag -Slug 'critical' -Name 'Critical' -Color '#FF0000'</dev:code>
+        <dev:remarks><maml:para>Creates a red Critical tag in the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$NewInfisicalTagParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$NewInfisicalTagParameters.Slug      = 'critical'
+$NewInfisicalTagParameters.Name      = 'Critical'
+$NewInfisicalTagParameters.Color     = '#FF0000'
+$NewInfisicalTagParameters.ProjectId = $ProjectId
+$NewInfisicalTagParameters.Verbose   = $True
+
+$NewInfisicalTagResult = New-InfisicalTag @NewInfisicalTagParameters</dev:code>
+        <dev:remarks><maml:para>Creates a red Critical tag against an explicitly supplied project id.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Update-InfisicalTag</command:name>
+      <maml:description><maml:para>Updates the slug, name, or color of an existing Infisical tag.</maml:para></maml:description>
+      <command:verb>Update</command:verb>
+      <command:noun>InfisicalTag</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Updates a tag identified by -TagId. -ProjectId is required. Only bound parameters are sent to the server. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Changing -Slug breaks tag-filtered automation that pins to the previous slug. Coordinate slug rotation with consumers.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Update-InfisicalTag -TagId $TagId -Color '#FFA500'</dev:code>
+        <dev:remarks><maml:para>Changes the display color of a tag in the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalTagResult = Get-InfisicalTag | Where-Object { $_.Slug -eq 'critical' }
+
+$UpdateInfisicalTagParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$UpdateInfisicalTagParameters.TagId     = $GetInfisicalTagResult.Id
+$UpdateInfisicalTagParameters.Slug      = 'critical-v2'
+$UpdateInfisicalTagParameters.Name      = 'Critical (v2)'
+$UpdateInfisicalTagParameters.Color     = '#FFA500'
+$UpdateInfisicalTagParameters.ProjectId = $ProjectId
+$UpdateInfisicalTagParameters.Verbose   = $True
+
+$UpdateInfisicalTagResult = Update-InfisicalTag @UpdateInfisicalTagParameters</dev:code>
+        <dev:remarks><maml:para>Locates the critical tag and rotates its slug, display name, and color.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Remove-InfisicalTag</command:name>
+      <maml:description><maml:para>Deletes an Infisical tag from a project.</maml:para></maml:description>
+      <command:verb>Remove</command:verb>
+      <command:noun>InfisicalTag</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Removes a tag by Id. -ProjectId is required. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed tag id.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Removing a tag detaches it from every secret it was applied to but does not delete the secrets themselves. Honors -WhatIf and -Confirm.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Remove-InfisicalTag -TagId $TagId -Confirm:$False</dev:code>
+        <dev:remarks><maml:para>Deletes a tag from the supplied project without prompting.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalTagResult = Get-InfisicalTag | Where-Object { $_.Slug -eq 'critical-v2' }
+
+$RemoveInfisicalTagParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$RemoveInfisicalTagParameters.TagId     = $GetInfisicalTagResult.Id
+$RemoveInfisicalTagParameters.ProjectId = $ProjectId
+$RemoveInfisicalTagParameters.PassThru  = $True
+$RemoveInfisicalTagParameters.Confirm   = $False
+$RemoveInfisicalTagParameters.Verbose   = $True
+
+$RemoveInfisicalTagResult = Remove-InfisicalTag @RemoveInfisicalTagParameters</dev:code>
+        <dev:remarks><maml:para>Resolves a tag by slug and removes it without prompting, returning its id for the audit trail.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalCertificateAuthority</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical Certificate Authorities.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalCertificateAuthority</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>When -CaId is supplied (ById parameter set) returns a single internal CA. Otherwise (List parameter set) returns CAs scoped by -Kind: Internal (default, /api/v1/cert-manager/ca/internal), Any (/api/v1/cert-manager/ca returning both internal and ACME), or Acme (filters the generic endpoint to ACME issuers only). -ProjectId is required.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>ByID retrieval currently always resolves against the internal CA endpoint. CA Ids returned here are the values to pass on -CertificateAuthorityId to Request-InfisicalCertificate. The Type property distinguishes 'internal' from 'acme' when -Kind Any is used.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificateAuthority</dev:code>
+        <dev:remarks><maml:para>Lists every internal CA visible in the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificateAuthority -Kind Any</dev:code>
+        <dev:remarks><maml:para>Lists every CA (internal and ACME) visible in the supplied project; inspect the Type property to distinguish them.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalCertificateAuthorityListResult = Get-InfisicalCertificateAuthority | Where-Object { $_.FriendlyName -eq 'Issuing CA - Platform' }
+
+$GetInfisicalCertificateAuthorityParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalCertificateAuthorityParameters.CaId      = $GetInfisicalCertificateAuthorityListResult.Id
+$GetInfisicalCertificateAuthorityParameters.ProjectId = $ProjectId
+$GetInfisicalCertificateAuthorityParameters.Verbose   = $True
+
+$GetInfisicalCertificateAuthorityResult = Get-InfisicalCertificateAuthority @GetInfisicalCertificateAuthorityParameters</dev:code>
+        <dev:remarks><maml:para>Filters the CA list by friendly name and then re-fetches the canonical CA record by id using a splatted parameter set.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalCertificate</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical certificates in a project, with optional filters and automatic paging.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalCertificate</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) enumerates certificates with optional filters for -CommonName, -FriendlyName, -Status, and -CaId; -Limit and -Offset drive a single page and pages are walked automatically until exhausted unless -NoAutoPage is supplied. When -SerialNumber is supplied (Single parameter set) the cmdlet returns one certificate record. -ProjectId is required in both modes.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>For advanced filtering (validity window, key algorithm, extended key usage, etc.) use Search-InfisicalCertificate instead. Single mode returns metadata only; to obtain certificate and chain PEM material use ConvertTo-InfisicalCertificate or Export-InfisicalCertificate. Accepts pipeline input by property name on -SerialNumber.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificate -Status 'active'</dev:code>
+        <dev:remarks><maml:para>Lists every active certificate in the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificate -SerialNumber '7A:F2:1B:...:9E'</dev:code>
+        <dev:remarks><maml:para>Retrieves the certificate record for the supplied serial number.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalCertificateAuthorityListResult = Get-InfisicalCertificateAuthority | Where-Object { $_.FriendlyName -eq 'Issuing CA - Platform' }
+
+$GetInfisicalCertificateParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalCertificateParameters.ProjectId    = $ProjectId
+$GetInfisicalCertificateParameters.CommonName   = $env:COMPUTERNAME
+$GetInfisicalCertificateParameters.FriendlyName = 'web-tier'
+$GetInfisicalCertificateParameters.Status       = 'active'
+$GetInfisicalCertificateParameters.CaId         = @($GetInfisicalCertificateAuthorityListResult.Id)
+$GetInfisicalCertificateParameters.Limit        = 100
+$GetInfisicalCertificateParameters.Verbose      = $True
+
+$GetInfisicalCertificateListResult = Get-InfisicalCertificate @GetInfisicalCertificateParameters</dev:code>
+        <dev:remarks><maml:para>Resolves the issuing CA, then lists active certificates scoped to that CA, the local hostname, and the 'web-tier' friendly name.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalPkiSubscriber</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical PKI subscribers in a project.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalPkiSubscriber</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) returns every PKI subscriber configured on the project. When -Name is supplied (ByName parameter set) the cmdlet returns one subscriber by its slug. -ProjectId is required in both modes.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>The -Name parameter is the subscriber slug; aliases SubscriberName and Slug are accepted. Pass the slug returned here on -PkiSubscriberSlug when calling Request-InfisicalCertificate. Accepts pipeline input by property name on -Name.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalPkiSubscriber</dev:code>
+        <dev:remarks><maml:para>Lists every PKI subscriber defined on the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalPkiSubscriber -Name 'mecm'</dev:code>
+        <dev:remarks><maml:para>Retrieves the 'mecm' PKI subscriber from the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalPkiSubscriberListResult = Get-InfisicalPkiSubscriber | Where-Object { $_.Name -ilike 'mecm*' }
+
+$GetInfisicalPkiSubscriberParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalPkiSubscriberParameters.Name      = $GetInfisicalPkiSubscriberListResult[0].Name
+$GetInfisicalPkiSubscriberParameters.ProjectId = $ProjectId
+$GetInfisicalPkiSubscriberParameters.Verbose   = $True
+
+$GetInfisicalPkiSubscriberResult = Get-InfisicalPkiSubscriber @GetInfisicalPkiSubscriberParameters</dev:code>
+        <dev:remarks><maml:para>Filters subscribers whose name starts with 'mecm' and refetches the canonical record for the first match.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalCertificateProfile</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical certificate profiles in a project.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalCertificateProfile</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) returns every certificate profile configured on the project via /api/v1/cert-manager/certificate-profiles, with optional -Limit, -Offset, and -IncludeConfigs. When -ProfileId is supplied (ById parameter set) the cmdlet returns one profile by its id. -ProjectId is required in both modes.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Profiles bind a CA and a certificate policy and surface defaults (TtlDays, KeyAlgorithm, KeyUsages, ExtendedKeyUsages). Use the returned profile Id when wiring profile-based issuance against Request-InfisicalCertificate.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificateProfile</dev:code>
+        <dev:remarks><maml:para>Lists every certificate profile defined on the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificateProfile -ProfileId '8257641e-c808-454e-ac92-8dc920be865f'</dev:code>
+        <dev:remarks><maml:para>Retrieves a single certificate profile by id from the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalCertificateProfileListResult = Get-InfisicalCertificateProfile | Where-Object { $_.Slug -ieq 'codesigning' }
+
+$GetInfisicalCertificateProfileParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalCertificateProfileParameters.ProfileId = $GetInfisicalCertificateProfileListResult[0].Id
+$GetInfisicalCertificateProfileParameters.ProjectId = $ProjectId
+$GetInfisicalCertificateProfileParameters.Verbose   = $True
+
+$GetInfisicalCertificateProfileResult = Get-InfisicalCertificateProfile @GetInfisicalCertificateProfileParameters</dev:code>
+        <dev:remarks><maml:para>Filters profiles whose slug equals 'codesigning' and refetches the canonical record for the first match using a splatted parameter set.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalCertificatePolicy</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical certificate policies in a project.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalCertificatePolicy</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) returns every certificate policy configured on the project via /api/v1/cert-manager/certificate-policies, with optional -Limit and -Offset. When -PolicyId is supplied (ById parameter set) the cmdlet returns one policy by its id. -ProjectId is required in both modes.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Policies define the allowed/required subject, SANs, key usages, extended key usages, key algorithms, signature algorithm, and validity windows that certificate profiles enforce. Each profile binds exactly one policy via its CertificatePolicyId.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificatePolicy</dev:code>
+        <dev:remarks><maml:para>Lists every certificate policy defined on the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificatePolicy -PolicyId '3e69306a-e7c1-4fd2-a140-7fb300e53c43'</dev:code>
+        <dev:remarks><maml:para>Retrieves a single certificate policy by id from the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalCertificatePolicyListResult = Get-InfisicalCertificatePolicy | Where-Object { $_.Name -ieq 'codesigning' }
+
+$GetInfisicalCertificatePolicyParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalCertificatePolicyParameters.PolicyId  = $GetInfisicalCertificatePolicyListResult[0].Id
+$GetInfisicalCertificatePolicyParameters.ProjectId = $ProjectId
+$GetInfisicalCertificatePolicyParameters.Verbose   = $True
+
+$GetInfisicalCertificatePolicyResult = Get-InfisicalCertificatePolicy @GetInfisicalCertificatePolicyParameters</dev:code>
+        <dev:remarks><maml:para>Filters policies whose name equals 'codesigning' and refetches the canonical record for the first match using a splatted parameter set.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Search-InfisicalCertificate</command:name>
+      <maml:description><maml:para>Searches Infisical certificates with advanced filters and automatic paging.</maml:para></maml:description>
+      <command:verb>Search</command:verb>
+      <command:noun>InfisicalCertificate</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Performs a server-side search across certificates with filters for friendly name, common name, free-text search, status, CA/profile/application/enrollment scope, key/signature algorithm, source, and validity window (-NotBeforeFrom/-NotBeforeTo/-NotAfterFrom/-NotAfterTo). Results are paged automatically unless -NoAutoPage is supplied. -ProjectId is required.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Use -SortBy together with -SortOrder ('asc'/'desc') to control result ordering. Pair with Get-InfisicalCertificate or Export-InfisicalCertificate to drill into specific hits.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Search-InfisicalCertificate -Search $env:COMPUTERNAME -Status 'active'</dev:code>
+        <dev:remarks><maml:para>Finds active certificates whose searchable fields contain the local hostname.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalCertificateAuthorityListResult = Get-InfisicalCertificateAuthority | Where-Object { $_.FriendlyName -eq 'Issuing CA - Platform' }
+
+$SearchInfisicalCertificateParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$SearchInfisicalCertificateParameters.ProjectId     = $ProjectId
+$SearchInfisicalCertificateParameters.CommonName    = $env:COMPUTERNAME
+$SearchInfisicalCertificateParameters.Status        = 'active'
+$SearchInfisicalCertificateParameters.CaId          = @($GetInfisicalCertificateAuthorityListResult.Id)
+$SearchInfisicalCertificateParameters.KeyAlgorithm  = @('RSA')
+$SearchInfisicalCertificateParameters.NotAfterTo    = (Get-Date).AddDays(30)
+$SearchInfisicalCertificateParameters.SortBy        = 'notAfter'
+$SearchInfisicalCertificateParameters.SortOrder     = 'asc'
+$SearchInfisicalCertificateParameters.Limit         = 100
+$SearchInfisicalCertificateParameters.Verbose       = $True
+
+$SearchInfisicalCertificateResult = Search-InfisicalCertificate @SearchInfisicalCertificateParameters</dev:code>
+        <dev:remarks><maml:para>Searches for RSA certificates from a specific CA, scoped to the local hostname, that expire within the next 30 days, sorted soonest-first.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Request-InfisicalCertificate</command:name>
+      <maml:description><maml:para>Requests a new Infisical certificate (local CSR + sign) or reuses a still-valid existing one.</maml:para></maml:description>
+      <command:verb>Request</command:verb>
+      <command:noun>InfisicalCertificate</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Generates a keypair locally, builds a CSR, and submits it for signing via one of three parameter sets: a PKI subscriber (-PkiSubscriberSlug, default), direct CA signing (-CertificateAuthorityId), or a certificate profile (-CertificateProfileId, POSTs to /api/v1/cert-manager/certificates with the profile bound). On subsequent runs an existing certificate whose CN matches and whose remaining lifetime exceeds -RenewalThresholdDays is reused; pass -Force to always issue or -AllowRenewal to allow rotation inside the threshold. Optional flags install the leaf (-Install) and chain (-InstallChain) into a Windows certificate store, and control private-key protection (-PrivateKeyProtection, -PersistKey, -MachineKey, -PrivateKeyPath, -KeyStorageFlags). Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Default -PrivateKeyProtection is 'LocalOnly': the leaf is loaded into memory without persisting the private key and PrivateKeyPem is scrubbed from the emitted result unless -PrivateKeyPath or an explicit -KeyStorageFlags binding overrides it. The reuse path completes its chain from the Infisical bundle when local stores are incomplete; pass -LocalChainOnly to suppress that fetch entirely.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Request-InfisicalCertificate -PkiSubscriberSlug 'web-tier' -Install</dev:code>
+        <dev:remarks><maml:para>Requests (or reuses) a certificate for the 'web-tier' subscriber and installs it into CurrentUser\My.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$RequestInfisicalCertificateParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$RequestInfisicalCertificateParameters.PkiSubscriberSlug    = 'web-tier'
+$RequestInfisicalCertificateParameters.ProjectId            = $ProjectId
+$RequestInfisicalCertificateParameters.CommonName           = ([System.Net.Dns]::GetHostEntry($env:COMPUTERNAME)).HostName
+$RequestInfisicalCertificateParameters.DnsName              = @(([System.Net.Dns]::GetHostEntry($env:COMPUTERNAME)).HostName, $env:COMPUTERNAME)
+$RequestInfisicalCertificateParameters.KeyAlgorithm         = 'Rsa'
+$RequestInfisicalCertificateParameters.KeySize              = 3072
+$RequestInfisicalCertificateParameters.Install              = $True
+$RequestInfisicalCertificateParameters.InstallChain         = $True
+$RequestInfisicalCertificateParameters.StoreName            = 'My'
+$RequestInfisicalCertificateParameters.StoreLocation        = 'LocalMachine'
+$RequestInfisicalCertificateParameters.PrivateKeyProtection = 'NonExportable'
+$RequestInfisicalCertificateParameters.MachineKey           = $True
+$RequestInfisicalCertificateParameters.PersistKey           = $True
+$RequestInfisicalCertificateParameters.AllowRenewal         = $True
+$RequestInfisicalCertificateParameters.RenewalThresholdDays = 30
+$RequestInfisicalCertificateParameters.Verbose              = $True
+
+$RequestInfisicalCertificateResult = Request-InfisicalCertificate @RequestInfisicalCertificateParameters</dev:code>
+        <dev:remarks><maml:para>Issues (or renews within 30 days) a 3072-bit RSA certificate for the local FQDN, installs the leaf and chain into LocalMachine\My with a non-exportable machine-bound persistent key.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$Profile = Get-InfisicalCertificateProfile | Where-Object { $_.Slug -eq 'web-tier-profile' }
+Request-InfisicalCertificate -CertificateProfileId $Profile.Id -CommonName 'web01.contoso.com' -Ttl '90d'</dev:code>
+        <dev:remarks><maml:para>Issues a certificate via the modern profile API (POST /api/v1/cert-manager/certificates). The profile binds the CA, policy, and defaults so no subscriber is required.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>ConvertTo-InfisicalCertificate</command:name>
+      <maml:description><maml:para>Materializes an X509Certificate2 from an Infisical certificate record, bundle, or serial number.</maml:para></maml:description>
+      <command:verb>ConvertTo</command:verb>
+      <command:noun>InfisicalCertificate</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Fetches the certificate bundle (when given an InfisicalCertificate or -SerialNumber), or accepts an already-fetched -Bundle, and constructs an X509Certificate2 from the PEM material. Use -NoPrivateKey to omit the private key, -KeyStorageFlags to control how the key is loaded, and -IncludeChain to additionally emit each chain certificate as a separate X509Certificate2 in the pipeline.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>The bundle for any given certificate is typically retrievable only once after issuance; -SerialNumber and pipeline modes will fail with a bundle-not-available error for older certificates. Use -KeyStorageFlags Exportable when callers need to re-export the resulting cert as PFX.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificate -SerialNumber $Serial | ConvertTo-InfisicalCertificate -IncludeChain</dev:code>
+        <dev:remarks><maml:para>Materializes the certificate and emits each chain element individually.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalCertificateResult = Get-InfisicalCertificate -Status 'active' | Where-Object { $_.CommonName -eq $env:COMPUTERNAME }
+
+$ConvertToInfisicalCertificateParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$ConvertToInfisicalCertificateParameters.SerialNumber    = $GetInfisicalCertificateResult[0].SerialNumber
+$ConvertToInfisicalCertificateParameters.NoPrivateKey    = $False
+$ConvertToInfisicalCertificateParameters.IncludeChain    = $True
+$ConvertToInfisicalCertificateParameters.KeyStorageFlags = [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable
+$ConvertToInfisicalCertificateParameters.Verbose         = $True
+
+$ConvertToInfisicalCertificateResult = ConvertTo-InfisicalCertificate @ConvertToInfisicalCertificateParameters</dev:code>
+        <dev:remarks><maml:para>Selects the active certificate whose CN matches the host and materializes it (with private key and chain) as exportable X509Certificate2 objects.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Export-InfisicalCertificate</command:name>
+      <maml:description><maml:para>Exports an Infisical certificate to disk in PEM, PFX, or CER format.</maml:para></maml:description>
+      <command:verb>Export</command:verb>
+      <command:noun>InfisicalCertificate</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Writes a certificate to -Path in the supplied -Format. Accepts an X509Certificate2, an InfisicalCertificateBundle, an InfisicalCertificate (refetches bundle by serial), or a -SerialNumber. -Password (SecureString) supplies the PFX password. -IncludeChain appends chain certificates (PEM only). -NoPrivateKey omits the private key. -Force overwrites an existing file. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>PFX export requires the cert to have been loaded with X509KeyStorageFlags.Exportable; bundle/serial modes import with Exportable automatically. CER and PFX formats ignore -IncludeChain.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Export-InfisicalCertificate -Path 'C:\Temp\web-tier.pem' -Format Pem -SerialNumber $Serial -IncludeChain</dev:code>
+        <dev:remarks><maml:para>Exports a certificate, its chain, and private key (when available) as a single PEM bundle.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalCertificateResult = Get-InfisicalCertificate -Status 'active' | Where-Object { $_.CommonName -eq $env:COMPUTERNAME }
+
+$ExportInfisicalCertificateParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$ExportInfisicalCertificateParameters.SerialNumber = $GetInfisicalCertificateResult[0].SerialNumber
+$ExportInfisicalCertificateParameters.Path         = "C:\Temp\$($env:COMPUTERNAME).pfx"
+$ExportInfisicalCertificateParameters.Format       = 'Pfx'
+$ExportInfisicalCertificateParameters.Password     = (Read-Host -AsSecureString -Prompt 'PFX password')
+$ExportInfisicalCertificateParameters.Force        = $True
+$ExportInfisicalCertificateParameters.PassThru     = $True
+$ExportInfisicalCertificateParameters.Verbose      = $True
+
+$ExportInfisicalCertificateResult = Export-InfisicalCertificate @ExportInfisicalCertificateParameters</dev:code>
+        <dev:remarks><maml:para>Resolves the active host certificate by serial and exports it as a password-protected PFX, overwriting any existing file and emitting a FileInfo for downstream use.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Install-InfisicalCertificate</command:name>
+      <maml:description><maml:para>Installs an Infisical certificate (and optional chain) into a Windows certificate store.</maml:para></maml:description>
+      <command:verb>Install</command:verb>
+      <command:noun>InfisicalCertificate</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Adds a certificate to the supplied -StoreName and -StoreLocation. Accepts an X509Certificate2, an InfisicalCertificate (refetches bundle by serial), or a -SerialNumber. -KeyStorageFlags controls private-key loading. -IncludeChain installs each chain certificate to the CertificateAuthority store of the same -StoreLocation. -Force replaces an existing thumbprint. -PassThru emits the installed certificate. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Installing into LocalMachine stores typically requires elevation. -IncludeChain only fires for serial/InfisicalCertificate inputs because the X509Certificate2 input has no associated bundle to walk.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Install-InfisicalCertificate -SerialNumber $Serial -StoreLocation LocalMachine -IncludeChain</dev:code>
+        <dev:remarks><maml:para>Installs the leaf into LocalMachine\My and each chain element into LocalMachine\CertificateAuthority.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalCertificateResult = Get-InfisicalCertificate -Status 'active' | Where-Object { $_.CommonName -eq $env:COMPUTERNAME }
+
+$InstallInfisicalCertificateParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$InstallInfisicalCertificateParameters.SerialNumber    = $GetInfisicalCertificateResult[0].SerialNumber
+$InstallInfisicalCertificateParameters.StoreName       = 'My'
+$InstallInfisicalCertificateParameters.StoreLocation   = 'LocalMachine'
+$InstallInfisicalCertificateParameters.KeyStorageFlags = [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::MachineKeySet -bor [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::PersistKeySet
+$InstallInfisicalCertificateParameters.IncludeChain    = $True
+$InstallInfisicalCertificateParameters.Force           = $True
+$InstallInfisicalCertificateParameters.PassThru        = $True
+$InstallInfisicalCertificateParameters.Verbose         = $True
+
+$InstallInfisicalCertificateResult = Install-InfisicalCertificate @InstallInfisicalCertificateParameters</dev:code>
+        <dev:remarks><maml:para>Resolves the active host certificate and installs the leaf (with a machine-bound persistent key) plus its chain into LocalMachine, replacing any existing thumbprint match.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Uninstall-InfisicalCertificate</command:name>
+      <maml:description><maml:para>Removes a certificate from a Windows certificate store by thumbprint, subject, or pipeline input.</maml:para></maml:description>
+      <command:verb>Uninstall</command:verb>
+      <command:noun>InfisicalCertificate</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Removes matching certificates from the supplied -StoreName and -StoreLocation. Accepts -Thumbprint, -Subject, an X509Certificate2 (-Certificate), or an InfisicalCertificate (-InfisicalCertificate, uses FingerprintSha1). -Force allows removing multiple matches in one call; -PassThru emits each removed certificate. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>When more than one certificate matches -Subject and -Force is not supplied the cmdlet throws to prevent accidental bulk removal. Uninstalling from LocalMachine stores typically requires elevation.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Uninstall-InfisicalCertificate -Thumbprint $Thumbprint -StoreLocation LocalMachine</dev:code>
+        <dev:remarks><maml:para>Removes the certificate with the supplied thumbprint from LocalMachine\My.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalCertificateResult = Get-InfisicalCertificate -Status 'revoked' | Where-Object { $_.CommonName -eq $env:COMPUTERNAME }
+
+$UninstallInfisicalCertificateParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$UninstallInfisicalCertificateParameters.InfisicalCertificate = $GetInfisicalCertificateResult[0]
+$UninstallInfisicalCertificateParameters.StoreName            = 'My'
+$UninstallInfisicalCertificateParameters.StoreLocation        = 'LocalMachine'
+$UninstallInfisicalCertificateParameters.Force                = $True
+$UninstallInfisicalCertificateParameters.PassThru             = $True
+$UninstallInfisicalCertificateParameters.Verbose              = $True
+
+$UninstallInfisicalCertificateResult = Uninstall-InfisicalCertificate @UninstallInfisicalCertificateParameters</dev:code>
+        <dev:remarks><maml:para>Picks the revoked host certificate and removes it from LocalMachine\My using its SHA1 fingerprint, emitting the removed object for the audit trail.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalCertificateApplication</command:name>
+      <maml:description><maml:para>Lists or retrieves an Infisical Certificate Manager Application from the supplied project.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalCertificateApplication</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Reads Infisical certificate-manager Applications (the join target used by EST/ACME/SCEP profile attachments) for the supplied project. The List parameter set returns all applications visible to the caller; the ById and ByName sets return a single application. -ProjectId is required.</maml:para>
+    </maml:description>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificateApplication -ProjectId $ProjectId</dev:code>
+        <dev:remarks><maml:para>Lists certificate-manager applications for the supplied project.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificateApplication -ApplicationName 'workstation-mdm' -ProjectId $ProjectId</dev:code>
+        <dev:remarks><maml:para>Retrieves a single application by name.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalCertificateApplicationParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalCertificateApplicationParameters.Id        = $ApplicationId
+$GetInfisicalCertificateApplicationParameters.ProjectId = $ProjectId
+$GetInfisicalCertificateApplicationParameters.Verbose   = $True
+
+$GetInfisicalCertificateApplicationResult = Get-InfisicalCertificateApplication @GetInfisicalCertificateApplicationParameters</dev:code>
+        <dev:remarks><maml:para>Retrieves a single application by id from an explicit project.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalCertificateApplicationEnrollment</command:name>
+      <maml:description><maml:para>Retrieves the API/EST/ACME/SCEP enrollment configuration attached to an application/profile pair.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalCertificateApplicationEnrollment</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Returns the InfisicalCertificateApplicationEnrollment for the given application and certificate profile, including any configured SCEP sub-block (server URL, RA certificate PEM, computed SHA-1 RaCertificateThumbprint, challenge type, and challenge endpoint URL when dynamic).</maml:para>
+    </maml:description>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificateApplicationEnrollment -ApplicationId $AppId -ProfileId $ProfileId</dev:code>
+        <dev:remarks><maml:para>Fetches the enrollment configuration for an application/profile pair.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$GetInfisicalCertificateApplicationEnrollmentParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalCertificateApplicationEnrollmentParameters.ApplicationId = $ApplicationId
+$GetInfisicalCertificateApplicationEnrollmentParameters.ProfileId     = $ProfileId
+$GetInfisicalCertificateApplicationEnrollmentParameters.Verbose       = $True
+
+$GetInfisicalCertificateApplicationEnrollmentResult = Get-InfisicalCertificateApplicationEnrollment @GetInfisicalCertificateApplicationEnrollmentParameters</dev:code>
+        <dev:remarks><maml:para>Retrieves the enrollment configuration and feeds it downstream to Get-InfisicalScepMdmProfile.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>New-InfisicalScepDynamicChallenge</command:name>
+      <maml:description><maml:para>Generates a one-time SCEP challenge from an application/profile that is configured with dynamic challenge mode.</maml:para></maml:description>
+      <command:verb>New</command:verb>
+      <command:noun>InfisicalScepDynamicChallenge</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>POSTs to /scep/applications/{applicationId}/profiles/{profileId}/challenge and returns the minted challenge as a SecureString. Use -AsPlainText to return a string instead. Requires the active machine identity to have read access on certificate-application-enrollment, and the target SCEP profile must be set to challengeType=dynamic. Dynamic challenges are an Enterprise-tier feature on managed Infisical deployments.</maml:para>
+    </maml:description>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>$Challenge = New-InfisicalScepDynamicChallenge -ApplicationId $AppId -ProfileId $ProfileId</dev:code>
+        <dev:remarks><maml:para>Mints a single-use SCEP challenge and stores it as a SecureString.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$NewInfisicalScepDynamicChallengeParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$NewInfisicalScepDynamicChallengeParameters.ApplicationId = $ApplicationId
+$NewInfisicalScepDynamicChallengeParameters.ProfileId     = $ProfileId
+$NewInfisicalScepDynamicChallengeParameters.AsPlainText   = $True
+$NewInfisicalScepDynamicChallengeParameters.Verbose       = $True
+
+$NewInfisicalScepDynamicChallengeResult = New-InfisicalScepDynamicChallenge @NewInfisicalScepDynamicChallengeParameters</dev:code>
+        <dev:remarks><maml:para>Mints a plain-text challenge for use in environments where SecureString is inconvenient.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalScepMdmProfile</command:name>
+      <maml:description><maml:para>Builds an Infisical SCEP MDM profile model from an application enrollment, certificate profile, or fully manual inputs.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalScepMdmProfile</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Produces an InfisicalScepMdmProfile that mirrors the Windows ClientCertificateInstall/SCEP CSP node set. FromEnrollment (default) consumes an InfisicalCertificateApplicationEnrollment and auto-fills ServerUrl from scep.scepEndpointUrl and CAThumbprint from the RA certificate; if the enrollment is configured for dynamic challenge mode, a fresh challenge is minted automatically when -Challenge is not supplied. FromProfile keeps the legacy projection from an InfisicalCertificateProfile and now requires -ApplicationId so the server URL can be built against /scep/applications/{appId}/profiles/{profileId}/pkiclient.exe. Manual requires explicit -ServerUrl, -Challenge, and -UniqueId.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>The SCEP endpoint URL ends in 'pkiclient.exe' for RFC 8894 / Cisco SCEP client compatibility. SecureString -Challenge is decrypted into the model only at write-time.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalCertificateApplicationEnrollment -ApplicationId $AppId -ProfileId $ProfileId | Get-InfisicalScepMdmProfile</dev:code>
+        <dev:remarks><maml:para>Builds a SCEP MDM profile from an enrollment, auto-resolving ServerUrl, CAThumbprint, and (for dynamic mode) the challenge.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalCertificateProfile -CertificateProfileId $ProfileId | Get-InfisicalScepMdmProfile -ApplicationId $AppId -Challenge (Read-Host -AsSecureString 'SCEP challenge')</dev:code>
+        <dev:remarks><maml:para>Builds a profile from a certificate profile (legacy path) with an explicit application id and static challenge.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalScepMdmProfileParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalScepMdmProfileParameters.EnrollmentObject         = $Enrollment
+$GetInfisicalScepMdmProfileParameters.UniqueId                 = 'WindowsClientAuth'
+$GetInfisicalScepMdmProfileParameters.Scope                    = 'Device'
+$GetInfisicalScepMdmProfileParameters.SubjectName              = "CN=$($env:COMPUTERNAME)"
+$GetInfisicalScepMdmProfileParameters.KeyLength                = 2048
+$GetInfisicalScepMdmProfileParameters.HashAlgorithm            = 'SHA256'
+$GetInfisicalScepMdmProfileParameters.ValidPeriod              = 'Years'
+$GetInfisicalScepMdmProfileParameters.ValidPeriodUnits         = 1
+$GetInfisicalScepMdmProfileParameters.Verbose                  = $True
+
+$GetInfisicalScepMdmProfileResult = Get-InfisicalScepMdmProfile @GetInfisicalScepMdmProfileParameters</dev:code>
+        <dev:remarks><maml:para>Builds a device-scope SCEP MDM profile from an enrollment with overridden subject and key parameters.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Export-InfisicalScepMdmProfile</command:name>
+      <maml:description><maml:para>Writes an InfisicalScepMdmProfile to disk as a SyncML payload suitable for MDM delivery.</maml:para></maml:description>
+      <command:verb>Export</command:verb>
+      <command:noun>InfisicalScepMdmProfile</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Serializes the supplied InfisicalScepMdmProfile via ToSyncMl() and writes the result to -Path as UTF-8 (no BOM). Auto-creates the target directory. If the file exists and -Force is not specified the cmdlet logs a warning and returns instead of throwing. Honors -WhatIf and -Confirm. -PassThru emits the resulting FileInfo.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>The generated SyncML is round-trip-validated through XmlReader before being written. Pair with Write-InfisicalScepMdmProfileToWmi to apply the same model to the local MDM Bridge instead of exporting to a file.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>$Profile | Export-InfisicalScepMdmProfile -Path 'C:\Temp\scep.syncml' -Force</dev:code>
+        <dev:remarks><maml:para>Writes the SyncML payload for the supplied SCEP MDM profile, overwriting any existing file.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$ExportInfisicalScepMdmProfileParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$ExportInfisicalScepMdmProfileParameters.InputObject = $Profile
+$ExportInfisicalScepMdmProfileParameters.Path        = "C:\ProgramData\Infisical\scep-$($Profile.UniqueId).syncml"
+$ExportInfisicalScepMdmProfileParameters.Force       = $True
+$ExportInfisicalScepMdmProfileParameters.PassThru    = $True
+$ExportInfisicalScepMdmProfileParameters.Verbose     = $True
+
+$ExportInfisicalScepMdmProfileResult = Export-InfisicalScepMdmProfile @ExportInfisicalScepMdmProfileParameters</dev:code>
+        <dev:remarks><maml:para>Writes the SyncML payload to a per-profile path under ProgramData and returns the resulting FileInfo.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Write-InfisicalScepMdmProfileToWmi</command:name>
+      <maml:description><maml:para>Submits an InfisicalScepMdmProfile to the local Windows MDM Bridge WMI provider to trigger SCEP enrollment.</maml:para></maml:description>
+      <command:verb>Write</command:verb>
+      <command:noun>InfisicalScepMdmProfileToWmi</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Creates a new CIM instance under the MDM Bridge namespace (default: root/cimv2/mdm/dmmap, class MDM_ClientCertificateInstall_SCEP02) by invoking New-CimInstance through the host runspace. Honors -WhatIf and -Confirm. -PassThru emits the resulting CIM instance. Throws PlatformNotSupportedException off Windows. Device-scope enrollment requires an elevated session; pass -SkipElevationCheck to bypass the guard.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>The MDM Bridge WMI provider runs the enrollment asynchronously; success here means the enrollment was submitted, not that a certificate has been issued. Inspect the corresponding ClientCertificateInstall/SCEP/&lt;UniqueId&gt;/Install nodes for status. Override -ClassName when targeting a different SCEP CSP version on the host.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>$Profile | Write-InfisicalScepMdmProfileToWmi -PassThru</dev:code>
+        <dev:remarks><maml:para>Submits the SCEP MDM profile to the local MDM Bridge and emits the created CIM instance.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$WriteInfisicalScepMdmProfileToWmiParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$WriteInfisicalScepMdmProfileToWmiParameters.InputObject         = $Profile
+$WriteInfisicalScepMdmProfileToWmiParameters.Namespace           = 'root/cimv2/mdm/dmmap'
+$WriteInfisicalScepMdmProfileToWmiParameters.ClassName           = 'MDM_ClientCertificateInstall_SCEP02'
+$WriteInfisicalScepMdmProfileToWmiParameters.SkipElevationCheck  = $False
+$WriteInfisicalScepMdmProfileToWmiParameters.PassThru            = $True
+$WriteInfisicalScepMdmProfileToWmiParameters.Verbose             = $True
+
+$WriteInfisicalScepMdmProfileToWmiResult = Write-InfisicalScepMdmProfileToWmi @WriteInfisicalScepMdmProfileToWmiParameters</dev:code>
+        <dev:remarks><maml:para>Submits a device-scope SCEP enrollment through the MDM Bridge and returns the CIM instance for downstream inspection.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+</helpItems>

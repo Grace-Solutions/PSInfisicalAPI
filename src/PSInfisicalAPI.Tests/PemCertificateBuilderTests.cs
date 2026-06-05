@@ -8,6 +8,11 @@ namespace PSInfisicalAPI.Tests
 {
     public class PemCertificateBuilderTests
     {
+        public static (string CertPem, string KeyPem, string Thumbprint) CreateSelfSignedExposed(string commonName)
+        {
+            return CreateSelfSigned(commonName);
+        }
+
         private static (string CertPem, string KeyPem, string Thumbprint) CreateSelfSigned(string commonName)
         {
             using (RSA rsa = RSA.Create(2048))

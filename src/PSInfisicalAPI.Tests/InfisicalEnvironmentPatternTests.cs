@@ -27,26 +27,6 @@ namespace PSInfisicalAPI.Tests
         }
 
         [Theory]
-        [InlineData("INFISICAL_PROJECT_ID")]
-        [InlineData("INFISICAL_WORKSPACE_ID")]
-        [InlineData("CLOUDINIT_INFISICAL_PROJECTID")]
-        public void ProjectIdPatterns_Match_Expected_Names(string name)
-        {
-            Assert.True(MatchesAny(name, InfisicalEnvironmentResolver.ProjectIdPatterns), "Expected match for " + name);
-        }
-
-        [Theory]
-        [InlineData("INFISICAL_ENVIRONMENT")]
-        [InlineData("INFISICAL_ENVIRONMENT_NAME")]
-        [InlineData("INFISICAL_ENV")]
-        [InlineData("INFISICAL_ENV_SLUG")]
-        [InlineData("CLOUDINIT_INFISICAL_ENVIRONMENT")]
-        public void EnvironmentPatterns_Match_Expected_Names(string name)
-        {
-            Assert.True(MatchesAny(name, InfisicalEnvironmentResolver.EnvironmentPatterns), "Expected match for " + name);
-        }
-
-        [Theory]
         [InlineData("INFISICAL_CLIENT_ID")]
         [InlineData("INFISICAL_UNIVERSAL_AUTH_CLIENT_ID")]
         [InlineData("INFISICAL_MACHINE_IDENTITY_CLIENT_ID")]
@@ -82,15 +62,6 @@ namespace PSInfisicalAPI.Tests
         [InlineData("INFISICAL_SECRET_PATH")]
         [InlineData("INFISICAL_DEFAULT_SECRET_PATH")]
         [InlineData("CLOUDINIT_INFISICAL_SECRETPATH")]
-        public void SecretPathPatterns_Match_Expected_Names(string name)
-        {
-            Assert.True(MatchesAny(name, InfisicalEnvironmentResolver.SecretPathPatterns), "Expected match for " + name);
-        }
-
-        [Theory]
-        [InlineData("INFISICAL_SECRET_PATH")]
-        [InlineData("INFISICAL_DEFAULT_SECRET_PATH")]
-        [InlineData("CLOUDINIT_INFISICAL_SECRETPATH")]
         public void ClientSecretPatterns_Do_Not_Match_SecretPath_Variables(string name)
         {
             Assert.False(MatchesAny(name, InfisicalEnvironmentResolver.ClientSecretPatterns), "ClientSecretPatterns should NOT match " + name);
@@ -108,9 +79,6 @@ namespace PSInfisicalAPI.Tests
             Assert.False(MatchesAny(name, InfisicalEnvironmentResolver.AccessTokenPatterns));
             Assert.False(MatchesAny(name, InfisicalEnvironmentResolver.BaseUriPatterns));
             Assert.False(MatchesAny(name, InfisicalEnvironmentResolver.OrganizationIdPatterns));
-            Assert.False(MatchesAny(name, InfisicalEnvironmentResolver.ProjectIdPatterns));
-            Assert.False(MatchesAny(name, InfisicalEnvironmentResolver.EnvironmentPatterns));
-            Assert.False(MatchesAny(name, InfisicalEnvironmentResolver.SecretPathPatterns));
             Assert.False(MatchesAny(name, InfisicalEnvironmentResolver.ApiVersionPatterns));
         }
 

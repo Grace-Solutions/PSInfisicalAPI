@@ -589,6 +589,181 @@ namespace PSInfisicalAPI.Endpoints
                 RequiresAuthorization = true,
                 ContainsSecretMaterialInResponse = true
             });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.SignCertificateBySubscriber,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/pki/subscribers/{subscriberName}/sign-certificate",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.SignCertificateByCa,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/pki/ca/{caId}/sign-certificate",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.SignCertificateByCa,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/cert-manager/ca/{caId}/sign-certificate",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.IssueCertificateByProfile,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/cert-manager/certificates",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListPkiSubscribers,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/projects/{projectId}/pki-subscribers",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetPkiSubscriber,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/pki/subscribers/{subscriberName}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListCertificateProfiles,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/certificate-profiles",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetCertificateProfile,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/certificate-profiles/{certificateProfileId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListCertificatePolicies,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/certificate-policies",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetCertificatePolicy,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/certificate-policies/{certificatePolicyId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListCertificateAuthorities,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/ca",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListCertificateApplications,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/applications",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetCertificateApplication,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/applications/{applicationId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetCertificateApplicationByName,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/applications/by-name/{name}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListCertificateApplicationProfiles,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/applications/{applicationId}/profiles",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GetCertificateApplicationEnrollment,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/cert-manager/applications/{applicationId}/profiles/{profileId}/enrollment",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.GenerateScepDynamicChallenge,
+                Resource = "Pki",
+                Version = "v1",
+                Method = "POST",
+                Template = "/scep/applications/{applicationId}/profiles/{profileId}/challenge",
+                RequiresAuthorization = true,
+                ContainsSecretMaterialInResponse = true
+            });
         }
 
         public static InfisicalEndpointDefinition Get(string name)
