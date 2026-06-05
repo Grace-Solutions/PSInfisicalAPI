@@ -409,6 +409,9 @@ namespace PSInfisicalAPI.Tests
             using (System.Security.Cryptography.RSA rootRsa = System.Security.Cryptography.RSA.Create(2048))
             using (System.Security.Cryptography.RSA intermediateRsa = System.Security.Cryptography.RSA.Create(2048))
             {
+                DateTimeOffset notBefore = DateTimeOffset.UtcNow.AddMinutes(-5);
+                DateTimeOffset notAfter  = DateTimeOffset.UtcNow.AddDays(1);
+
                 System.Security.Cryptography.X509Certificates.CertificateRequest rootRequest = new System.Security.Cryptography.X509Certificates.CertificateRequest(
                     "CN=ChainRouting.Root",
                     rootRsa,
@@ -416,7 +419,7 @@ namespace PSInfisicalAPI.Tests
                     System.Security.Cryptography.RSASignaturePadding.Pkcs1);
                 rootRequest.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension(true, false, 0, true));
 
-                using (System.Security.Cryptography.X509Certificates.X509Certificate2 rootCert = rootRequest.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-5), DateTimeOffset.UtcNow.AddDays(1)))
+                using (System.Security.Cryptography.X509Certificates.X509Certificate2 rootCert = rootRequest.CreateSelfSigned(notBefore, notAfter))
                 {
                     System.Security.Cryptography.X509Certificates.CertificateRequest intermediateRequest = new System.Security.Cryptography.X509Certificates.CertificateRequest(
                         "CN=ChainRouting.Intermediate",
@@ -426,7 +429,7 @@ namespace PSInfisicalAPI.Tests
                     intermediateRequest.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension(true, false, 0, true));
 
                     byte[] serial = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-                    using (System.Security.Cryptography.X509Certificates.X509Certificate2 intermediate = intermediateRequest.Create(rootCert, DateTimeOffset.UtcNow.AddMinutes(-5), DateTimeOffset.UtcNow.AddDays(1), serial))
+                    using (System.Security.Cryptography.X509Certificates.X509Certificate2 intermediate = intermediateRequest.Create(rootCert, notBefore, notAfter, serial))
                     {
                         Assert.NotEqual(intermediate.Subject, intermediate.Issuer);
 
