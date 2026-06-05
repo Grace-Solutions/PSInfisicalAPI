@@ -12,7 +12,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Id")]
         public string EnvironmentId { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
         [Parameter] public SwitchParameter PassThru { get; set; }
 
         protected override void ProcessRecord()
@@ -25,9 +25,8 @@ namespace PSInfisicalAPI.Cmdlets
                 }
 
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalEnvironmentClient client = new InfisicalEnvironmentClient(HttpClient, Logger);
-                client.Delete(connection, resolvedProjectId, EnvironmentId);
+                client.Delete(connection, ProjectId, EnvironmentId);
 
                 if (PassThru.IsPresent)
                 {

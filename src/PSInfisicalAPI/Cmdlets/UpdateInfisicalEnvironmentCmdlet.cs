@@ -14,7 +14,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Id")]
         public string EnvironmentId { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
         [Parameter] public string Name { get; set; }
         [Parameter] public string Slug { get; set; }
         [Parameter] public int? Position { get; set; }
@@ -29,9 +29,8 @@ namespace PSInfisicalAPI.Cmdlets
                 }
 
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalEnvironmentClient client = new InfisicalEnvironmentClient(HttpClient, Logger);
-                InfisicalEnvironment env = client.Update(connection, resolvedProjectId, EnvironmentId, Name, Slug, Position);
+                InfisicalEnvironment env = client.Update(connection, ProjectId, EnvironmentId, Name, Slug, Position);
                 if (env != null)
                 {
                     WriteObject(env);

@@ -15,7 +15,7 @@ namespace PSInfisicalAPI.Cmdlets
         public string SerialNumber { get; set; }
 
         [Parameter(ParameterSetName = "List")] public SwitchParameter List { get; set; }
-        [Parameter(ParameterSetName = "List")] public string ProjectId { get; set; }
+        [Parameter(ParameterSetName = "List", Mandatory = true)] public string ProjectId { get; set; }
         [Parameter(ParameterSetName = "List")] public string CommonName { get; set; }
         [Parameter(ParameterSetName = "List")] public string FriendlyName { get; set; }
         [Parameter(ParameterSetName = "List")] public string Status { get; set; }
@@ -42,11 +42,9 @@ namespace PSInfisicalAPI.Cmdlets
                     return;
                 }
 
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
-
                 InfisicalCertificateSearchQuery query = new InfisicalCertificateSearchQuery
                 {
-                    ProjectId = resolvedProjectId,
+                    ProjectId = ProjectId,
                     CommonName = CommonName,
                     FriendlyName = FriendlyName,
                     Status = Status,

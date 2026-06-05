@@ -15,8 +15,8 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter(ParameterSetName = "Single", Mandatory = true, ValueFromPipelineByPropertyName = true, Position = 0)]
         public string SecretName { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
-        [Parameter] public string Environment { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string Environment { get; set; }
         [Parameter] public string SecretPath { get; set; }
         [Parameter] public string ApiVersion { get; set; }
         [Parameter] public SwitchParameter ViewSecretValue { get; set; } = SwitchParameter.Present;
@@ -44,9 +44,9 @@ namespace PSInfisicalAPI.Cmdlets
                     InfisicalRetrieveSecretQuery query = new InfisicalRetrieveSecretQuery
                     {
                         SecretName = SecretName,
-                        ProjectId = ResolveProjectId(connection, ProjectId),
-                        Environment = ResolveEnvironment(connection, Environment),
-                        SecretPath = ResolveSecretPath(connection, SecretPath),
+                        ProjectId = ProjectId,
+                        Environment = Environment,
+                        SecretPath = SecretPath,
                         ApiVersion = ResolveApiVersion(connection, ApiVersion),
                         Version = Version,
                         Type = Type.ToString(),
@@ -66,9 +66,9 @@ namespace PSInfisicalAPI.Cmdlets
 
                 InfisicalListSecretsQuery listQuery = new InfisicalListSecretsQuery
                 {
-                    ProjectId = ResolveProjectId(connection, ProjectId),
-                    Environment = ResolveEnvironment(connection, Environment),
-                    SecretPath = ResolveSecretPath(connection, SecretPath),
+                    ProjectId = ProjectId,
+                    Environment = Environment,
+                    SecretPath = SecretPath,
                     ApiVersion = ResolveApiVersion(connection, ApiVersion),
                     Recursive = Recursive.IsPresent,
                     IncludeImports = IncludeImports.IsPresent,

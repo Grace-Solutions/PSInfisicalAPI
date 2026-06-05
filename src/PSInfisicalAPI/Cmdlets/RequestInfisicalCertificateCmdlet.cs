@@ -27,7 +27,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("ProfileId")]
         public string CertificateProfileId { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
         [Parameter] public IDictionary Subject { get; set; }
         [Parameter] public string CommonName { get; set; }
         [Parameter] public string Country { get; set; }
@@ -77,14 +77,13 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
                 InfisicalPkiClient client = new InfisicalPkiClient(HttpClient, Logger);
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
 
                 InfisicalCsrSubject csrSubject = InfisicalCertificateRequestHelpers.MergeSubject(Subject, CommonName, Country, State, Locality, Organization, OrganizationalUnit, EmailAddress);
                 List<string> dnsNames = BuildDnsNames(csrSubject);
                 if (string.IsNullOrEmpty(csrSubject.CommonName) && dnsNames.Count > 0) { csrSubject.CommonName = dnsNames[0]; }
                 if (string.IsNullOrEmpty(csrSubject.CommonName)) { throw new InvalidOperationException("Subject CommonName could not be determined and no DnsName was provided."); }
 
-                X509Certificate2 existing = TryFindExisting(client, connection, resolvedProjectId, csrSubject.CommonName);
+                X509Certificate2 existing = TryFindExisting(client, connection, ProjectId, csrSubject.CommonName);
                 if (existing != null && !Force.IsPresent && !(AllowRenewal.IsPresent && InfisicalLocalCertificateLookup.IsRenewable(existing, RenewalThresholdDays)))
                 {
                     Logger.Information(Component, string.Concat("Reusing existing certificate (Thumbprint=", existing.Thumbprint, ", NotAfter=", existing.NotAfter.ToString("u"), ")."));
@@ -118,7 +117,7 @@ namespace PSInfisicalAPI.Cmdlets
 
                 InfisicalCsrOptions csrOptions = new InfisicalCsrOptions { KeyAlgorithm = KeyAlgorithm, RsaKeySize = KeySize, EcCurve = Curve };
                 InfisicalCsrResult csr = InfisicalCsrBuilder.Build(csrSubject, dnsNames, IpAddress, csrOptions);
-                InfisicalSignedCertificate signed = SignCertificate(client, connection, resolvedProjectId, csr.CsrPem);
+                InfisicalSignedCertificate signed = SignCertificate(client, connection, ProjectId, csr.CsrPem);
                 signed.PrivateKeyPem = csr.PrivateKeyPem;
 
                 if (string.IsNullOrEmpty(signed.CertificatePem))

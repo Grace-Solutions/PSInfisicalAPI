@@ -16,6 +16,12 @@ namespace PSInfisicalAPI.Cmdlets
 
         [Parameter(ParameterSetName = "List")] public SwitchParameter List { get; set; }
 
+        [Parameter(ParameterSetName = "List")]
+        [ValidateSet("secret-manager", "cert-manager", "kms", "ssh", "secret-scanning", "pam", "ai")]
+        public string Type { get; set; }
+
+        [Parameter(ParameterSetName = "List")] public SwitchParameter IncludeRoles { get; set; }
+
         protected override void ProcessRecord()
         {
             try
@@ -25,8 +31,7 @@ namespace PSInfisicalAPI.Cmdlets
 
                 if (string.Equals(ParameterSetName, "Single", StringComparison.Ordinal))
                 {
-                    string resolvedProjectId = ResolveProjectId(connection, ProjectId);
-                    InfisicalProject project = client.Retrieve(connection, resolvedProjectId);
+                    InfisicalProject project = client.Retrieve(connection, ProjectId);
                     if (project != null)
                     {
                         WriteObject(project);
@@ -35,7 +40,7 @@ namespace PSInfisicalAPI.Cmdlets
                     return;
                 }
 
-                InfisicalProject[] projects = client.List(connection);
+                InfisicalProject[] projects = client.List(connection, Type, IncludeRoles.IsPresent);
                 foreach (InfisicalProject project in projects)
                 {
                     WriteObject(project);

@@ -47,8 +47,7 @@ namespace PSInfisicalAPI.Pki
                 response.Clear();
 
                 List<InfisicalInternalCaResponseDto> source = ParseCaListBody(body);
-                string fallbackProjectId = !string.IsNullOrEmpty(projectId) ? projectId : connection.ProjectId;
-                InfisicalCertificateAuthority[] mapped = InfisicalCaMapper.MapMany(source, fallbackProjectId);
+                InfisicalCertificateAuthority[] mapped = InfisicalCaMapper.MapMany(source, projectId);
                 _logger.Information(Component, "Infisical internal certificate authority list retrieval was successful.");
                 return mapped;
             }
@@ -79,8 +78,7 @@ namespace PSInfisicalAPI.Pki
                 response.Clear();
 
                 InfisicalInternalCaResponseDto inner = ParseCaSingleBody(body);
-                string fallbackProjectId = !string.IsNullOrEmpty(projectId) ? projectId : connection.ProjectId;
-                InfisicalCertificateAuthority mapped = InfisicalCaMapper.Map(inner, fallbackProjectId);
+                InfisicalCertificateAuthority mapped = InfisicalCaMapper.Map(inner, projectId);
                 _logger.Information(Component, "Infisical internal certificate authority retrieval was successful.");
                 return mapped;
             }
@@ -94,12 +92,11 @@ namespace PSInfisicalAPI.Pki
         public InfisicalCertificateAuthority[] ListAllCertificateAuthorities(InfisicalConnection connection, string projectId)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
 
             List<KeyValuePair<string, string>> query = new List<KeyValuePair<string, string>>
             {
-                new KeyValuePair<string, string>("projectId", resolvedProjectId)
+                new KeyValuePair<string, string>("projectId", projectId)
             };
 
             try
@@ -110,7 +107,7 @@ namespace PSInfisicalAPI.Pki
                 response.Clear();
 
                 List<InfisicalInternalCaResponseDto> source = ParseCaListBody(body);
-                InfisicalCertificateAuthority[] mapped = InfisicalCaMapper.MapMany(source, resolvedProjectId);
+                InfisicalCertificateAuthority[] mapped = InfisicalCaMapper.MapMany(source, projectId);
                 _logger.Information(Component, "Infisical certificate authority list retrieval was successful.");
                 return mapped;
             }
@@ -136,7 +133,7 @@ namespace PSInfisicalAPI.Pki
                 response.Clear();
 
                 InfisicalCertificateResponseDto inner = ParseCertificateSingleBody(body);
-                InfisicalCertificate mapped = InfisicalCertificateMapper.Map(inner, connection.ProjectId);
+                InfisicalCertificate mapped = InfisicalCertificateMapper.Map(inner, null);
                 _logger.Information(Component, "Infisical certificate retrieval was successful.");
                 return mapped;
             }
@@ -187,10 +184,9 @@ namespace PSInfisicalAPI.Pki
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
             if (query == null) { throw new ArgumentNullException(nameof(query)); }
-            string resolvedProjectId = FirstNonEmpty(query.ProjectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(query.ProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
 
-            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", resolvedProjectId } };
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", query.ProjectId } };
             InfisicalCertificateSearchRequestDto request = BuildSearchRequest(query);
             string body = _serializer.Serialize(request);
 
@@ -201,7 +197,7 @@ namespace PSInfisicalAPI.Pki
                 InfisicalCertificateSearchResponseDto dto = _serializer.Deserialize<InfisicalCertificateSearchResponseDto>(response.Body);
                 response.Clear();
 
-                InfisicalCertificate[] mapped = InfisicalCertificateMapper.MapMany(dto != null ? dto.Certificates : null, resolvedProjectId);
+                InfisicalCertificate[] mapped = InfisicalCertificateMapper.MapMany(dto != null ? dto.Certificates : null, query.ProjectId);
                 int total = dto != null ? dto.TotalCount : mapped.Length;
                 _logger.Information(Component, "Infisical certificate search was successful.");
                 return new InfisicalCertificateSearchResult { Certificates = mapped, TotalCount = total };
@@ -218,13 +214,12 @@ namespace PSInfisicalAPI.Pki
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
             if (string.IsNullOrEmpty(subscriberName)) { throw new InfisicalConfigurationException("SubscriberName is required."); }
             if (string.IsNullOrEmpty(csrPem)) { throw new InfisicalConfigurationException("CSR is required."); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
 
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "subscriberName", subscriberName } };
             InfisicalSignCertificateBySubscriberRequestDto request = new InfisicalSignCertificateBySubscriberRequestDto
             {
-                ProjectId = resolvedProjectId,
+                ProjectId = projectId,
                 Csr = csrPem
             };
             string body = _serializer.Serialize(request);
@@ -373,10 +368,9 @@ namespace PSInfisicalAPI.Pki
         public InfisicalPkiSubscriber[] ListPkiSubscribers(InfisicalConnection connection, string projectId)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
 
-            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", resolvedProjectId } };
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", projectId } };
 
             try
             {
@@ -386,7 +380,7 @@ namespace PSInfisicalAPI.Pki
                 response.Clear();
 
                 List<InfisicalPkiSubscriberResponseDto> source = ParsePkiSubscriberListBody(body);
-                InfisicalPkiSubscriber[] mapped = InfisicalPkiSubscriberMapper.MapMany(source, resolvedProjectId);
+                InfisicalPkiSubscriber[] mapped = InfisicalPkiSubscriberMapper.MapMany(source, projectId);
                 _logger.Information(Component, "Infisical PKI subscriber list retrieval was successful.");
                 return mapped;
             }
@@ -401,11 +395,10 @@ namespace PSInfisicalAPI.Pki
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
             if (string.IsNullOrEmpty(subscriberName)) { throw new InfisicalConfigurationException("SubscriberName is required."); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
 
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "subscriberName", subscriberName } };
-            List<KeyValuePair<string, string>> query = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("projectId", resolvedProjectId) };
+            List<KeyValuePair<string, string>> query = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("projectId", projectId) };
 
             try
             {
@@ -414,7 +407,7 @@ namespace PSInfisicalAPI.Pki
                 InfisicalPkiSubscriberResponseDto dto = _serializer.Deserialize<InfisicalPkiSubscriberResponseDto>(response.Body);
                 response.Clear();
 
-                InfisicalPkiSubscriber mapped = InfisicalPkiSubscriberMapper.Map(dto, resolvedProjectId);
+                InfisicalPkiSubscriber mapped = InfisicalPkiSubscriberMapper.Map(dto, projectId);
                 _logger.Information(Component, "Infisical PKI subscriber retrieval was successful.");
                 return mapped;
             }
@@ -441,12 +434,11 @@ namespace PSInfisicalAPI.Pki
         public InfisicalCertificateProfile[] ListCertificateProfiles(InfisicalConnection connection, string projectId, int? limit, int? offset, bool? includeConfigs)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
 
             List<KeyValuePair<string, string>> query = new List<KeyValuePair<string, string>>
             {
-                new KeyValuePair<string, string>("projectId", resolvedProjectId)
+                new KeyValuePair<string, string>("projectId", projectId)
             };
             if (limit.HasValue) { query.Add(new KeyValuePair<string, string>("limit", limit.Value.ToString(CultureInfo.InvariantCulture))); }
             if (offset.HasValue) { query.Add(new KeyValuePair<string, string>("offset", offset.Value.ToString(CultureInfo.InvariantCulture))); }
@@ -460,7 +452,7 @@ namespace PSInfisicalAPI.Pki
                 response.Clear();
 
                 List<InfisicalCertificateProfileResponseDto> source = ParseCertificateProfileListBody(body);
-                InfisicalCertificateProfile[] mapped = InfisicalCertificateProfileMapper.MapMany(source, resolvedProjectId);
+                InfisicalCertificateProfile[] mapped = InfisicalCertificateProfileMapper.MapMany(source, projectId);
                 _logger.Information(Component, "Infisical certificate profile list retrieval was successful.");
                 return mapped;
             }
@@ -491,8 +483,7 @@ namespace PSInfisicalAPI.Pki
                 response.Clear();
 
                 InfisicalCertificateProfileResponseDto inner = ParseCertificateProfileSingleBody(body);
-                string fallbackProjectId = !string.IsNullOrEmpty(projectId) ? projectId : connection.ProjectId;
-                InfisicalCertificateProfile mapped = InfisicalCertificateProfileMapper.Map(inner, fallbackProjectId);
+                InfisicalCertificateProfile mapped = InfisicalCertificateProfileMapper.Map(inner, projectId);
                 _logger.Information(Component, "Infisical certificate profile retrieval was successful.");
                 return mapped;
             }
@@ -530,12 +521,11 @@ namespace PSInfisicalAPI.Pki
         public InfisicalCertificatePolicy[] ListCertificatePolicies(InfisicalConnection connection, string projectId, int? limit, int? offset)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
 
             List<KeyValuePair<string, string>> query = new List<KeyValuePair<string, string>>
             {
-                new KeyValuePair<string, string>("projectId", resolvedProjectId)
+                new KeyValuePair<string, string>("projectId", projectId)
             };
             if (limit.HasValue) { query.Add(new KeyValuePair<string, string>("limit", limit.Value.ToString(CultureInfo.InvariantCulture))); }
             if (offset.HasValue) { query.Add(new KeyValuePair<string, string>("offset", offset.Value.ToString(CultureInfo.InvariantCulture))); }
@@ -548,7 +538,7 @@ namespace PSInfisicalAPI.Pki
                 response.Clear();
 
                 List<InfisicalCertificatePolicyResponseDto> source = ParseCertificatePolicyListBody(body);
-                InfisicalCertificatePolicy[] mapped = InfisicalCertificatePolicyMapper.MapMany(source, resolvedProjectId);
+                InfisicalCertificatePolicy[] mapped = InfisicalCertificatePolicyMapper.MapMany(source, projectId);
                 _logger.Information(Component, "Infisical certificate policy list retrieval was successful.");
                 return mapped;
             }
@@ -579,8 +569,7 @@ namespace PSInfisicalAPI.Pki
                 response.Clear();
 
                 InfisicalCertificatePolicyResponseDto inner = ParseCertificatePolicySingleBody(body);
-                string fallbackProjectId = !string.IsNullOrEmpty(projectId) ? projectId : connection.ProjectId;
-                InfisicalCertificatePolicy mapped = InfisicalCertificatePolicyMapper.Map(inner, fallbackProjectId);
+                InfisicalCertificatePolicy mapped = InfisicalCertificatePolicyMapper.Map(inner, projectId);
                 _logger.Information(Component, "Infisical certificate policy retrieval was successful.");
                 return mapped;
             }
@@ -643,14 +632,13 @@ namespace PSInfisicalAPI.Pki
         public InfisicalCertificateApplication[] ListCertificateApplications(InfisicalConnection connection, string projectId, int? limit, int? offset)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
 
             List<KeyValuePair<string, string>> query = new List<KeyValuePair<string, string>>();
             if (limit.HasValue) { query.Add(new KeyValuePair<string, string>("limit", limit.Value.ToString(CultureInfo.InvariantCulture))); }
             if (offset.HasValue) { query.Add(new KeyValuePair<string, string>("offset", offset.Value.ToString(CultureInfo.InvariantCulture))); }
 
-            Dictionary<string, string> headers = BuildProjectHeader(resolvedProjectId);
+            Dictionary<string, string> headers = BuildProjectHeader(projectId);
 
             try
             {
@@ -660,7 +648,7 @@ namespace PSInfisicalAPI.Pki
                 response.Clear();
 
                 List<InfisicalCertificateApplicationResponseDto> source = ParseApplicationListBody(body);
-                InfisicalCertificateApplication[] mapped = InfisicalCertificateApplicationMapper.MapMany(source, resolvedProjectId);
+                InfisicalCertificateApplication[] mapped = InfisicalCertificateApplicationMapper.MapMany(source, projectId);
                 _logger.Information(Component, "Infisical certificate application list retrieval was successful.");
                 return mapped;
             }
@@ -677,8 +665,7 @@ namespace PSInfisicalAPI.Pki
             if (string.IsNullOrEmpty(applicationId)) { throw new InfisicalConfigurationException("ApplicationId is required."); }
 
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "applicationId", applicationId } };
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            Dictionary<string, string> headers = !string.IsNullOrEmpty(resolvedProjectId) ? BuildProjectHeader(resolvedProjectId) : null;
+            Dictionary<string, string> headers = !string.IsNullOrEmpty(projectId) ? BuildProjectHeader(projectId) : null;
 
             try
             {
@@ -688,7 +675,7 @@ namespace PSInfisicalAPI.Pki
                 response.Clear();
 
                 InfisicalCertificateApplicationResponseDto inner = ParseApplicationSingleBody(body);
-                InfisicalCertificateApplication mapped = InfisicalCertificateApplicationMapper.Map(inner, resolvedProjectId);
+                InfisicalCertificateApplication mapped = InfisicalCertificateApplicationMapper.Map(inner, projectId);
                 _logger.Information(Component, "Infisical certificate application retrieval was successful.");
                 return mapped;
             }
@@ -703,11 +690,10 @@ namespace PSInfisicalAPI.Pki
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
             if (string.IsNullOrEmpty(name)) { throw new InfisicalConfigurationException("ApplicationName is required."); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
 
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "name", name } };
-            Dictionary<string, string> headers = BuildProjectHeader(resolvedProjectId);
+            Dictionary<string, string> headers = BuildProjectHeader(projectId);
 
             try
             {
@@ -717,7 +703,7 @@ namespace PSInfisicalAPI.Pki
                 response.Clear();
 
                 InfisicalCertificateApplicationResponseDto inner = ParseApplicationSingleBody(body);
-                InfisicalCertificateApplication mapped = InfisicalCertificateApplicationMapper.Map(inner, resolvedProjectId);
+                InfisicalCertificateApplication mapped = InfisicalCertificateApplicationMapper.Map(inner, projectId);
                 _logger.Information(Component, "Infisical certificate application (by name) retrieval was successful.");
                 return mapped;
             }
@@ -734,8 +720,7 @@ namespace PSInfisicalAPI.Pki
             if (string.IsNullOrEmpty(applicationId)) { throw new InfisicalConfigurationException("ApplicationId is required."); }
 
             Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "applicationId", applicationId } };
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            Dictionary<string, string> headers = !string.IsNullOrEmpty(resolvedProjectId) ? BuildProjectHeader(resolvedProjectId) : null;
+            Dictionary<string, string> headers = !string.IsNullOrEmpty(projectId) ? BuildProjectHeader(projectId) : null;
 
             try
             {
@@ -767,8 +752,7 @@ namespace PSInfisicalAPI.Pki
                 { "applicationId", applicationId },
                 { "profileId", profileId }
             };
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            Dictionary<string, string> headers = !string.IsNullOrEmpty(resolvedProjectId) ? BuildProjectHeader(resolvedProjectId) : null;
+            Dictionary<string, string> headers = !string.IsNullOrEmpty(projectId) ? BuildProjectHeader(projectId) : null;
 
             try
             {

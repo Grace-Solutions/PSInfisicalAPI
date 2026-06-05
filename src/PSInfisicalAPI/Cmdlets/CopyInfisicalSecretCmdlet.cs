@@ -18,9 +18,9 @@ namespace PSInfisicalAPI.Cmdlets
         public string DestinationEnvironment { get; set; }
 
         [Parameter] public string DestinationSecretPath { get; set; }
-        [Parameter] public string SourceEnvironment { get; set; }
+        [Parameter(Mandatory = true)] public string SourceEnvironment { get; set; }
         [Parameter] public string SourceSecretPath { get; set; }
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
         [Parameter] public string ApiVersion { get; set; }
         [Parameter] public SwitchParameter OverwriteExisting { get; set; }
         [Parameter] public SwitchParameter CopySecretValue { get; set; }
@@ -35,9 +35,6 @@ namespace PSInfisicalAPI.Cmdlets
                 if (SecretId == null || SecretId.Length == 0) { return; }
 
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
-                string resolvedSourceEnv = ResolveEnvironment(connection, SourceEnvironment);
-                string resolvedSourcePath = ResolveSecretPath(connection, SourceSecretPath);
                 string resolvedApiVersion = ResolveApiVersion(connection, ApiVersion);
 
                 string target = string.Concat(SecretId.Length, " secret(s) -> ", DestinationEnvironment);
@@ -45,10 +42,10 @@ namespace PSInfisicalAPI.Cmdlets
 
                 InfisicalDuplicateSecretsRequest request = new InfisicalDuplicateSecretsRequest
                 {
-                    ProjectId = resolvedProjectId,
-                    SourceEnvironment = resolvedSourceEnv,
+                    ProjectId = ProjectId,
+                    SourceEnvironment = SourceEnvironment,
                     DestinationEnvironment = DestinationEnvironment,
-                    SourceSecretPath = resolvedSourcePath,
+                    SourceSecretPath = SourceSecretPath,
                     DestinationSecretPath = DestinationSecretPath,
                     SecretIds = SecretId,
                     ApiVersion = resolvedApiVersion,

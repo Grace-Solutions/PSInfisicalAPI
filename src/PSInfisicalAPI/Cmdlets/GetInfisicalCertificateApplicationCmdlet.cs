@@ -18,7 +18,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Name")]
         public string ApplicationName { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
 
         [Parameter(ParameterSetName = "List")] public int? Limit { get; set; }
 
@@ -30,23 +30,22 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
                 InfisicalPkiClient client = new InfisicalPkiClient(HttpClient, Logger);
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
 
                 if (string.Equals(ParameterSetName, "ById", StringComparison.Ordinal))
                 {
-                    InfisicalCertificateApplication app = client.GetCertificateApplication(connection, Id, resolvedProjectId);
+                    InfisicalCertificateApplication app = client.GetCertificateApplication(connection, Id, ProjectId);
                     if (app != null) { WriteObject(app); }
                     return;
                 }
 
                 if (string.Equals(ParameterSetName, "ByName", StringComparison.Ordinal))
                 {
-                    InfisicalCertificateApplication app = client.GetCertificateApplicationByName(connection, ApplicationName, resolvedProjectId);
+                    InfisicalCertificateApplication app = client.GetCertificateApplicationByName(connection, ApplicationName, ProjectId);
                     if (app != null) { WriteObject(app); }
                     return;
                 }
 
-                InfisicalCertificateApplication[] all = client.ListCertificateApplications(connection, resolvedProjectId, Limit, Offset);
+                InfisicalCertificateApplication[] all = client.ListCertificateApplications(connection, ProjectId, Limit, Offset);
                 foreach (InfisicalCertificateApplication app in all)
                 {
                     WriteObject(app);

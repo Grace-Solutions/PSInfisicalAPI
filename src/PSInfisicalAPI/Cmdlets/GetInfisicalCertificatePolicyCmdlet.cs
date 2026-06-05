@@ -14,7 +14,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Id", "CertificatePolicyId")]
         public string PolicyId { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
 
         [Parameter(ParameterSetName = "List")] public int? Limit { get; set; }
 
@@ -26,11 +26,10 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
                 InfisicalPkiClient client = new InfisicalPkiClient(HttpClient, Logger);
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
 
                 if (string.Equals(ParameterSetName, "ById", StringComparison.Ordinal))
                 {
-                    InfisicalCertificatePolicy policy = client.GetCertificatePolicy(connection, PolicyId, resolvedProjectId);
+                    InfisicalCertificatePolicy policy = client.GetCertificatePolicy(connection, PolicyId, ProjectId);
                     if (policy != null)
                     {
                         WriteObject(policy);
@@ -39,7 +38,7 @@ namespace PSInfisicalAPI.Cmdlets
                     return;
                 }
 
-                InfisicalCertificatePolicy[] all = client.ListCertificatePolicies(connection, resolvedProjectId, Limit, Offset);
+                InfisicalCertificatePolicy[] all = client.ListCertificatePolicies(connection, ProjectId, Limit, Offset);
                 foreach (InfisicalCertificatePolicy policy in all)
                 {
                     WriteObject(policy);

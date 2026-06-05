@@ -14,7 +14,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("SubscriberName", "Slug")]
         public string Name { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
 
         protected override void ProcessRecord()
         {
@@ -22,11 +22,10 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
                 InfisicalPkiClient client = new InfisicalPkiClient(HttpClient, Logger);
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
 
                 if (string.Equals(ParameterSetName, "ByName", StringComparison.Ordinal))
                 {
-                    InfisicalPkiSubscriber subscriber = client.GetPkiSubscriber(connection, Name, resolvedProjectId);
+                    InfisicalPkiSubscriber subscriber = client.GetPkiSubscriber(connection, Name, ProjectId);
                     if (subscriber != null)
                     {
                         WriteObject(subscriber);
@@ -35,7 +34,7 @@ namespace PSInfisicalAPI.Cmdlets
                     return;
                 }
 
-                InfisicalPkiSubscriber[] all = client.ListPkiSubscribers(connection, resolvedProjectId);
+                InfisicalPkiSubscriber[] all = client.ListPkiSubscribers(connection, ProjectId);
                 foreach (InfisicalPkiSubscriber subscriber in all)
                 {
                     WriteObject(subscriber);

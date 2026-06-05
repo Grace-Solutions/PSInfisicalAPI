@@ -9,7 +9,7 @@
       <command:noun>Infisical</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Authenticates against an Infisical instance using one of the supported auth providers (UniversalAuth, Token, JWT, OIDC, LDAP, Azure, GCP IAM) and stores the resulting connection in the module-level session manager. Subsequent cmdlets pick up the connection automatically. If parameters such as BaseUri, OrganizationId, ProjectId, Environment, ClientId, or ClientSecret are not supplied, the cmdlet attempts to resolve them from a curated list of environment-variable name patterns across Process, User, and Machine scopes.</maml:para>
+      <maml:para>Authenticates against an Infisical instance using one of the supported auth providers (UniversalAuth, Token, JWT, OIDC, LDAP, Azure, GCP IAM) and stores the resulting connection in the module-level session manager. Subsequent cmdlets pick up the connection automatically. If parameters such as BaseUri, OrganizationId, ClientId, or ClientSecret are not supplied, the cmdlet attempts to resolve them from a curated list of environment-variable name patterns across Process, User, and Machine scopes. The connection no longer carries a default ProjectId, Environment, or SecretPath; downstream cmdlets accept those as explicit (mandatory where applicable) parameters.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -21,7 +21,7 @@
     <command:examples>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>Connect-Infisical -BaseUri 'https://app.infisical.com' -ClientId $ClientId -ClientSecret $ClientSecret -OrganizationId $OrgId -ProjectId $ProjectId -Environment 'dev'</dev:code>
+        <dev:code>Connect-Infisical -BaseUri 'https://app.infisical.com' -ClientId $ClientId -ClientSecret $ClientSecret -OrganizationId $OrgId</dev:code>
         <dev:remarks><maml:para>Performs a Universal-Auth machine-identity login and stores the resulting session for subsequent cmdlets.</maml:para></dev:remarks>
       </command:example>
       <command:example>
@@ -29,11 +29,8 @@
         <dev:code>$ConnectInfisicalParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $ConnectInfisicalParameters.BaseUri        = 'https://app.infisical.com'
 $ConnectInfisicalParameters.OrganizationId = $OrganizationId
-$ConnectInfisicalParameters.ProjectId      = $ProjectId
-$ConnectInfisicalParameters.Environment    = 'dev'
 $ConnectInfisicalParameters.ClientId       = $ClientId
 $ConnectInfisicalParameters.ClientSecret   = $ClientSecret
-$ConnectInfisicalParameters.SecretPath     = '/'
 $ConnectInfisicalParameters.ApiVersion     = 'v4'
 $ConnectInfisicalParameters.PassThru       = $True
 $ConnectInfisicalParameters.Verbose        = $True
@@ -86,7 +83,7 @@ $DisconnectInfisicalResult = Disconnect-Infisical @DisconnectInfisicalParameters
       <command:noun>InfisicalSecret</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Default (List parameter set) enumerates secrets under the active session's project and environment, optionally recursing through subfolders and filtering by metadata or tag slugs. When -SecretName is supplied (Single parameter set) the cmdlet returns one secret by name; -Version and -Type tune the single-record fetch. ProjectId, Environment, SecretPath, and ApiVersion default to the values pinned on the active InfisicalConnection in both modes.</maml:para>
+      <maml:para>Default (List parameter set) enumerates secrets under the supplied project and environment, optionally recursing through subfolders and filtering by metadata or tag slugs. When -SecretName is supplied (Single parameter set) the cmdlet returns one secret by name; -Version and -Type tune the single-record fetch. -ProjectId and -Environment are mandatory in both modes; -SecretPath defaults to '/' and -ApiVersion defaults to the value pinned on the active InfisicalConnection.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -97,8 +94,8 @@ $DisconnectInfisicalResult = Disconnect-Infisical @DisconnectInfisicalParameters
     <command:examples>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>Get-InfisicalSecret -SecretPath '/Windows' -Recursive</dev:code>
-        <dev:remarks><maml:para>Lists every secret under /Windows in the active project and environment.</maml:para></dev:remarks>
+        <dev:code>Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' -SecretPath '/Windows' -Recursive</dev:code>
+        <dev:remarks><maml:para>Lists every secret under /Windows in the dev environment of the specified project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
@@ -108,8 +105,8 @@ $DisconnectInfisicalResult = Disconnect-Infisical @DisconnectInfisicalParameters
       <command:example>
         <maml:title>EXAMPLE 3</maml:title>
         <dev:code>$GetInfisicalSecretParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
-$GetInfisicalSecretParameters.ProjectId                = $ConnectInfisicalParameters.ProjectId
-$GetInfisicalSecretParameters.Environment              = $ConnectInfisicalParameters.Environment
+$GetInfisicalSecretParameters.ProjectId                = $ProjectId
+$GetInfisicalSecretParameters.Environment              = 'dev'
 $GetInfisicalSecretParameters.SecretPath               = "/Windows/$($CallingScriptPath.BaseName)"
 $GetInfisicalSecretParameters.Recursive                = $True
 $GetInfisicalSecretParameters.ExpandSecretReferences   = $True
@@ -142,19 +139,19 @@ $GetInfisicalSecretResult = Get-InfisicalSecret @GetInfisicalSecretParameters</d
     <command:examples>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>New-InfisicalSecret -SecretName 'API_KEY' -SecretValue 'super-secret-value'</dev:code>
-        <dev:remarks><maml:para>Creates a single shared secret in the active project/environment.</maml:para></dev:remarks>
+        <dev:code>New-InfisicalSecret -SecretName 'API_KEY' -SecretValue 'super-secret-value' -ProjectId $ProjectId -Environment 'dev'</dev:code>
+        <dev:remarks><maml:para>Creates a single shared secret in the specified project/environment.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
-        <dev:code>$GetInfisicalTagResult = Get-InfisicalTag -ProjectId $ConnectInfisicalParameters.ProjectId
+        <dev:code>$GetInfisicalTagResult = Get-InfisicalTag -ProjectId $ProjectId
 
 $NewInfisicalSecretParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $NewInfisicalSecretParameters.SecretName    = 'API_KEY'
 $NewInfisicalSecretParameters.SecretValue   = 'super-secret-value'
 $NewInfisicalSecretParameters.SecretComment = 'Issued by deployment pipeline'
-$NewInfisicalSecretParameters.ProjectId     = $ConnectInfisicalParameters.ProjectId
-$NewInfisicalSecretParameters.Environment   = $ConnectInfisicalParameters.Environment
+$NewInfisicalSecretParameters.ProjectId     = $ProjectId
+$NewInfisicalSecretParameters.Environment   = 'dev'
 $NewInfisicalSecretParameters.SecretPath    = "/Windows/$($CallingScriptPath.BaseName)"
 $NewInfisicalSecretParameters.TagIds        = @($GetInfisicalTagResult[0].Id)
 $NewInfisicalSecretParameters.Verbose       = $True
@@ -184,8 +181,8 @@ $NewInfisicalSecretResult = New-InfisicalSecret @NewInfisicalSecretParameters</d
     <command:examples>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>Update-InfisicalSecret -SecretName 'API_KEY' -SecretValue 'rotated-value'</dev:code>
-        <dev:remarks><maml:para>Rotates the API_KEY secret in the active project/environment.</maml:para></dev:remarks>
+        <dev:code>Update-InfisicalSecret -SecretName 'API_KEY' -SecretValue 'rotated-value' -ProjectId $ProjectId -Environment 'dev'</dev:code>
+        <dev:remarks><maml:para>Rotates the API_KEY secret in the specified project/environment.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
@@ -194,8 +191,8 @@ $UpdateInfisicalSecretParameters.SecretName    = 'API_KEY'
 $UpdateInfisicalSecretParameters.NewSecretName = 'API_KEY_V2'
 $UpdateInfisicalSecretParameters.SecretValue   = 'rotated-value'
 $UpdateInfisicalSecretParameters.SecretComment = 'Rotated by scheduled job'
-$UpdateInfisicalSecretParameters.ProjectId     = $ConnectInfisicalParameters.ProjectId
-$UpdateInfisicalSecretParameters.Environment   = $ConnectInfisicalParameters.Environment
+$UpdateInfisicalSecretParameters.ProjectId     = $ProjectId
+$UpdateInfisicalSecretParameters.Environment   = 'dev'
 $UpdateInfisicalSecretParameters.SecretPath    = "/Windows/$($CallingScriptPath.BaseName)"
 $UpdateInfisicalSecretParameters.Verbose       = $True
 
@@ -224,15 +221,15 @@ $UpdateInfisicalSecretResult = Update-InfisicalSecret @UpdateInfisicalSecretPara
     <command:examples>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>Remove-InfisicalSecret -SecretName 'API_KEY_V1' -Confirm:$False</dev:code>
+        <dev:code>Remove-InfisicalSecret -SecretName 'API_KEY_V1' -ProjectId $ProjectId -Environment 'dev' -Confirm:$False</dev:code>
         <dev:remarks><maml:para>Deletes a single secret without prompting.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
         <dev:code>$RemoveInfisicalSecretParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $RemoveInfisicalSecretParameters.SecretNames = @('LEGACY_KEY_1','LEGACY_KEY_2','LEGACY_KEY_3')
-$RemoveInfisicalSecretParameters.ProjectId   = $ConnectInfisicalParameters.ProjectId
-$RemoveInfisicalSecretParameters.Environment = $ConnectInfisicalParameters.Environment
+$RemoveInfisicalSecretParameters.ProjectId   = $ProjectId
+$RemoveInfisicalSecretParameters.Environment = 'dev'
 $RemoveInfisicalSecretParameters.SecretPath  = "/Windows/$($CallingScriptPath.BaseName)"
 $RemoveInfisicalSecretParameters.PassThru    = $True
 $RemoveInfisicalSecretParameters.Confirm     = $False
@@ -263,17 +260,17 @@ $RemoveInfisicalSecretResult = Remove-InfisicalSecret @RemoveInfisicalSecretPara
     <command:examples>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>Get-InfisicalSecret | Select-Object -ExpandProperty Id | Copy-InfisicalSecret -DestinationEnvironment 'staging' -CopySecretValue</dev:code>
-        <dev:remarks><maml:para>Copies all secrets from the active environment into 'staging', including their values.</maml:para></dev:remarks>
+        <dev:code>Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' | Select-Object -ExpandProperty Id | Copy-InfisicalSecret -ProjectId $ProjectId -SourceEnvironment 'dev' -DestinationEnvironment 'staging' -CopySecretValue</dev:code>
+        <dev:remarks><maml:para>Copies all secrets from dev into staging, including their values.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
-        <dev:code>$GetInfisicalSecretResult = Get-InfisicalSecret -SecretPath '/Windows' -Recursive
+        <dev:code>$GetInfisicalSecretResult = Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' -SecretPath '/Windows' -Recursive
 
 $CopyInfisicalSecretParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $CopyInfisicalSecretParameters.SecretId               = $GetInfisicalSecretResult.Id
-$CopyInfisicalSecretParameters.ProjectId              = $ConnectInfisicalParameters.ProjectId
-$CopyInfisicalSecretParameters.SourceEnvironment      = $ConnectInfisicalParameters.Environment
+$CopyInfisicalSecretParameters.ProjectId              = $ProjectId
+$CopyInfisicalSecretParameters.SourceEnvironment      = 'dev'
 $CopyInfisicalSecretParameters.SourceSecretPath       = '/Windows'
 $CopyInfisicalSecretParameters.DestinationEnvironment = 'staging'
 $CopyInfisicalSecretParameters.DestinationSecretPath  = '/Windows'
@@ -285,7 +282,7 @@ $CopyInfisicalSecretParameters.CopyMetadata           = $True
 $CopyInfisicalSecretParameters.Verbose                = $True
 
 $CopyInfisicalSecretResult = Copy-InfisicalSecret @CopyInfisicalSecretParameters</dev:code>
-        <dev:remarks><maml:para>Promotes every Windows secret from the active environment into staging with full value/comment/tag/metadata propagation.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Promotes every Windows secret from dev into staging with full value/comment/tag/metadata propagation.</maml:para></dev:remarks>
       </command:example>
     </command:examples>
   </command:command>
@@ -309,12 +306,12 @@ $CopyInfisicalSecretResult = Copy-InfisicalSecret @CopyInfisicalSecretParameters
     <command:examples>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>Get-InfisicalSecret | ConvertTo-InfisicalSecretDictionary -AsPlainText</dev:code>
-        <dev:remarks><maml:para>Builds a plain-text dictionary of every secret in the active environment.</maml:para></dev:remarks>
+        <dev:code>Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' | ConvertTo-InfisicalSecretDictionary -AsPlainText</dev:code>
+        <dev:remarks><maml:para>Builds a plain-text dictionary of every secret in the dev environment of the specified project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
-        <dev:code>$GetInfisicalSecretResult = Get-InfisicalSecret -SecretPath "/Windows/$($CallingScriptPath.BaseName)" -Recursive
+        <dev:code>$GetInfisicalSecretResult = Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' -SecretPath "/Windows/$($CallingScriptPath.BaseName)" -Recursive
 
 $ConvertToInfisicalSecretDictionaryParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $ConvertToInfisicalSecretDictionaryParameters.InputObject          = $GetInfisicalSecretResult
@@ -347,12 +344,12 @@ $ConvertToInfisicalSecretDictionaryResult = ConvertTo-InfisicalSecretDictionary 
     <command:examples>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>Get-InfisicalSecret | Export-InfisicalSecrets -Format DotEnv -Path '.\.env' -Force</dev:code>
-        <dev:remarks><maml:para>Writes the active environment's secrets to a .env file.</maml:para></dev:remarks>
+        <dev:code>Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' | Export-InfisicalSecrets -Format DotEnv -Path '.\.env' -Force</dev:code>
+        <dev:remarks><maml:para>Writes the dev environment's secrets for the specified project to a .env file.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
-        <dev:code>$GetInfisicalSecretResult = Get-InfisicalSecret -SecretPath "/Windows/$($CallingScriptPath.BaseName)" -Recursive
+        <dev:code>$GetInfisicalSecretResult = Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' -SecretPath "/Windows/$($CallingScriptPath.BaseName)" -Recursive
 
 $ExportInfisicalSecretsParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $ExportInfisicalSecretsParameters.InputObject = $GetInfisicalSecretResult
@@ -375,7 +372,7 @@ $ExportInfisicalSecretsResult = Export-InfisicalSecrets @ExportInfisicalSecretsP
       <command:noun>InfisicalProject</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Default (List parameter set) returns every project the active session can see; project visibility is governed by Infisical's role assignments. When -ProjectId is supplied (Single parameter set) the cmdlet returns the one matching record.</maml:para>
+      <maml:para>Default (List parameter set) returns every project the active session can see; project visibility is governed by Infisical's role assignments. -Type filters the list to a single product surface (secret-manager, cert-manager, kms, ssh, secret-scanning, pam, ai). -IncludeRoles asks the server to return the caller's role bindings on each project. When -ProjectId is supplied (Single parameter set) the cmdlet returns the one matching record.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -391,19 +388,24 @@ $ExportInfisicalSecretsResult = Export-InfisicalSecrets @ExportInfisicalSecretsP
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
-        <dev:code>Get-InfisicalProject -ProjectId $ConnectInfisicalParameters.ProjectId</dev:code>
-        <dev:remarks><maml:para>Retrieves the canonical record for the project pinned by the active session.</maml:para></dev:remarks>
+        <dev:code>Get-InfisicalProject -ProjectId $ProjectId</dev:code>
+        <dev:remarks><maml:para>Retrieves the canonical record for a single project by id.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 3</maml:title>
-        <dev:code>$GetInfisicalProjectListResult = Get-InfisicalProject | Where-Object { $_.Slug -ilike 'platform-*' }
+        <dev:code>Get-InfisicalProject -Type 'cert-manager' -IncludeRoles</dev:code>
+        <dev:remarks><maml:para>Lists every Certificate Manager project visible to the session, including the caller's role bindings.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 4</maml:title>
+        <dev:code>$GetInfisicalProjectListResult = Get-InfisicalProject -Type 'secret-manager' | Where-Object { $_.Slug -ilike 'platform-*' }
 
 $GetInfisicalProjectParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $GetInfisicalProjectParameters.ProjectId = $GetInfisicalProjectListResult[0].Id
 $GetInfisicalProjectParameters.Verbose   = $True
 
 $GetInfisicalProjectResult = Get-InfisicalProject @GetInfisicalProjectParameters</dev:code>
-        <dev:remarks><maml:para>Filters the project list to slugs that begin with 'platform-' and refetches the first match by id.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Filters Secret Manager projects to slugs that begin with 'platform-' and refetches the first match by id.</maml:para></dev:remarks>
       </command:example>
     </command:examples>
   </command:command>
@@ -454,7 +456,7 @@ $NewInfisicalProjectResult = New-InfisicalProject @NewInfisicalProjectParameters
       <command:noun>InfisicalProject</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Updates mutable attributes on a project. -ProjectId defaults to the pinned session project when omitted. Only parameters that are bound are sent to the server. Honors -WhatIf and -Confirm.</maml:para>
+      <maml:para>Updates mutable attributes on a project. -ProjectId is required. Only parameters that are bound are sent to the server. Honors -WhatIf and -Confirm.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -466,7 +468,7 @@ $NewInfisicalProjectResult = New-InfisicalProject @NewInfisicalProjectParameters
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Update-InfisicalProject -Name 'Platform Telemetry (v2)'</dev:code>
-        <dev:remarks><maml:para>Renames the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Renames the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
@@ -493,7 +495,7 @@ $UpdateInfisicalProjectResult = Update-InfisicalProject @UpdateInfisicalProjectP
       <command:noun>InfisicalProject</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Deletes a project by Id. Defaults to the session-pinned project when -ProjectId is omitted. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed project id.</maml:para>
+      <maml:para>Deletes a project by Id. -ProjectId is required. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed project id.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -505,7 +507,7 @@ $UpdateInfisicalProjectResult = Update-InfisicalProject @UpdateInfisicalProjectP
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Remove-InfisicalProject -Confirm:$False</dev:code>
-        <dev:remarks><maml:para>Deletes the session-pinned project without prompting.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Deletes the supplied project without prompting.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
@@ -531,7 +533,7 @@ $RemoveInfisicalProjectResult = Remove-InfisicalProject @RemoveInfisicalProjectP
       <command:noun>InfisicalEnvironment</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Default (List parameter set) returns every environment configured on the session-pinned project. When -EnvironmentSlugOrId is supplied (Single parameter set) the cmdlet returns one environment by slug or id. -ProjectId defaults to the session-pinned project in both modes.</maml:para>
+      <maml:para>Default (List parameter set) returns every environment configured on the supplied project. When -EnvironmentSlugOrId is supplied (Single parameter set) the cmdlet returns one environment by slug or id. -ProjectId is required in both modes.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -543,12 +545,12 @@ $RemoveInfisicalProjectResult = Remove-InfisicalProject @RemoveInfisicalProjectP
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Get-InfisicalEnvironment</dev:code>
-        <dev:remarks><maml:para>Lists every environment defined on the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Lists every environment defined on the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
         <dev:code>Get-InfisicalEnvironment -EnvironmentSlugOrId 'dev'</dev:code>
-        <dev:remarks><maml:para>Retrieves the 'dev' environment from the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Retrieves the 'dev' environment from the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 3</maml:title>
@@ -573,7 +575,7 @@ $GetInfisicalEnvironmentResult = Get-InfisicalEnvironment @GetInfisicalEnvironme
       <command:noun>InfisicalEnvironment</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Creates an environment with the supplied display name and slug, optionally setting its sort -Position. -ProjectId defaults to the session-pinned project when omitted. Honors -WhatIf and -Confirm.</maml:para>
+      <maml:para>Creates an environment with the supplied display name and slug, optionally setting its sort -Position. -ProjectId is required. Honors -WhatIf and -Confirm.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -585,7 +587,7 @@ $GetInfisicalEnvironmentResult = Get-InfisicalEnvironment @GetInfisicalEnvironme
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>New-InfisicalEnvironment -Name 'Staging' -Slug 'staging'</dev:code>
-        <dev:remarks><maml:para>Adds a Staging environment to the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Adds a Staging environment to the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
@@ -612,7 +614,7 @@ $NewInfisicalEnvironmentResult = New-InfisicalEnvironment @NewInfisicalEnvironme
       <command:noun>InfisicalEnvironment</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Updates an environment identified by -EnvironmentId. -ProjectId defaults to the session-pinned project when omitted. Only bound parameters are sent to the server. Honors -WhatIf and -Confirm.</maml:para>
+      <maml:para>Updates an environment identified by -EnvironmentId. -ProjectId is required. Only bound parameters are sent to the server. Honors -WhatIf and -Confirm.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -624,7 +626,7 @@ $NewInfisicalEnvironmentResult = New-InfisicalEnvironment @NewInfisicalEnvironme
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Update-InfisicalEnvironment -EnvironmentId $EnvId -Name 'Pre-Production'</dev:code>
-        <dev:remarks><maml:para>Renames an environment in the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Renames an environment in the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
@@ -632,7 +634,7 @@ $NewInfisicalEnvironmentResult = New-InfisicalEnvironment @NewInfisicalEnvironme
 
 $UpdateInfisicalEnvironmentParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $UpdateInfisicalEnvironmentParameters.EnvironmentId = $GetInfisicalEnvironmentResult.Id
-$UpdateInfisicalEnvironmentParameters.ProjectId     = $ConnectInfisicalParameters.ProjectId
+$UpdateInfisicalEnvironmentParameters.ProjectId     = $ProjectId
 $UpdateInfisicalEnvironmentParameters.Name          = 'Pre-Production'
 $UpdateInfisicalEnvironmentParameters.Slug          = 'preprod'
 $UpdateInfisicalEnvironmentParameters.Position      = 25
@@ -652,7 +654,7 @@ $UpdateInfisicalEnvironmentResult = Update-InfisicalEnvironment @UpdateInfisical
       <command:noun>InfisicalEnvironment</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Removes an environment by Id. -ProjectId defaults to the session-pinned project when omitted. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed environment id.</maml:para>
+      <maml:para>Removes an environment by Id. -ProjectId is required. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed environment id.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -672,7 +674,7 @@ $UpdateInfisicalEnvironmentResult = Update-InfisicalEnvironment @UpdateInfisical
 
 $RemoveInfisicalEnvironmentParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $RemoveInfisicalEnvironmentParameters.EnvironmentId = $GetInfisicalEnvironmentResult.Id
-$RemoveInfisicalEnvironmentParameters.ProjectId     = $ConnectInfisicalParameters.ProjectId
+$RemoveInfisicalEnvironmentParameters.ProjectId     = $ProjectId
 $RemoveInfisicalEnvironmentParameters.PassThru      = $True
 $RemoveInfisicalEnvironmentParameters.Confirm       = $False
 $RemoveInfisicalEnvironmentParameters.Verbose       = $True
@@ -691,7 +693,7 @@ $RemoveInfisicalEnvironmentResult = Remove-InfisicalEnvironment @RemoveInfisical
       <command:noun>InfisicalFolder</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Default (List parameter set) enumerates folders directly under the supplied -Path within the active project and environment. When -FolderNameOrId is supplied (Single parameter set) the cmdlet returns one folder by name or id under -Path. -ProjectId, -Environment, and -Path default to the session-pinned values in both modes.</maml:para>
+      <maml:para>Default (List parameter set) enumerates folders directly under the supplied -Path within the project and environment. When -FolderNameOrId is supplied (Single parameter set) the cmdlet returns one folder by name or id under -Path. -ProjectId and -Environment are required in both modes; -Path defaults to '/'.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -702,13 +704,13 @@ $RemoveInfisicalEnvironmentResult = Remove-InfisicalEnvironment @RemoveInfisical
     <command:examples>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>Get-InfisicalFolder -Path '/Windows'</dev:code>
-        <dev:remarks><maml:para>Lists every folder directly under /Windows in the active project and environment.</maml:para></dev:remarks>
+        <dev:code>Get-InfisicalFolder -ProjectId $ProjectId -Environment 'dev' -Path '/Windows'</dev:code>
+        <dev:remarks><maml:para>Lists every folder directly under /Windows in the supplied project and environment.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
-        <dev:code>Get-InfisicalFolder -FolderNameOrId 'Deployments' -Path '/Windows'</dev:code>
-        <dev:remarks><maml:para>Retrieves the Deployments folder under /Windows in the active project and environment.</maml:para></dev:remarks>
+        <dev:code>Get-InfisicalFolder -FolderNameOrId 'Deployments' -ProjectId $ProjectId -Environment 'dev' -Path '/Windows'</dev:code>
+        <dev:remarks><maml:para>Retrieves the Deployments folder under /Windows in the supplied project and environment.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 3</maml:title>
@@ -716,8 +718,8 @@ $RemoveInfisicalEnvironmentResult = Remove-InfisicalEnvironment @RemoveInfisical
 
 $GetInfisicalFolderParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $GetInfisicalFolderParameters.FolderNameOrId = $GetInfisicalFolderListResult.Id
-$GetInfisicalFolderParameters.ProjectId      = $ConnectInfisicalParameters.ProjectId
-$GetInfisicalFolderParameters.Environment    = $ConnectInfisicalParameters.Environment
+$GetInfisicalFolderParameters.ProjectId      = $ProjectId
+$GetInfisicalFolderParameters.Environment    = 'dev'
 $GetInfisicalFolderParameters.Path           = '/Windows'
 $GetInfisicalFolderParameters.Verbose        = $True
 
@@ -735,7 +737,7 @@ $GetInfisicalFolderResult = Get-InfisicalFolder @GetInfisicalFolderParameters</d
       <command:noun>InfisicalFolder</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Creates a folder with the supplied -Name beneath the supplied -Path. -ProjectId, -Environment, and -Path default to the session-pinned values when omitted. Honors -WhatIf and -Confirm.</maml:para>
+      <maml:para>Creates a folder with the supplied -Name beneath the supplied -Path. -ProjectId and -Environment are required; -Path defaults to '/'. Honors -WhatIf and -Confirm.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -746,20 +748,20 @@ $GetInfisicalFolderResult = Get-InfisicalFolder @GetInfisicalFolderParameters</d
     <command:examples>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>New-InfisicalFolder -Name 'Deployments' -Path '/Windows'</dev:code>
-        <dev:remarks><maml:para>Creates the Deployments folder under /Windows in the active project and environment.</maml:para></dev:remarks>
+        <dev:code>New-InfisicalFolder -Name 'Deployments' -ProjectId $ProjectId -Environment 'dev' -Path '/Windows'</dev:code>
+        <dev:remarks><maml:para>Creates the Deployments folder under /Windows in the supplied project and environment.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
         <dev:code>$NewInfisicalFolderParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $NewInfisicalFolderParameters.Name        = $CallingScriptPath.BaseName
-$NewInfisicalFolderParameters.ProjectId   = $ConnectInfisicalParameters.ProjectId
-$NewInfisicalFolderParameters.Environment = $ConnectInfisicalParameters.Environment
+$NewInfisicalFolderParameters.ProjectId   = $ProjectId
+$NewInfisicalFolderParameters.Environment = 'dev'
 $NewInfisicalFolderParameters.Path        = '/Windows'
 $NewInfisicalFolderParameters.Verbose     = $True
 
 $NewInfisicalFolderResult = New-InfisicalFolder @NewInfisicalFolderParameters</dev:code>
-        <dev:remarks><maml:para>Creates a script-named folder under /Windows using the session-pinned project and environment.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Creates a script-named folder under /Windows in the supplied project and environment.</maml:para></dev:remarks>
       </command:example>
     </command:examples>
   </command:command>
@@ -772,7 +774,7 @@ $NewInfisicalFolderResult = New-InfisicalFolder @NewInfisicalFolderParameters</d
       <command:noun>InfisicalFolder</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Renames a folder identified by -FolderId to the supplied -Name. -ProjectId, -Environment, and -Path default to the session-pinned values when omitted. Honors -WhatIf and -Confirm.</maml:para>
+      <maml:para>Renames a folder identified by -FolderId to the supplied -Name. -ProjectId and -Environment are required; -Path defaults to '/'. Honors -WhatIf and -Confirm.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -784,7 +786,7 @@ $NewInfisicalFolderResult = New-InfisicalFolder @NewInfisicalFolderParameters</d
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Update-InfisicalFolder -FolderId $FolderId -Name 'Deployments-Archive'</dev:code>
-        <dev:remarks><maml:para>Renames a folder in the session-pinned project/environment.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Renames a folder in the supplied project/environment.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
@@ -793,8 +795,8 @@ $NewInfisicalFolderResult = New-InfisicalFolder @NewInfisicalFolderParameters</d
 $UpdateInfisicalFolderParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $UpdateInfisicalFolderParameters.FolderId    = $GetInfisicalFolderResult.Id
 $UpdateInfisicalFolderParameters.Name        = 'Deployments-Archive'
-$UpdateInfisicalFolderParameters.ProjectId   = $ConnectInfisicalParameters.ProjectId
-$UpdateInfisicalFolderParameters.Environment = $ConnectInfisicalParameters.Environment
+$UpdateInfisicalFolderParameters.ProjectId   = $ProjectId
+$UpdateInfisicalFolderParameters.Environment = 'dev'
 $UpdateInfisicalFolderParameters.Path        = '/Windows'
 $UpdateInfisicalFolderParameters.Verbose     = $True
 
@@ -812,7 +814,7 @@ $UpdateInfisicalFolderResult = Update-InfisicalFolder @UpdateInfisicalFolderPara
       <command:noun>InfisicalFolder</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Removes a folder by Id from the supplied -Path. -ProjectId, -Environment, and -Path default to the session-pinned values when omitted. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed folder id.</maml:para>
+      <maml:para>Removes a folder by Id from the supplied -Path. -ProjectId and -Environment are required; -Path defaults to '/'. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed folder id.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -824,7 +826,7 @@ $UpdateInfisicalFolderResult = Update-InfisicalFolder @UpdateInfisicalFolderPara
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Remove-InfisicalFolder -FolderId $FolderId -Confirm:$False</dev:code>
-        <dev:remarks><maml:para>Deletes a folder from the session-pinned project/environment without prompting.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Deletes a folder from the supplied project/environment without prompting.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
@@ -832,8 +834,8 @@ $UpdateInfisicalFolderResult = Update-InfisicalFolder @UpdateInfisicalFolderPara
 
 $RemoveInfisicalFolderParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $RemoveInfisicalFolderParameters.FolderId    = $GetInfisicalFolderResult.Id
-$RemoveInfisicalFolderParameters.ProjectId   = $ConnectInfisicalParameters.ProjectId
-$RemoveInfisicalFolderParameters.Environment = $ConnectInfisicalParameters.Environment
+$RemoveInfisicalFolderParameters.ProjectId   = $ProjectId
+$RemoveInfisicalFolderParameters.Environment = 'dev'
 $RemoveInfisicalFolderParameters.Path        = '/Windows'
 $RemoveInfisicalFolderParameters.PassThru    = $True
 $RemoveInfisicalFolderParameters.Confirm     = $False
@@ -853,7 +855,7 @@ $RemoveInfisicalFolderResult = Remove-InfisicalFolder @RemoveInfisicalFolderPara
       <command:noun>InfisicalTag</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Default (List parameter set) returns every tag configured on the project. When -TagSlugOrId is supplied (Single parameter set) the cmdlet returns the one matching record. -ProjectId defaults to the session-pinned project in both modes.</maml:para>
+      <maml:para>Default (List parameter set) returns every tag configured on the project. When -TagSlugOrId is supplied (Single parameter set) the cmdlet returns the one matching record. -ProjectId is required in both modes.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -865,12 +867,12 @@ $RemoveInfisicalFolderResult = Remove-InfisicalFolder @RemoveInfisicalFolderPara
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Get-InfisicalTag</dev:code>
-        <dev:remarks><maml:para>Lists every tag defined on the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Lists every tag defined on the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
         <dev:code>Get-InfisicalTag -TagSlugOrId 'critical'</dev:code>
-        <dev:remarks><maml:para>Retrieves the 'critical' tag from the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Retrieves the 'critical' tag from the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 3</maml:title>
@@ -895,7 +897,7 @@ $GetInfisicalTagResult = Get-InfisicalTag @GetInfisicalTagParameters</dev:code>
       <command:noun>InfisicalTag</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Creates a tag with the supplied -Slug, optional -Name and -Color. -ProjectId defaults to the session-pinned project when omitted. Honors -WhatIf and -Confirm.</maml:para>
+      <maml:para>Creates a tag with the supplied -Slug, optional -Name and -Color. -ProjectId is required. Honors -WhatIf and -Confirm.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -907,7 +909,7 @@ $GetInfisicalTagResult = Get-InfisicalTag @GetInfisicalTagParameters</dev:code>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>New-InfisicalTag -Slug 'critical' -Name 'Critical' -Color '#FF0000'</dev:code>
-        <dev:remarks><maml:para>Creates a red Critical tag in the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Creates a red Critical tag in the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
@@ -915,7 +917,7 @@ $GetInfisicalTagResult = Get-InfisicalTag @GetInfisicalTagParameters</dev:code>
 $NewInfisicalTagParameters.Slug      = 'critical'
 $NewInfisicalTagParameters.Name      = 'Critical'
 $NewInfisicalTagParameters.Color     = '#FF0000'
-$NewInfisicalTagParameters.ProjectId = $ConnectInfisicalParameters.ProjectId
+$NewInfisicalTagParameters.ProjectId = $ProjectId
 $NewInfisicalTagParameters.Verbose   = $True
 
 $NewInfisicalTagResult = New-InfisicalTag @NewInfisicalTagParameters</dev:code>
@@ -932,7 +934,7 @@ $NewInfisicalTagResult = New-InfisicalTag @NewInfisicalTagParameters</dev:code>
       <command:noun>InfisicalTag</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Updates a tag identified by -TagId. -ProjectId defaults to the session-pinned project when omitted. Only bound parameters are sent to the server. Honors -WhatIf and -Confirm.</maml:para>
+      <maml:para>Updates a tag identified by -TagId. -ProjectId is required. Only bound parameters are sent to the server. Honors -WhatIf and -Confirm.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -944,7 +946,7 @@ $NewInfisicalTagResult = New-InfisicalTag @NewInfisicalTagParameters</dev:code>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Update-InfisicalTag -TagId $TagId -Color '#FFA500'</dev:code>
-        <dev:remarks><maml:para>Changes the display color of a tag in the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Changes the display color of a tag in the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
@@ -955,7 +957,7 @@ $UpdateInfisicalTagParameters.TagId     = $GetInfisicalTagResult.Id
 $UpdateInfisicalTagParameters.Slug      = 'critical-v2'
 $UpdateInfisicalTagParameters.Name      = 'Critical (v2)'
 $UpdateInfisicalTagParameters.Color     = '#FFA500'
-$UpdateInfisicalTagParameters.ProjectId = $ConnectInfisicalParameters.ProjectId
+$UpdateInfisicalTagParameters.ProjectId = $ProjectId
 $UpdateInfisicalTagParameters.Verbose   = $True
 
 $UpdateInfisicalTagResult = Update-InfisicalTag @UpdateInfisicalTagParameters</dev:code>
@@ -972,7 +974,7 @@ $UpdateInfisicalTagResult = Update-InfisicalTag @UpdateInfisicalTagParameters</d
       <command:noun>InfisicalTag</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Removes a tag by Id. -ProjectId defaults to the session-pinned project when omitted. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed tag id.</maml:para>
+      <maml:para>Removes a tag by Id. -ProjectId is required. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed tag id.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -984,7 +986,7 @@ $UpdateInfisicalTagResult = Update-InfisicalTag @UpdateInfisicalTagParameters</d
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Remove-InfisicalTag -TagId $TagId -Confirm:$False</dev:code>
-        <dev:remarks><maml:para>Deletes a tag from the session-pinned project without prompting.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Deletes a tag from the supplied project without prompting.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
@@ -992,7 +994,7 @@ $UpdateInfisicalTagResult = Update-InfisicalTag @UpdateInfisicalTagParameters</d
 
 $RemoveInfisicalTagParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $RemoveInfisicalTagParameters.TagId     = $GetInfisicalTagResult.Id
-$RemoveInfisicalTagParameters.ProjectId = $ConnectInfisicalParameters.ProjectId
+$RemoveInfisicalTagParameters.ProjectId = $ProjectId
 $RemoveInfisicalTagParameters.PassThru  = $True
 $RemoveInfisicalTagParameters.Confirm   = $False
 $RemoveInfisicalTagParameters.Verbose   = $True
@@ -1011,7 +1013,7 @@ $RemoveInfisicalTagResult = Remove-InfisicalTag @RemoveInfisicalTagParameters</d
       <command:noun>InfisicalCertificateAuthority</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>When -CaId is supplied (ById parameter set) returns a single internal CA. Otherwise (List parameter set) returns CAs scoped by -Kind: Internal (default, /api/v1/cert-manager/ca/internal), Any (/api/v1/cert-manager/ca returning both internal and ACME), or Acme (filters the generic endpoint to ACME issuers only). -ProjectId defaults to the session-pinned project when omitted.</maml:para>
+      <maml:para>When -CaId is supplied (ById parameter set) returns a single internal CA. Otherwise (List parameter set) returns CAs scoped by -Kind: Internal (default, /api/v1/cert-manager/ca/internal), Any (/api/v1/cert-manager/ca returning both internal and ACME), or Acme (filters the generic endpoint to ACME issuers only). -ProjectId is required.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -1023,12 +1025,12 @@ $RemoveInfisicalTagResult = Remove-InfisicalTag @RemoveInfisicalTagParameters</d
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Get-InfisicalCertificateAuthority</dev:code>
-        <dev:remarks><maml:para>Lists every internal CA visible in the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Lists every internal CA visible in the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
         <dev:code>Get-InfisicalCertificateAuthority -Kind Any</dev:code>
-        <dev:remarks><maml:para>Lists every CA (internal and ACME) visible in the session-pinned project; inspect the Type property to distinguish them.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Lists every CA (internal and ACME) visible in the supplied project; inspect the Type property to distinguish them.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 3</maml:title>
@@ -1036,7 +1038,7 @@ $RemoveInfisicalTagResult = Remove-InfisicalTag @RemoveInfisicalTagParameters</d
 
 $GetInfisicalCertificateAuthorityParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $GetInfisicalCertificateAuthorityParameters.CaId      = $GetInfisicalCertificateAuthorityListResult.Id
-$GetInfisicalCertificateAuthorityParameters.ProjectId = $ConnectInfisicalParameters.ProjectId
+$GetInfisicalCertificateAuthorityParameters.ProjectId = $ProjectId
 $GetInfisicalCertificateAuthorityParameters.Verbose   = $True
 
 $GetInfisicalCertificateAuthorityResult = Get-InfisicalCertificateAuthority @GetInfisicalCertificateAuthorityParameters</dev:code>
@@ -1053,7 +1055,7 @@ $GetInfisicalCertificateAuthorityResult = Get-InfisicalCertificateAuthority @Get
       <command:noun>InfisicalCertificate</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Default (List parameter set) enumerates certificates with optional filters for -CommonName, -FriendlyName, -Status, and -CaId; -Limit and -Offset drive a single page and pages are walked automatically until exhausted unless -NoAutoPage is supplied. When -SerialNumber is supplied (Single parameter set) the cmdlet returns one certificate record. -ProjectId defaults to the session-pinned project in both modes.</maml:para>
+      <maml:para>Default (List parameter set) enumerates certificates with optional filters for -CommonName, -FriendlyName, -Status, and -CaId; -Limit and -Offset drive a single page and pages are walked automatically until exhausted unless -NoAutoPage is supplied. When -SerialNumber is supplied (Single parameter set) the cmdlet returns one certificate record. -ProjectId is required in both modes.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -1065,7 +1067,7 @@ $GetInfisicalCertificateAuthorityResult = Get-InfisicalCertificateAuthority @Get
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Get-InfisicalCertificate -Status 'active'</dev:code>
-        <dev:remarks><maml:para>Lists every active certificate in the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Lists every active certificate in the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
@@ -1077,7 +1079,7 @@ $GetInfisicalCertificateAuthorityResult = Get-InfisicalCertificateAuthority @Get
         <dev:code>$GetInfisicalCertificateAuthorityListResult = Get-InfisicalCertificateAuthority | Where-Object { $_.FriendlyName -eq 'Issuing CA - Platform' }
 
 $GetInfisicalCertificateParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
-$GetInfisicalCertificateParameters.ProjectId    = $ConnectInfisicalParameters.ProjectId
+$GetInfisicalCertificateParameters.ProjectId    = $ProjectId
 $GetInfisicalCertificateParameters.CommonName   = $env:COMPUTERNAME
 $GetInfisicalCertificateParameters.FriendlyName = 'web-tier'
 $GetInfisicalCertificateParameters.Status       = 'active'
@@ -1099,7 +1101,7 @@ $GetInfisicalCertificateListResult = Get-InfisicalCertificate @GetInfisicalCerti
       <command:noun>InfisicalPkiSubscriber</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Default (List parameter set) returns every PKI subscriber configured on the project. When -Name is supplied (ByName parameter set) the cmdlet returns one subscriber by its slug. -ProjectId defaults to the session-pinned project in both modes.</maml:para>
+      <maml:para>Default (List parameter set) returns every PKI subscriber configured on the project. When -Name is supplied (ByName parameter set) the cmdlet returns one subscriber by its slug. -ProjectId is required in both modes.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -1111,12 +1113,12 @@ $GetInfisicalCertificateListResult = Get-InfisicalCertificate @GetInfisicalCerti
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Get-InfisicalPkiSubscriber</dev:code>
-        <dev:remarks><maml:para>Lists every PKI subscriber defined on the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Lists every PKI subscriber defined on the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
         <dev:code>Get-InfisicalPkiSubscriber -Name 'mecm'</dev:code>
-        <dev:remarks><maml:para>Retrieves the 'mecm' PKI subscriber from the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Retrieves the 'mecm' PKI subscriber from the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 3</maml:title>
@@ -1124,7 +1126,7 @@ $GetInfisicalCertificateListResult = Get-InfisicalCertificate @GetInfisicalCerti
 
 $GetInfisicalPkiSubscriberParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $GetInfisicalPkiSubscriberParameters.Name      = $GetInfisicalPkiSubscriberListResult[0].Name
-$GetInfisicalPkiSubscriberParameters.ProjectId = $ConnectInfisicalParameters.ProjectId
+$GetInfisicalPkiSubscriberParameters.ProjectId = $ProjectId
 $GetInfisicalPkiSubscriberParameters.Verbose   = $True
 
 $GetInfisicalPkiSubscriberResult = Get-InfisicalPkiSubscriber @GetInfisicalPkiSubscriberParameters</dev:code>
@@ -1141,7 +1143,7 @@ $GetInfisicalPkiSubscriberResult = Get-InfisicalPkiSubscriber @GetInfisicalPkiSu
       <command:noun>InfisicalCertificateProfile</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Default (List parameter set) returns every certificate profile configured on the project via /api/v1/cert-manager/certificate-profiles, with optional -Limit, -Offset, and -IncludeConfigs. When -ProfileId is supplied (ById parameter set) the cmdlet returns one profile by its id. -ProjectId defaults to the session-pinned project in both modes.</maml:para>
+      <maml:para>Default (List parameter set) returns every certificate profile configured on the project via /api/v1/cert-manager/certificate-profiles, with optional -Limit, -Offset, and -IncludeConfigs. When -ProfileId is supplied (ById parameter set) the cmdlet returns one profile by its id. -ProjectId is required in both modes.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -1153,12 +1155,12 @@ $GetInfisicalPkiSubscriberResult = Get-InfisicalPkiSubscriber @GetInfisicalPkiSu
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Get-InfisicalCertificateProfile</dev:code>
-        <dev:remarks><maml:para>Lists every certificate profile defined on the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Lists every certificate profile defined on the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
         <dev:code>Get-InfisicalCertificateProfile -ProfileId '8257641e-c808-454e-ac92-8dc920be865f'</dev:code>
-        <dev:remarks><maml:para>Retrieves a single certificate profile by id from the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Retrieves a single certificate profile by id from the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 3</maml:title>
@@ -1166,7 +1168,7 @@ $GetInfisicalPkiSubscriberResult = Get-InfisicalPkiSubscriber @GetInfisicalPkiSu
 
 $GetInfisicalCertificateProfileParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $GetInfisicalCertificateProfileParameters.ProfileId = $GetInfisicalCertificateProfileListResult[0].Id
-$GetInfisicalCertificateProfileParameters.ProjectId = $ConnectInfisicalParameters.ProjectId
+$GetInfisicalCertificateProfileParameters.ProjectId = $ProjectId
 $GetInfisicalCertificateProfileParameters.Verbose   = $True
 
 $GetInfisicalCertificateProfileResult = Get-InfisicalCertificateProfile @GetInfisicalCertificateProfileParameters</dev:code>
@@ -1183,7 +1185,7 @@ $GetInfisicalCertificateProfileResult = Get-InfisicalCertificateProfile @GetInfi
       <command:noun>InfisicalCertificatePolicy</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Default (List parameter set) returns every certificate policy configured on the project via /api/v1/cert-manager/certificate-policies, with optional -Limit and -Offset. When -PolicyId is supplied (ById parameter set) the cmdlet returns one policy by its id. -ProjectId defaults to the session-pinned project in both modes.</maml:para>
+      <maml:para>Default (List parameter set) returns every certificate policy configured on the project via /api/v1/cert-manager/certificate-policies, with optional -Limit and -Offset. When -PolicyId is supplied (ById parameter set) the cmdlet returns one policy by its id. -ProjectId is required in both modes.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -1195,12 +1197,12 @@ $GetInfisicalCertificateProfileResult = Get-InfisicalCertificateProfile @GetInfi
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
         <dev:code>Get-InfisicalCertificatePolicy</dev:code>
-        <dev:remarks><maml:para>Lists every certificate policy defined on the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Lists every certificate policy defined on the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
         <dev:code>Get-InfisicalCertificatePolicy -PolicyId '3e69306a-e7c1-4fd2-a140-7fb300e53c43'</dev:code>
-        <dev:remarks><maml:para>Retrieves a single certificate policy by id from the session-pinned project.</maml:para></dev:remarks>
+        <dev:remarks><maml:para>Retrieves a single certificate policy by id from the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 3</maml:title>
@@ -1208,7 +1210,7 @@ $GetInfisicalCertificateProfileResult = Get-InfisicalCertificateProfile @GetInfi
 
 $GetInfisicalCertificatePolicyParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $GetInfisicalCertificatePolicyParameters.PolicyId  = $GetInfisicalCertificatePolicyListResult[0].Id
-$GetInfisicalCertificatePolicyParameters.ProjectId = $ConnectInfisicalParameters.ProjectId
+$GetInfisicalCertificatePolicyParameters.ProjectId = $ProjectId
 $GetInfisicalCertificatePolicyParameters.Verbose   = $True
 
 $GetInfisicalCertificatePolicyResult = Get-InfisicalCertificatePolicy @GetInfisicalCertificatePolicyParameters</dev:code>
@@ -1225,7 +1227,7 @@ $GetInfisicalCertificatePolicyResult = Get-InfisicalCertificatePolicy @GetInfisi
       <command:noun>InfisicalCertificate</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Performs a server-side search across certificates with filters for friendly name, common name, free-text search, status, CA/profile/application/enrollment scope, key/signature algorithm, source, and validity window (-NotBeforeFrom/-NotBeforeTo/-NotAfterFrom/-NotAfterTo). Results are paged automatically unless -NoAutoPage is supplied. -ProjectId defaults to the session-pinned project when omitted.</maml:para>
+      <maml:para>Performs a server-side search across certificates with filters for friendly name, common name, free-text search, status, CA/profile/application/enrollment scope, key/signature algorithm, source, and validity window (-NotBeforeFrom/-NotBeforeTo/-NotAfterFrom/-NotAfterTo). Results are paged automatically unless -NoAutoPage is supplied. -ProjectId is required.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -1244,7 +1246,7 @@ $GetInfisicalCertificatePolicyResult = Get-InfisicalCertificatePolicy @GetInfisi
         <dev:code>$GetInfisicalCertificateAuthorityListResult = Get-InfisicalCertificateAuthority | Where-Object { $_.FriendlyName -eq 'Issuing CA - Platform' }
 
 $SearchInfisicalCertificateParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
-$SearchInfisicalCertificateParameters.ProjectId     = $ConnectInfisicalParameters.ProjectId
+$SearchInfisicalCertificateParameters.ProjectId     = $ProjectId
 $SearchInfisicalCertificateParameters.CommonName    = $env:COMPUTERNAME
 $SearchInfisicalCertificateParameters.Status        = 'active'
 $SearchInfisicalCertificateParameters.CaId          = @($GetInfisicalCertificateAuthorityListResult.Id)
@@ -1287,7 +1289,7 @@ $SearchInfisicalCertificateResult = Search-InfisicalCertificate @SearchInfisical
         <maml:title>EXAMPLE 2</maml:title>
         <dev:code>$RequestInfisicalCertificateParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
 $RequestInfisicalCertificateParameters.PkiSubscriberSlug    = 'web-tier'
-$RequestInfisicalCertificateParameters.ProjectId            = $ConnectInfisicalParameters.ProjectId
+$RequestInfisicalCertificateParameters.ProjectId            = $ProjectId
 $RequestInfisicalCertificateParameters.CommonName           = ([System.Net.Dns]::GetHostEntry($env:COMPUTERNAME)).HostName
 $RequestInfisicalCertificateParameters.DnsName              = @(([System.Net.Dns]::GetHostEntry($env:COMPUTERNAME)).HostName, $env:COMPUTERNAME)
 $RequestInfisicalCertificateParameters.KeyAlgorithm         = 'Rsa'
@@ -1480,22 +1482,22 @@ $UninstallInfisicalCertificateResult = Uninstall-InfisicalCertificate @Uninstall
   <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
     <command:details>
       <command:name>Get-InfisicalCertificateApplication</command:name>
-      <maml:description><maml:para>Lists or retrieves an Infisical Certificate Manager Application from the active project.</maml:para></maml:description>
+      <maml:description><maml:para>Lists or retrieves an Infisical Certificate Manager Application from the supplied project.</maml:para></maml:description>
       <command:verb>Get</command:verb>
       <command:noun>InfisicalCertificateApplication</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Reads Infisical certificate-manager Applications (the join target used by EST/ACME/SCEP profile attachments) using the active connection's project scope. The List parameter set returns all applications visible to the caller; the ById and ByName sets return a single application. ProjectId falls back to the active connection when omitted.</maml:para>
+      <maml:para>Reads Infisical certificate-manager Applications (the join target used by EST/ACME/SCEP profile attachments) for the supplied project. The List parameter set returns all applications visible to the caller; the ById and ByName sets return a single application. -ProjectId is required.</maml:para>
     </maml:description>
     <command:examples>
       <command:example>
         <maml:title>EXAMPLE 1</maml:title>
-        <dev:code>Get-InfisicalCertificateApplication</dev:code>
-        <dev:remarks><maml:para>Lists certificate-manager applications for the active project.</maml:para></dev:remarks>
+        <dev:code>Get-InfisicalCertificateApplication -ProjectId $ProjectId</dev:code>
+        <dev:remarks><maml:para>Lists certificate-manager applications for the supplied project.</maml:para></dev:remarks>
       </command:example>
       <command:example>
         <maml:title>EXAMPLE 2</maml:title>
-        <dev:code>Get-InfisicalCertificateApplication -ApplicationName 'workstation-mdm'</dev:code>
+        <dev:code>Get-InfisicalCertificateApplication -ApplicationName 'workstation-mdm' -ProjectId $ProjectId</dev:code>
         <dev:remarks><maml:para>Retrieves a single application by name.</maml:para></dev:remarks>
       </command:example>
       <command:example>

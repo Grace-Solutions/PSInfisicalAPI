@@ -18,7 +18,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("CertificateProfileId")]
         public string ProfileId { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
 
         protected override void ProcessRecord()
         {
@@ -26,9 +26,8 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
                 InfisicalPkiClient client = new InfisicalPkiClient(HttpClient, Logger);
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
 
-                InfisicalCertificateApplicationEnrollment enrollment = client.GetCertificateApplicationEnrollment(connection, ApplicationId, ProfileId, resolvedProjectId);
+                InfisicalCertificateApplicationEnrollment enrollment = client.GetCertificateApplicationEnrollment(connection, ApplicationId, ProfileId, ProjectId);
                 if (enrollment != null)
                 {
                     WriteObject(enrollment);

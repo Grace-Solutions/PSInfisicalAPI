@@ -16,8 +16,8 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Names", "SecretKeys")]
         public string[] SecretNames { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
-        [Parameter] public string Environment { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string Environment { get; set; }
         [Parameter] public string SecretPath { get; set; }
         [Parameter] public string ApiVersion { get; set; }
         [Parameter] public InfisicalSecretType Type { get; set; } = InfisicalSecretType.Shared;
@@ -28,9 +28,6 @@ namespace PSInfisicalAPI.Cmdlets
             try
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
-                string resolvedEnvironment = ResolveEnvironment(connection, Environment);
-                string resolvedSecretPath = ResolveSecretPath(connection, SecretPath);
                 string resolvedApiVersion = ResolveApiVersion(connection, ApiVersion);
 
                 InfisicalSecretsClient client = new InfisicalSecretsClient(HttpClient, Logger);
@@ -43,9 +40,9 @@ namespace PSInfisicalAPI.Cmdlets
 
                     InfisicalBulkDeleteSecretsRequest bulk = new InfisicalBulkDeleteSecretsRequest
                     {
-                        ProjectId = resolvedProjectId,
-                        Environment = resolvedEnvironment,
-                        SecretPath = resolvedSecretPath,
+                        ProjectId = ProjectId,
+                        Environment = Environment,
+                        SecretPath = SecretPath,
                         ApiVersion = resolvedApiVersion,
                         SecretNames = SecretNames
                     };
@@ -65,9 +62,9 @@ namespace PSInfisicalAPI.Cmdlets
                 InfisicalDeleteSecretRequest request = new InfisicalDeleteSecretRequest
                 {
                     SecretName = SecretName,
-                    ProjectId = resolvedProjectId,
-                    Environment = resolvedEnvironment,
-                    SecretPath = resolvedSecretPath,
+                    ProjectId = ProjectId,
+                    Environment = Environment,
+                    SecretPath = SecretPath,
                     Type = Type.ToString(),
                     ApiVersion = resolvedApiVersion
                 };

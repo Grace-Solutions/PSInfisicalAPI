@@ -14,7 +14,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Slug", "Id")]
         public string TagSlugOrId { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
 
         [Parameter(ParameterSetName = "List")] public SwitchParameter List { get; set; }
 
@@ -23,12 +23,11 @@ namespace PSInfisicalAPI.Cmdlets
             try
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalTagClient client = new InfisicalTagClient(HttpClient, Logger);
 
                 if (string.Equals(ParameterSetName, "Single", StringComparison.Ordinal))
                 {
-                    InfisicalTag tag = client.Retrieve(connection, resolvedProjectId, TagSlugOrId);
+                    InfisicalTag tag = client.Retrieve(connection, ProjectId, TagSlugOrId);
                     if (tag != null)
                     {
                         WriteObject(tag);
@@ -37,7 +36,7 @@ namespace PSInfisicalAPI.Cmdlets
                     return;
                 }
 
-                InfisicalTag[] tags = client.List(connection, resolvedProjectId);
+                InfisicalTag[] tags = client.List(connection, ProjectId);
                 foreach (InfisicalTag tag in tags)
                 {
                     WriteObject(tag);

@@ -29,10 +29,9 @@ namespace PSInfisicalAPI.Tags
         public InfisicalTag[] List(InfisicalConnection connection, string projectId)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
 
-            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", resolvedProjectId } };
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", projectId } };
 
             try
             {
@@ -42,7 +41,7 @@ namespace PSInfisicalAPI.Tags
                 response.Clear();
 
                 List<InfisicalTagResponseDto> source = dto != null ? (dto.WorkspaceTags ?? dto.Tags) : null;
-                InfisicalTag[] mapped = InfisicalTagMapper.MapMany(source, resolvedProjectId);
+                InfisicalTag[] mapped = InfisicalTagMapper.MapMany(source, projectId);
                 _logger.Information(Component, "Infisical tag list retrieval was successful.");
                 return mapped;
             }
@@ -56,11 +55,10 @@ namespace PSInfisicalAPI.Tags
         public InfisicalTag Retrieve(InfisicalConnection connection, string projectId, string tagSlugOrId)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
             if (string.IsNullOrEmpty(tagSlugOrId)) { throw new InfisicalConfigurationException("Tag slug or id is required."); }
 
-            InfisicalTag[] all = List(connection, resolvedProjectId);
+            InfisicalTag[] all = List(connection, projectId);
             foreach (InfisicalTag tag in all)
             {
                 if (string.Equals(tag.Id, tagSlugOrId, StringComparison.OrdinalIgnoreCase) ||
@@ -76,11 +74,10 @@ namespace PSInfisicalAPI.Tags
         public InfisicalTag Create(InfisicalConnection connection, string projectId, string slug, string name, string color)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
             if (string.IsNullOrEmpty(slug)) { throw new InfisicalConfigurationException("Slug is required."); }
 
-            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", resolvedProjectId } };
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", projectId } };
             InfisicalTagCreateRequestDto request = new InfisicalTagCreateRequestDto { Slug = slug, Name = name, Color = color };
             string body = _serializer.Serialize(request);
 
@@ -92,7 +89,7 @@ namespace PSInfisicalAPI.Tags
                 response.Clear();
 
                 InfisicalTagResponseDto inner = dto != null ? (dto.WorkspaceTag ?? dto.Tag) : null;
-                InfisicalTag mapped = InfisicalTagMapper.Map(inner, resolvedProjectId);
+                InfisicalTag mapped = InfisicalTagMapper.Map(inner, projectId);
                 _logger.Information(Component, "Infisical tag creation was successful.");
                 return mapped;
             }
@@ -106,11 +103,10 @@ namespace PSInfisicalAPI.Tags
         public InfisicalTag Update(InfisicalConnection connection, string projectId, string tagId, string slug, string name, string color)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
             if (string.IsNullOrEmpty(tagId)) { throw new InfisicalConfigurationException("TagId is required."); }
 
-            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", resolvedProjectId }, { "tagId", tagId } };
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", projectId }, { "tagId", tagId } };
             InfisicalTagUpdateRequestDto request = new InfisicalTagUpdateRequestDto { Slug = slug, Name = name, Color = color };
             string body = _serializer.Serialize(request);
 
@@ -122,7 +118,7 @@ namespace PSInfisicalAPI.Tags
                 response.Clear();
 
                 InfisicalTagResponseDto inner = dto != null ? (dto.WorkspaceTag ?? dto.Tag) : null;
-                InfisicalTag mapped = InfisicalTagMapper.Map(inner, resolvedProjectId);
+                InfisicalTag mapped = InfisicalTagMapper.Map(inner, projectId);
                 _logger.Information(Component, "Infisical tag update was successful.");
                 return mapped;
             }
@@ -136,11 +132,10 @@ namespace PSInfisicalAPI.Tags
         public void Delete(InfisicalConnection connection, string projectId, string tagId)
         {
             if (connection == null) { throw new ArgumentNullException(nameof(connection)); }
-            string resolvedProjectId = FirstNonEmpty(projectId, connection.ProjectId);
-            if (string.IsNullOrEmpty(resolvedProjectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
+            if (string.IsNullOrEmpty(projectId)) { throw new InfisicalConfigurationException("ProjectId is required."); }
             if (string.IsNullOrEmpty(tagId)) { throw new InfisicalConfigurationException("TagId is required."); }
 
-            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", resolvedProjectId }, { "tagId", tagId } };
+            Dictionary<string, string> pathParameters = new Dictionary<string, string> { { "projectId", projectId }, { "tagId", tagId } };
 
             try
             {
@@ -156,11 +151,5 @@ namespace PSInfisicalAPI.Tags
             }
         }
 
-        private static string FirstNonEmpty(params string[] values)
-        {
-            if (values == null) { return null; }
-            foreach (string value in values) { if (!string.IsNullOrEmpty(value)) { return value; } }
-            return null;
-        }
     }
 }

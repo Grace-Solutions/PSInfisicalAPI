@@ -28,12 +28,6 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter]
         public string OrganizationId { get; set; }
 
-        [Parameter]
-        public string ProjectId { get; set; }
-
-        [Parameter]
-        public string Environment { get; set; }
-
         [Parameter(ParameterSetName = ParameterSetUniversalAuth)]
         public string ClientId { get; set; }
 
@@ -61,9 +55,6 @@ namespace PSInfisicalAPI.Cmdlets
 
         [Parameter(Mandatory = true, ParameterSetName = ParameterSetLdap)]
         public SecureString Password { get; set; }
-
-        [Parameter]
-        public string SecretPath { get; set; } = "/";
 
         [Parameter]
         public string ApiVersion { get; set; } = "v4";
@@ -185,9 +176,6 @@ namespace PSInfisicalAPI.Cmdlets
                     PinnedApiVersion = apiVersionExplicitlyBound ? ApiVersion : null,
                     AuthType = authType,
                     OrganizationId = OrganizationId,
-                    ProjectId = ProjectId,
-                    Environment = Environment,
-                    DefaultSecretPath = string.IsNullOrEmpty(SecretPath) ? "/" : SecretPath,
                     ConnectedAtUtc = DateTimeOffset.UtcNow,
                     ExpiresAtUtc = authResult.ExpiresAtUtc,
                     IsConnected = true,
@@ -215,8 +203,6 @@ namespace PSInfisicalAPI.Cmdlets
             bool needsScan =
                 BaseUri == null ||
                 string.IsNullOrWhiteSpace(OrganizationId) ||
-                string.IsNullOrWhiteSpace(ProjectId) ||
-                string.IsNullOrWhiteSpace(Environment) ||
                 (tokenSet && (AccessToken == null || AccessToken.Length == 0)) ||
                 (universalSet && string.IsNullOrWhiteSpace(ClientId)) ||
                 (universalSet && (ClientSecret == null || ClientSecret.Length == 0));
@@ -242,8 +228,6 @@ namespace PSInfisicalAPI.Cmdlets
             }
 
             OrganizationId = InfisicalEnvironmentResolver.ResolveString("OrganizationId", InfisicalEnvironmentResolver.OrganizationIdPatterns, OrganizationId, Logger);
-            ProjectId = InfisicalEnvironmentResolver.ResolveString("ProjectId", InfisicalEnvironmentResolver.ProjectIdPatterns, ProjectId, Logger);
-            Environment = InfisicalEnvironmentResolver.ResolveString("Environment", InfisicalEnvironmentResolver.EnvironmentPatterns, Environment, Logger);
 
             if (tokenSet)
             {
@@ -253,15 +237,6 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 ClientId = InfisicalEnvironmentResolver.ResolveString("ClientId", InfisicalEnvironmentResolver.ClientIdPatterns, ClientId, Logger);
                 ClientSecret = InfisicalEnvironmentResolver.ResolveSecureString("ClientSecret", InfisicalEnvironmentResolver.ClientSecretPatterns, ClientSecret, Logger);
-            }
-
-            if (!MyInvocation.BoundParameters.ContainsKey("SecretPath"))
-            {
-                string resolvedPath = InfisicalEnvironmentResolver.ResolveString("SecretPath", InfisicalEnvironmentResolver.SecretPathPatterns, null, Logger);
-                if (!string.IsNullOrWhiteSpace(resolvedPath))
-                {
-                    SecretPath = resolvedPath;
-                }
             }
 
             if (!MyInvocation.BoundParameters.ContainsKey("ApiVersion"))
@@ -280,8 +255,6 @@ namespace PSInfisicalAPI.Cmdlets
 
             if (BaseUri == null) { missing.Add("BaseUri"); }
             if (string.IsNullOrWhiteSpace(OrganizationId)) { missing.Add("OrganizationId"); }
-            if (string.IsNullOrWhiteSpace(ProjectId)) { missing.Add("ProjectId"); }
-            if (string.IsNullOrWhiteSpace(Environment)) { missing.Add("Environment"); }
 
             if (string.Equals(ParameterSetName, ParameterSetToken, StringComparison.Ordinal))
             {

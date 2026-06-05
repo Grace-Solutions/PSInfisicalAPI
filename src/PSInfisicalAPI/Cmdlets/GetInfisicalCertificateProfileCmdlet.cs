@@ -14,7 +14,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Id", "CertificateProfileId")]
         public string ProfileId { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
 
         [Parameter(ParameterSetName = "List")] public int? Limit { get; set; }
 
@@ -28,11 +28,10 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
                 InfisicalPkiClient client = new InfisicalPkiClient(HttpClient, Logger);
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
 
                 if (string.Equals(ParameterSetName, "ById", StringComparison.Ordinal))
                 {
-                    InfisicalCertificateProfile profile = client.GetCertificateProfile(connection, ProfileId, resolvedProjectId);
+                    InfisicalCertificateProfile profile = client.GetCertificateProfile(connection, ProfileId, ProjectId);
                     if (profile != null)
                     {
                         WriteObject(profile);
@@ -42,7 +41,7 @@ namespace PSInfisicalAPI.Cmdlets
                 }
 
                 bool? includeConfigs = MyInvocation.BoundParameters.ContainsKey("IncludeConfigs") ? (bool?)IncludeConfigs.IsPresent : null;
-                InfisicalCertificateProfile[] all = client.ListCertificateProfiles(connection, resolvedProjectId, Limit, Offset, includeConfigs);
+                InfisicalCertificateProfile[] all = client.ListCertificateProfiles(connection, ProjectId, Limit, Offset, includeConfigs);
                 foreach (InfisicalCertificateProfile profile in all)
                 {
                     WriteObject(profile);

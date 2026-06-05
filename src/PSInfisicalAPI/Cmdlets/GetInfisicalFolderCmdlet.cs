@@ -14,8 +14,8 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Name", "Id")]
         public string FolderNameOrId { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
-        [Parameter] public string Environment { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string Environment { get; set; }
         [Parameter] public string Path { get; set; }
 
         [Parameter(ParameterSetName = "List")] public SwitchParameter List { get; set; }
@@ -25,14 +25,11 @@ namespace PSInfisicalAPI.Cmdlets
             try
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
-                string resolvedEnvironment = ResolveEnvironment(connection, Environment);
-                string resolvedPath = ResolveSecretPath(connection, Path);
                 InfisicalFolderClient client = new InfisicalFolderClient(HttpClient, Logger);
 
                 if (string.Equals(ParameterSetName, "Single", StringComparison.Ordinal))
                 {
-                    InfisicalFolder folder = client.Retrieve(connection, resolvedProjectId, resolvedEnvironment, resolvedPath, FolderNameOrId);
+                    InfisicalFolder folder = client.Retrieve(connection, ProjectId, Environment, Path, FolderNameOrId);
                     if (folder != null)
                     {
                         WriteObject(folder);
@@ -41,7 +38,7 @@ namespace PSInfisicalAPI.Cmdlets
                     return;
                 }
 
-                InfisicalFolder[] folders = client.List(connection, resolvedProjectId, resolvedEnvironment, resolvedPath);
+                InfisicalFolder[] folders = client.List(connection, ProjectId, Environment, Path);
                 foreach (InfisicalFolder folder in folders)
                 {
                     WriteObject(folder);

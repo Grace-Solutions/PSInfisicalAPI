@@ -13,7 +13,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter(Mandatory = true, Position = 0)] public string Slug { get; set; }
         [Parameter] public string Name { get; set; }
         [Parameter] public string Color { get; set; }
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
 
         protected override void ProcessRecord()
         {
@@ -25,9 +25,8 @@ namespace PSInfisicalAPI.Cmdlets
                 }
 
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalTagClient client = new InfisicalTagClient(HttpClient, Logger);
-                InfisicalTag tag = client.Create(connection, resolvedProjectId, Slug, Name, Color);
+                InfisicalTag tag = client.Create(connection, ProjectId, Slug, Name, Color);
                 if (tag != null)
                 {
                     WriteObject(tag);

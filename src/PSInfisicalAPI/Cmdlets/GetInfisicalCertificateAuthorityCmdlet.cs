@@ -14,7 +14,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Id")]
         public string CaId { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
 
         [Parameter(ParameterSetName = "List")]
         [ValidateSet("Internal", "Acme", "Any")]

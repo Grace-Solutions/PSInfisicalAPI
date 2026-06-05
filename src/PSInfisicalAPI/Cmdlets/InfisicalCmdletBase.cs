@@ -46,21 +46,6 @@ namespace PSInfisicalAPI.Cmdlets
             ThrowTerminatingError(record);
         }
 
-        protected string ResolveProjectId(InfisicalConnection connection, string explicitValue)
-        {
-            return ResolveValue("ProjectId", explicitValue, connection != null ? connection.ProjectId : null, null);
-        }
-
-        protected string ResolveEnvironment(InfisicalConnection connection, string explicitValue)
-        {
-            return ResolveValue("Environment", explicitValue, connection != null ? connection.Environment : null, null);
-        }
-
-        protected string ResolveSecretPath(InfisicalConnection connection, string explicitValue)
-        {
-            return ResolveValue("SecretPath", explicitValue, connection != null ? connection.DefaultSecretPath : null, "/");
-        }
-
         protected string ResolveApiVersion(InfisicalConnection connection, string explicitValue)
         {
             string fromConnection = connection != null ? (!string.IsNullOrEmpty(connection.PinnedApiVersion) ? connection.PinnedApiVersion : connection.ApiVersion) : null;

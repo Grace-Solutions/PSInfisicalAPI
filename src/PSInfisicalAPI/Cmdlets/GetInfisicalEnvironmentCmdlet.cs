@@ -14,7 +14,7 @@ namespace PSInfisicalAPI.Cmdlets
         [Alias("Slug", "Id", "Environment")]
         public string EnvironmentSlugOrId { get; set; }
 
-        [Parameter] public string ProjectId { get; set; }
+        [Parameter(Mandatory = true)] public string ProjectId { get; set; }
 
         [Parameter(ParameterSetName = "List")] public SwitchParameter List { get; set; }
 
@@ -23,12 +23,11 @@ namespace PSInfisicalAPI.Cmdlets
             try
             {
                 InfisicalConnection connection = InfisicalSessionManager.RequireCurrent();
-                string resolvedProjectId = ResolveProjectId(connection, ProjectId);
                 InfisicalEnvironmentClient client = new InfisicalEnvironmentClient(HttpClient, Logger);
 
                 if (string.Equals(ParameterSetName, "Single", StringComparison.Ordinal))
                 {
-                    InfisicalEnvironment env = client.Retrieve(connection, resolvedProjectId, EnvironmentSlugOrId);
+                    InfisicalEnvironment env = client.Retrieve(connection, ProjectId, EnvironmentSlugOrId);
                     if (env != null)
                     {
                         WriteObject(env);
@@ -37,7 +36,7 @@ namespace PSInfisicalAPI.Cmdlets
                     return;
                 }
 
-                InfisicalEnvironment[] envs = client.List(connection, resolvedProjectId);
+                InfisicalEnvironment[] envs = client.List(connection, ProjectId);
                 foreach (InfisicalEnvironment env in envs)
                 {
                     WriteObject(env);
