@@ -1491,6 +1491,48 @@ No warnings should be emitted.
 
 ---
 
+# 16.6 Start-InfisicalProcess
+
+Signature:
+
+```text
+Start-InfisicalProcess
+    -FilePath <string>
+    [-WorkingDirectory <DirectoryInfo>]
+    [-ArgumentList <string[]>]
+    [-AcceptableExitCodeList <string[]>]
+    [-WindowStyle <Normal|Hidden|Minimized|Maximized>]
+    [-CreateNoWindow]
+    [-NoWait]
+    [-Priority <AboveNormal|BelowNormal|High|Idle|Normal|RealTime>]
+    [-ExecutionTimeout <TimeSpan>]
+    [-ExecutionTimeoutInterval <TimeSpan>]
+    [-StandardInputObjectList <object[]>]
+    [-EnvironmentVariables <IDictionary>]
+    [-ParsingExpression <Regex>]
+    [-SecureArgumentList]
+    [-LogOutput]
+    [-ContinueOnError]
+    [-Secret <InfisicalSecret[]>]
+    [-Prefix <string>]
+```
+
+Behavior:
+
+```text
+Buffer pipeline InfisicalSecret objects in ProcessRecord.
+Decrypt secrets only into ProcessStartInfo.Environment.
+Apply -Prefix to each secret name before injection.
+Never write secret plaintext to user or machine environment scope.
+Honor -WhatIf / -Confirm.
+Default -AcceptableExitCodeList = @('0','3010').
+Throw a terminating error on unacceptable exit code unless -ContinueOnError is set.
+```
+
+Output: `InfisicalProcessResult` with `ExitCode`, `ExitCodeAsHex`, `ExitCodeAsInteger`, `ExitCodeAsDecimal`, `StandardOutput`, `StandardError`, `StandardOutputObject`, `StandardErrorObject`, `StartTime`, `ExitTime`, `Duration`, `DurationFriendly`, `ProcessId`, `TimedOut`, `Succeeded`, `SecretCount`.
+
+---
+
 # 17. SecureString Utility
 
 Required utility:
