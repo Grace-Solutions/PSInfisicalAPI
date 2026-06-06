@@ -6,6 +6,53 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.06.2229
+
+- Build produced from commit 207e7429e448.
+
+## Unreleased (carried forward)
+
+- `Start-InfisicalProcess`: switched stdout/stderr capture to event-based `OutputDataReceived`/`ErrorDataReceived` with `BeginOutputReadLine`/`BeginErrorReadLine` (removed `Task`/`ReadToEndAsync`/`GetAwaiter().GetResult()` to eliminate PowerShell `SynchronizationContext` deadlock risk). Restored the original `do { log; sleep } while (!HasExited)` polling pattern using `Thread.Sleep(pollInterval)` so verbose "has been running for X" / "Checking again in Y" messages fire at the configured cadence even when no `-ExecutionTimeout` is supplied.
+- `Start-InfisicalProcess`: TimeSpan values in verbose logs and on the result now use a friendly format ("`7 seconds, and 364 milliseconds`", "`1 minute, and 30 seconds`", "`N/A`" when zero) matching the legacy `Start-ProcessWithOutput` `GetTimeSpanMessage` scriptblock. Added `DurationFriendly` property to `InfisicalProcessResult` and a "The command execution took X" verbose line at completion.
+
+## 2026.06.06.2227
+
+- Build produced from commit d3c7b83da717.
+
+## Unreleased (carried forward)
+
+## 2026.06.06.2221
+
+- Build produced from commit d3c7b83da717.
+
+## Unreleased (carried forward)
+
+## 2026.06.06.2207
+
+- Build produced from commit d3c7b83da717.
+
+## Unreleased (carried forward)
+
+## 2026.06.06.2206
+
+- Build produced from commit d3c7b83da717.
+
+## Unreleased (carried forward)
+
+## 2026.06.06.2155
+
+- Build produced from commit d3c7b83da717.
+
+## Unreleased (carried forward)
+
+- Added `Start-InfisicalProcess` cmdlet: launches a child process with `InfisicalSecret` objects (pipeline or `-Secret`) decrypted directly into `ProcessStartInfo.Environment`, with optional `-Prefix`, additional `-EnvironmentVariables`, stdout/stderr capture, `-AcceptableExitCodeList` validation, `-ParsingExpression` regex parsing, `-ExecutionTimeout`/`-ExecutionTimeoutInterval` polling, `-NoWait`, `-WindowStyle`/`-CreateNoWindow` parameter sets, `-Priority`, `-StandardInputObjectList`, `-SecureArgumentList`, `-LogOutput`, `-ContinueOnError`, and `ShouldProcess` support. Secret plaintext is never written to user or machine scope. `build.ps1` `CmdletsToExport` and `Test-ModuleImports` expected list now contain 42 cmdlets.
+
+## 2026.06.06.2138
+
+- Build produced from commit 318db7048017.
+
+## Unreleased (carried forward)
+
 ## 2026.06.05.2040
 
 - Build produced from commit 1270c9099cae.
