@@ -1213,7 +1213,8 @@ Export-InfisicalSecrets `
     [-Path <FileInfo>] `
     [-Scope <Process|User|Machine>] `
     [-Force] `
-    [-Encoding <UTF8|UTF8Bom|Unicode>]
+    [-Encoding <UTF8|UTF8Bom|Unicode>] `
+    [-Prefix <string>]
 ```
 
 ## Parameter Rules

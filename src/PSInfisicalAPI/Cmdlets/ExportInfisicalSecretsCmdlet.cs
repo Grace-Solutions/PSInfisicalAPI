@@ -37,6 +37,9 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter]
         public InfisicalExportEncoding Encoding { get; set; } = InfisicalExportEncoding.UTF8;
 
+        [Parameter]
+        public string Prefix { get; set; }
+
         private readonly List<InfisicalSecret> _buffer = new List<InfisicalSecret>();
 
         protected override void ProcessRecord()
@@ -68,7 +71,7 @@ namespace PSInfisicalAPI.Cmdlets
 
                 InfisicalExportRequest request = new InfisicalExportRequest
                 {
-                    Secrets = _buffer.ToArray(),
+                    Secrets = ApplyPrefix(_buffer, Prefix),
                     Format = Format,
                     Path = Path,
                     Scope = Scope,
@@ -83,6 +86,38 @@ namespace PSInfisicalAPI.Cmdlets
             {
                 ThrowTerminatingForException("ExportInfisicalSecretsCmdlet", string.Concat("Export-", Format.ToString()), exception);
             }
+        }
+
+        private static InfisicalSecret[] ApplyPrefix(List<InfisicalSecret> source, string prefix)
+        {
+            if (string.IsNullOrEmpty(prefix)) { return source.ToArray(); }
+
+            InfisicalSecret[] result = new InfisicalSecret[source.Count];
+            for (int i = 0; i < source.Count; i++)
+            {
+                InfisicalSecret original = source[i];
+                result[i] = new InfisicalSecret
+                {
+                    Id = original.Id,
+                    InternalId = original.InternalId,
+                    Workspace = original.Workspace,
+                    Environment = original.Environment,
+                    Version = original.Version,
+                    Type = original.Type,
+                    SecretName = string.Concat(prefix, original.SecretName),
+                    SecretValue = original.SecretValue,
+                    SecretValueHidden = original.SecretValueHidden,
+                    SecretPath = original.SecretPath,
+                    SecretComment = original.SecretComment,
+                    CreatedAtUtc = original.CreatedAtUtc,
+                    UpdatedAtUtc = original.UpdatedAtUtc,
+                    IsRotatedSecret = original.IsRotatedSecret,
+                    RotationId = original.RotationId,
+                    Tags = original.Tags,
+                    SecretMetadata = original.SecretMetadata
+                };
+            }
+            return result;
         }
 
         private static Encoding ResolveEncoding(InfisicalExportEncoding encoding)
