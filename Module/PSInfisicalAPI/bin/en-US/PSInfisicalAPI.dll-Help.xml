@@ -333,7 +333,7 @@ $ConvertToInfisicalSecretDictionaryResult = ConvertTo-InfisicalSecretDictionary 
       <command:noun>InfisicalSecrets</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Buffers an incoming pipeline of InfisicalSecret objects and writes them to a file in the requested format (DotEnv, Json, Yaml, EnvironmentVariables, etc.) or sets them as environment variables on the chosen scope (Process, User, Machine). -Encoding controls text encoding for file outputs.</maml:para>
+      <maml:para>Buffers an incoming pipeline of InfisicalSecret objects and writes them to a file in the requested format (DotEnv, Json, Yaml, EnvironmentVariables, etc.) or sets them as environment variables on the chosen scope (Process, User, Machine). -Encoding controls text encoding for file outputs. -Prefix prepends a string to every emitted variable name regardless of format.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -360,6 +360,11 @@ $ExportInfisicalSecretsParameters.Verbose     = $True
 
 $ExportInfisicalSecretsResult = Export-InfisicalSecrets @ExportInfisicalSecretsParameters</dev:code>
         <dev:remarks><maml:para>Projects the recursive secret result into Process-scope environment variables for the current PowerShell session.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' | Export-InfisicalSecrets -Format EnvironmentVariables -Scope Process -Prefix 'MYAPP_'</dev:code>
+        <dev:remarks><maml:para>Imports secrets into the process environment with every variable name prefixed by 'MYAPP_' (e.g. API_KEY becomes MYAPP_API_KEY).</maml:para></dev:remarks>
       </command:example>
     </command:examples>
   </command:command>
