@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.06.2229
+
+- Build produced from commit 207e7429e448.
+
+## Unreleased (carried forward)
+
 - `Start-InfisicalProcess`: switched stdout/stderr capture to event-based `OutputDataReceived`/`ErrorDataReceived` with `BeginOutputReadLine`/`BeginErrorReadLine` (removed `Task`/`ReadToEndAsync`/`GetAwaiter().GetResult()` to eliminate PowerShell `SynchronizationContext` deadlock risk). Restored the original `do { log; sleep } while (!HasExited)` polling pattern using `Thread.Sleep(pollInterval)` so verbose "has been running for X" / "Checking again in Y" messages fire at the configured cadence even when no `-ExecutionTimeout` is supplied.
 - `Start-InfisicalProcess`: TimeSpan values in verbose logs and on the result now use a friendly format ("`7 seconds, and 364 milliseconds`", "`1 minute, and 30 seconds`", "`N/A`" when zero) matching the legacy `Start-ProcessWithOutput` `GetTimeSpanMessage` scriptblock. Added `DurationFriendly` property to `InfisicalProcessResult` and a "The command execution took X" verbose line at completion.
 

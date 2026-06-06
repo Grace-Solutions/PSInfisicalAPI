@@ -1654,4 +1654,51 @@ $WriteInfisicalScepMdmProfileToWmiResult = Write-InfisicalScepMdmProfileToWmi @W
     </command:examples>
   </command:command>
 
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Start-InfisicalProcess</command:name>
+      <maml:description><maml:para>Starts a child process with Infisical secrets injected directly into its environment block.</maml:para></maml:description>
+      <command:verb>Start</command:verb>
+      <command:noun>InfisicalProcess</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Launches the executable specified by -FilePath, captures stdout/stderr, validates the exit code against -AcceptableExitCodeList, and optionally parses output with -ParsingExpression. InfisicalSecret objects supplied via -Secret (pipeline or by name) are decrypted into the ProcessStartInfo.Environment dictionary only, never written to the user or machine scope; -Prefix prepends a string to each injected variable name. -EnvironmentVariables adds additional non-secret values. -ExecutionTimeout, -NoWait, -CreateNoWindow, -WindowStyle, -Priority, -StandardInputObjectList, -SecureArgumentList, -LogOutput, and -ContinueOnError mirror the semantics of the upstream Start-ProcessWithOutput helper. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Secret values exist as plain strings only within the child process environment block; they are never persisted to the calling shell, the user scope, or the machine scope. Use -SecureArgumentList to mask sensitive command-line arguments in verbose output.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalSecret -SecretPath '/build' | Start-InfisicalProcess -FilePath 'dotnet.exe' -ArgumentList @('publish','-c','Release') -AcceptableExitCodeList @('0') -CreateNoWindow</dev:code>
+        <dev:remarks><maml:para>Decrypts every secret at /build, exposes each one as a process environment variable, and runs dotnet publish with no visible window.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$Secrets = Get-InfisicalSecret -SecretPath '/runtime'
+Start-InfisicalProcess -FilePath 'node.exe' -ArgumentList @('app.js') -Secret $Secrets -Prefix 'APP_' -ExecutionTimeout ([TimeSpan]::FromMinutes(5)) -LogOutput</dev:code>
+        <dev:remarks><maml:para>Injects the /runtime secrets as APP_-prefixed environment variables, runs node app.js, and forcibly terminates the process after five minutes if it has not exited.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$StartInfisicalProcessParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$StartInfisicalProcessParameters.FilePath               = 'pwsh.exe'
+$StartInfisicalProcessParameters.ArgumentList           = @('-NoProfile','-Command','Write-Host $env:DEPLOY_TOKEN.Length')
+$StartInfisicalProcessParameters.Secret                 = Get-InfisicalSecret -SecretPath '/deploy'
+$StartInfisicalProcessParameters.Prefix                 = 'DEPLOY_'
+$StartInfisicalProcessParameters.AcceptableExitCodeList = @('0')
+$StartInfisicalProcessParameters.CreateNoWindow         = $True
+$StartInfisicalProcessParameters.SecureArgumentList     = $True
+$StartInfisicalProcessParameters.LogOutput              = $True
+$StartInfisicalProcessParameters.Verbose                = $True
+
+$StartInfisicalProcessResult = Start-InfisicalProcess @StartInfisicalProcessParameters</dev:code>
+        <dev:remarks><maml:para>Splatted invocation that runs pwsh with DEPLOY_-prefixed secrets in scope, masks the command line in verbose output, and echoes both stdout and stderr to the verbose stream after exit.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
 </helpItems>
