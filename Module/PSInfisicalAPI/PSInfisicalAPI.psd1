@@ -1,6 +1,6 @@
 @{
     RootModule           = 'PSInfisicalAPI.psm1'
-    ModuleVersion        = '2026.06.07.0017'
+    ModuleVersion        = '2026.06.07.1350'
     GUID                 = 'b8a2f3d4-7c51-4d2f-9e6a-1f0c8b3d4e51'
     Author               = 'Grace Solutions'
     CompanyName          = 'Grace Solutions'
@@ -19,6 +19,7 @@
         'Copy-InfisicalSecret',
         'ConvertTo-InfisicalSecretDictionary',
         'Export-InfisicalSecrets',
+        'Import-InfisicalSecret',
         'Get-InfisicalProject',
         'New-InfisicalProject',
         'Update-InfisicalProject',
@@ -60,6 +61,7 @@
         'Export-InfisicalScepMdmProfile',
         'Write-InfisicalScepMdmProfileToWmi',
         'Start-InfisicalProcess',
+        'Get-InfisicalEnvironmentVariable',
         'Get-InfisicalSANList'
     )
     AliasesToExport      = @()
@@ -72,7 +74,7 @@
             LicenseUri   = 'https://www.gnu.org/licenses/agpl-3.0.html'
             ProjectUri   = 'https://prod.git.gracesolution.info/gsadmin/PSInfisicalAPI'
             ReleaseNotes = 'See CHANGELOG.md in the project repository for release history.'
-            CommitHash   = '77cb03ec9845'
+            CommitHash   = '1aa51b8cbf9c'
         }
     }
 }

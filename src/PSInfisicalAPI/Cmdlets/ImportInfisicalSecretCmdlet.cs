@@ -1,19 +1,26 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Management.Automation;
 using System.Security;
 using PSInfisicalAPI.Errors;
+using PSInfisicalAPI.Imports;
 using PSInfisicalAPI.Models;
+using PSInfisicalAPI.Security;
 
 namespace PSInfisicalAPI.Cmdlets
 {
-    [Cmdlet(VerbsData.ConvertTo, "InfisicalSecretDictionary")]
+    [Cmdlet(VerbsData.Import, "InfisicalSecret")]
     [OutputType(typeof(Dictionary<string, SecureString>))]
     [OutputType(typeof(Dictionary<string, string>))]
-    public sealed class ConvertToInfisicalSecretDictionaryCmdlet : InfisicalCmdletBase
+    public sealed class ImportInfisicalSecretCmdlet : InfisicalCmdletBase
     {
-        [Parameter(Mandatory = true, ValueFromPipeline = true)]
-        public InfisicalSecret[] InputObject { get; set; }
+        [Parameter(Mandatory = true, Position = 0)]
+        [ValidateNotNull]
+        public FileInfo Path { get; set; }
+
+        [Parameter(Mandatory = true)]
+        public InfisicalImportFormat Format { get; set; }
 
         [Parameter]
         public InfisicalDuplicateKeyBehavior DuplicateKeyBehavior { get; set; } = InfisicalDuplicateKeyBehavior.Error;
@@ -24,50 +31,47 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter]
         public string Prefix { get; set; }
 
-        private readonly List<InfisicalSecret> _buffer = new List<InfisicalSecret>();
-
-        protected override void ProcessRecord()
-        {
-            if (InputObject == null) { return; }
-
-            foreach (InfisicalSecret secret in InputObject)
-            {
-                if (secret != null)
-                {
-                    _buffer.Add(secret);
-                }
-            }
-        }
-
         protected override void EndProcessing()
         {
             try
             {
+                Path.Refresh();
+                if (!Path.Exists)
+                {
+                    throw new InfisicalImportException(string.Concat("Import path does not exist: ", Path.FullName));
+                }
+
+                IInfisicalImporter importer = InfisicalImporterFactory.Create(Format);
+                IList<KeyValuePair<string, string>> pairs = importer.Import(Path);
+
                 if (AsPlainText.IsPresent)
                 {
-                    Dictionary<string, string> plain = BuildDictionary<string>(secret => secret.GetPlainTextValue());
+                    Dictionary<string, string> plain = BuildDictionary<string>(pairs, value => value ?? string.Empty);
                     WriteObject(plain);
                 }
                 else
                 {
-                    Dictionary<string, SecureString> secure = BuildDictionary<SecureString>(secret => secret.SecretValue);
+                    Dictionary<string, SecureString> secure = BuildDictionary<SecureString>(pairs, value => SecureStringUtility.ToReadOnlySecureString(value ?? string.Empty));
                     WriteObject(secure);
                 }
             }
             catch (Exception exception)
             {
-                ThrowTerminatingForException("ConvertToInfisicalSecretDictionaryCmdlet", "ConvertToDictionary", exception);
+                ThrowTerminatingForException("ImportInfisicalSecretCmdlet", "ImportSecret", exception);
             }
         }
 
-        private Dictionary<string, TValue> BuildDictionary<TValue>(Func<InfisicalSecret, TValue> valueSelector)
+        private Dictionary<string, TValue> BuildDictionary<TValue>(
+            IList<KeyValuePair<string, string>> pairs,
+            Func<string, TValue> valueSelector)
         {
             Dictionary<string, TValue> dictionary = new Dictionary<string, TValue>(StringComparer.OrdinalIgnoreCase);
             string prefix = Prefix ?? string.Empty;
 
-            foreach (InfisicalSecret secret in _buffer)
+            foreach (KeyValuePair<string, string> pair in pairs)
             {
-                string key = string.Concat(prefix, secret.SecretName ?? string.Empty);
+                if (pair.Key == null) { continue; }
+                string key = string.Concat(prefix, pair.Key);
 
                 if (dictionary.ContainsKey(key))
                 {
@@ -78,13 +82,13 @@ namespace PSInfisicalAPI.Cmdlets
 
                     if (DuplicateKeyBehavior == InfisicalDuplicateKeyBehavior.LastWins)
                     {
-                        dictionary[key] = valueSelector(secret);
+                        dictionary[key] = valueSelector(pair.Value);
                     }
 
                     continue;
                 }
 
-                dictionary[key] = valueSelector(secret);
+                dictionary[key] = valueSelector(pair.Value);
             }
 
             return dictionary;
