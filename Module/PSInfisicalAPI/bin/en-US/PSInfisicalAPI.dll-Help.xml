@@ -295,7 +295,7 @@ $CopyInfisicalSecretResult = Copy-InfisicalSecret @CopyInfisicalSecretParameters
       <command:noun>InfisicalSecretDictionary</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Aggregates an incoming pipeline of InfisicalSecret objects into a case-insensitive Dictionary keyed by SecretName. By default values are SecureString; pass -AsPlainText to materialize string values. Duplicate keys are handled via the -DuplicateKeyBehavior parameter (Error, FirstWins, LastWins). -Prefix prepends a string to every dictionary key (e.g. SecretName 'API_KEY' with -Prefix 'MYAPP_' becomes key 'MYAPP_API_KEY'); the underlying InfisicalSecret objects are not mutated.</maml:para>
+      <maml:para>Aggregates an incoming pipeline of InfisicalSecret objects into a case-insensitive Dictionary keyed by SecretName. By default values are SecureString; pass -AsPlainText to materialize string values. Duplicate keys are handled via the -DuplicateKeyBehavior parameter (Error, FirstWins, LastWins). -Prefix prepends a string to every dictionary key (e.g. SecretName 'API_KEY' with -Prefix 'MYAPP_' becomes key 'MYAPP_API_KEY'); the underlying InfisicalSecret objects are not mutated. A SecretName that already starts with -Prefix (case-insensitive) is left as-is to avoid double-prefixing; pass -ForcePrefix to always prepend.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -338,7 +338,7 @@ $ConvertToInfisicalSecretDictionaryResult = ConvertTo-InfisicalSecretDictionary 
       <command:noun>InfisicalSecrets</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Buffers an incoming pipeline of InfisicalSecret objects and writes them to a file in the requested format (DotEnv, Json, Yaml, EnvironmentVariables, etc.) or sets them as environment variables on the chosen scope (Process, User, Machine). -Encoding controls text encoding for file outputs. -Prefix prepends a string to every emitted variable name regardless of format.</maml:para>
+      <maml:para>Buffers an incoming pipeline of InfisicalSecret objects and writes them to a file in the requested format (DotEnv, Json, Yaml, EnvironmentVariables, etc.) or sets them as environment variables on the chosen scope (Process, User, Machine). -Encoding controls text encoding for file outputs. -Prefix prepends a string to every emitted variable name regardless of format; names that already start with -Prefix (case-insensitive) are left as-is to avoid double-prefixing. Pass -ForcePrefix to always prepend.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -382,7 +382,7 @@ $ExportInfisicalSecretsResult = Export-InfisicalSecrets @ExportInfisicalSecretsP
       <command:noun>InfisicalSecret</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Loads the file at -Path (which must exist) using the parser matching -Format and returns a case-insensitive Dictionary keyed by SecretName. By default values are SecureString; pass -AsPlainText for a plain string dictionary. -Prefix prepends to every emitted key. -DuplicateKeyBehavior controls collision handling (Error, FirstWins, LastWins). The EnvironmentVariables format is intentionally not supported here; use [Environment]::GetEnvironmentVariable or Get-InfisicalEnvironmentVariable for environment-backed values.</maml:para>
+      <maml:para>Loads the file at -Path (which must exist) using the parser matching -Format and returns a case-insensitive Dictionary keyed by SecretName. By default values are SecureString; pass -AsPlainText for a plain string dictionary. -Prefix prepends to every emitted key; keys already starting with -Prefix (case-insensitive) are left as-is to avoid double-prefixing, and -ForcePrefix overrides that gate. -DuplicateKeyBehavior controls collision handling (Error, FirstWins, LastWins). The EnvironmentVariables format is intentionally not supported here; use [Environment]::GetEnvironmentVariable or Get-InfisicalEnvironmentVariable for environment-backed values.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -1705,7 +1705,7 @@ $WriteInfisicalScepMdmProfileToWmiResult = Write-InfisicalScepMdmProfileToWmi @W
       <command:noun>InfisicalProcess</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Launches the executable specified by -FilePath, captures stdout/stderr, validates the exit code against -AcceptableExitCodeList, and optionally parses output with -ParsingExpression. InfisicalSecret objects supplied via -Secret (pipeline or by name) are decrypted into the ProcessStartInfo.Environment dictionary only, never written to the user or machine scope; -Prefix prepends a string to each injected variable name. -EnvironmentVariables adds additional non-secret values. -ExecutionTimeout, -NoWait, -CreateNoWindow, -WindowStyle, -Priority, -StandardInputObjectList, -SecureArgumentList, -LogOutput, and -ContinueOnError mirror the semantics of the upstream Start-ProcessWithOutput helper. Honors -WhatIf and -Confirm.</maml:para>
+      <maml:para>Launches the executable specified by -FilePath, captures stdout/stderr, validates the exit code against -AcceptableExitCodeList, and optionally parses output with -ParsingExpression. InfisicalSecret objects supplied via -Secret (pipeline or by name) are decrypted into the ProcessStartInfo.Environment dictionary only, never written to the user or machine scope; -Prefix prepends a string to each injected variable name, skipping names that already start with -Prefix (case-insensitive) unless -ForcePrefix is supplied. -EnvironmentVariables adds additional non-secret values. -ExecutionTimeout, -NoWait, -CreateNoWindow, -WindowStyle, -Priority, -StandardInputObjectList, -SecureArgumentList, -LogOutput, and -ContinueOnError mirror the semantics of the upstream Start-ProcessWithOutput helper. Honors -WhatIf and -Confirm.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>

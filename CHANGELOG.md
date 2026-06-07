@@ -6,6 +6,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.07.1435
+
+- Build produced from commit 97193d46f2ff.
+
+## Unreleased (carried forward)
+
+## 2026.06.07.1426
+
+- Build produced from commit b5575222eb36.
+
+## Unreleased (carried forward)
+
+- Added `-ForcePrefix` switch to `ConvertTo-InfisicalSecretDictionary`, `Import-InfisicalSecret`, `Export-InfisicalSecrets`, and `Start-InfisicalProcess`. When `-Prefix` is supplied, names that already start with the prefix (case-insensitive) are now left as-is to prevent double-prefixing (e.g. `MYAPP_API_KEY` stays `MYAPP_API_KEY` when `-Prefix 'MYAPP_'` is supplied). Pass `-ForcePrefix` to restore unconditional prepending. Centralized in a new `PSInfisicalAPI.Common.InfisicalPrefix.Apply` helper.
+
+## 2026.06.07.1421
+
+- Build produced from commit b5575222eb36.
+
+## Unreleased (carried forward)
+
 ## 2026.06.07.1350
 
 - Build produced from commit 1aa51b8cbf9c.
