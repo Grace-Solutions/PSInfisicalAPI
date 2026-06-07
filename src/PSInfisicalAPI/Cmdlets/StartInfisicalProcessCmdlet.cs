@@ -95,6 +95,9 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter]
         public string Prefix { get; set; }
 
+        [Parameter]
+        public SwitchParameter ForcePrefix { get; set; }
+
         private readonly List<InfisicalSecret> _secretBuffer = new List<InfisicalSecret>();
 
         protected override void ProcessRecord()
@@ -135,7 +138,8 @@ namespace PSInfisicalAPI.Cmdlets
                     LogOutput = LogOutput.IsPresent,
                     ContinueOnError = ContinueOnError.IsPresent,
                     Secrets = _secretBuffer.ToArray(),
-                    Prefix = Prefix
+                    Prefix = Prefix,
+                    ForcePrefix = ForcePrefix.IsPresent
                 };
 
                 InfisicalProcessResult result = InfisicalProcessRunner.Run(options, Logger);

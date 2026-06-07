@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Management.Automation;
 using System.Security;
+using PSInfisicalAPI.Common;
 using PSInfisicalAPI.Errors;
 using PSInfisicalAPI.Imports;
 using PSInfisicalAPI.Models;
@@ -30,6 +31,9 @@ namespace PSInfisicalAPI.Cmdlets
 
         [Parameter]
         public string Prefix { get; set; }
+
+        [Parameter]
+        public SwitchParameter ForcePrefix { get; set; }
 
         protected override void EndProcessing()
         {
@@ -66,12 +70,11 @@ namespace PSInfisicalAPI.Cmdlets
             Func<string, TValue> valueSelector)
         {
             Dictionary<string, TValue> dictionary = new Dictionary<string, TValue>(StringComparer.OrdinalIgnoreCase);
-            string prefix = Prefix ?? string.Empty;
 
             foreach (KeyValuePair<string, string> pair in pairs)
             {
                 if (pair.Key == null) { continue; }
-                string key = string.Concat(prefix, pair.Key);
+                string key = InfisicalPrefix.Apply(pair.Key, Prefix, ForcePrefix.IsPresent);
 
                 if (dictionary.ContainsKey(key))
                 {

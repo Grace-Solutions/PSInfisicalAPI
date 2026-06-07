@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Management.Automation;
 using System.Security;
+using PSInfisicalAPI.Common;
 using PSInfisicalAPI.Errors;
 using PSInfisicalAPI.Models;
 
@@ -23,6 +24,9 @@ namespace PSInfisicalAPI.Cmdlets
 
         [Parameter]
         public string Prefix { get; set; }
+
+        [Parameter]
+        public SwitchParameter ForcePrefix { get; set; }
 
         private readonly List<InfisicalSecret> _buffer = new List<InfisicalSecret>();
 
@@ -63,11 +67,10 @@ namespace PSInfisicalAPI.Cmdlets
         private Dictionary<string, TValue> BuildDictionary<TValue>(Func<InfisicalSecret, TValue> valueSelector)
         {
             Dictionary<string, TValue> dictionary = new Dictionary<string, TValue>(StringComparer.OrdinalIgnoreCase);
-            string prefix = Prefix ?? string.Empty;
 
             foreach (InfisicalSecret secret in _buffer)
             {
-                string key = string.Concat(prefix, secret.SecretName ?? string.Empty);
+                string key = InfisicalPrefix.Apply(secret.SecretName ?? string.Empty, Prefix, ForcePrefix.IsPresent);
 
                 if (dictionary.ContainsKey(key))
                 {

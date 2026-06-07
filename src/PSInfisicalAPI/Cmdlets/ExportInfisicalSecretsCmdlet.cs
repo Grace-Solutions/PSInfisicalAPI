@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Management.Automation;
 using System.Text;
+using PSInfisicalAPI.Common;
 using PSInfisicalAPI.Errors;
 using PSInfisicalAPI.Exports;
 using PSInfisicalAPI.Models;
@@ -40,6 +41,9 @@ namespace PSInfisicalAPI.Cmdlets
         [Parameter]
         public string Prefix { get; set; }
 
+        [Parameter]
+        public SwitchParameter ForcePrefix { get; set; }
+
         private readonly List<InfisicalSecret> _buffer = new List<InfisicalSecret>();
 
         protected override void ProcessRecord()
@@ -71,7 +75,7 @@ namespace PSInfisicalAPI.Cmdlets
 
                 InfisicalExportRequest request = new InfisicalExportRequest
                 {
-                    Secrets = ApplyPrefix(_buffer, Prefix),
+                    Secrets = ApplyPrefix(_buffer, Prefix, ForcePrefix.IsPresent),
                     Format = Format,
                     Path = Path,
                     Scope = Scope,
@@ -88,7 +92,7 @@ namespace PSInfisicalAPI.Cmdlets
             }
         }
 
-        private static InfisicalSecret[] ApplyPrefix(List<InfisicalSecret> source, string prefix)
+        private static InfisicalSecret[] ApplyPrefix(List<InfisicalSecret> source, string prefix, bool force)
         {
             if (string.IsNullOrEmpty(prefix)) { return source.ToArray(); }
 
@@ -104,7 +108,7 @@ namespace PSInfisicalAPI.Cmdlets
                     Environment = original.Environment,
                     Version = original.Version,
                     Type = original.Type,
-                    SecretName = string.Concat(prefix, original.SecretName),
+                    SecretName = InfisicalPrefix.Apply(original.SecretName, prefix, force),
                     SecretValue = original.SecretValue,
                     SecretValueHidden = original.SecretValueHidden,
                     SecretPath = original.SecretPath,
