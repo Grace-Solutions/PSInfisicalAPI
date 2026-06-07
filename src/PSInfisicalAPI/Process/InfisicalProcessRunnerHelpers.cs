@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using PSInfisicalAPI.Common;
 using PSInfisicalAPI.Logging;
 using PSInfisicalAPI.Models;
 using PSInfisicalAPI.Security;
@@ -39,7 +40,7 @@ namespace PSInfisicalAPI.Process
             foreach (InfisicalSecret secret in options.Secrets)
             {
                 if (secret == null || string.IsNullOrEmpty(secret.SecretName) || secret.SecretValue == null) { continue; }
-                string name = string.IsNullOrEmpty(options.Prefix) ? secret.SecretName : string.Concat(options.Prefix, secret.SecretName);
+                string name = InfisicalPrefix.Apply(secret.SecretName, options.Prefix, options.ForcePrefix);
                 SecureStringUtility.UsePlainText(secret.SecretValue, plain =>
                 {
                     processEnv[name] = plain;

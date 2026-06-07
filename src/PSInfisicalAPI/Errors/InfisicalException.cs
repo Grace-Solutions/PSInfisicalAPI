@@ -75,6 +75,13 @@ namespace PSInfisicalAPI.Errors
         public InfisicalExportException(string message, Exception innerException) : base(message, innerException) { }
     }
 
+    public class InfisicalImportException : InfisicalException
+    {
+        public InfisicalImportException() { }
+        public InfisicalImportException(string message) : base(message) { }
+        public InfisicalImportException(string message, Exception innerException) : base(message, innerException) { }
+    }
+
     public class InfisicalConfigurationException : InfisicalException
     {
         public InfisicalConfigurationException() { }

@@ -295,7 +295,7 @@ $CopyInfisicalSecretResult = Copy-InfisicalSecret @CopyInfisicalSecretParameters
       <command:noun>InfisicalSecretDictionary</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Aggregates an incoming pipeline of InfisicalSecret objects into a case-insensitive Dictionary keyed by SecretName. By default values are SecureString; pass -AsPlainText to materialize string values. Duplicate keys are handled via the -DuplicateKeyBehavior parameter (Error, FirstWins, LastWins).</maml:para>
+      <maml:para>Aggregates an incoming pipeline of InfisicalSecret objects into a case-insensitive Dictionary keyed by SecretName. By default values are SecureString; pass -AsPlainText to materialize string values. Duplicate keys are handled via the -DuplicateKeyBehavior parameter (Error, FirstWins, LastWins). -Prefix prepends a string to every dictionary key (e.g. SecretName 'API_KEY' with -Prefix 'MYAPP_' becomes key 'MYAPP_API_KEY'); the underlying InfisicalSecret objects are not mutated. A SecretName that already starts with -Prefix (case-insensitive) is left as-is to avoid double-prefixing; pass -ForcePrefix to always prepend.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -322,6 +322,11 @@ $ConvertToInfisicalSecretDictionaryParameters.Verbose              = $True
 $ConvertToInfisicalSecretDictionaryResult = ConvertTo-InfisicalSecretDictionary @ConvertToInfisicalSecretDictionaryParameters</dev:code>
         <dev:remarks><maml:para>Aggregates recursive secret results into a plain-text dictionary, with the last value winning on key collisions.</maml:para></dev:remarks>
       </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>Get-InfisicalSecret -ProjectId $ProjectId -Environment 'dev' | ConvertTo-InfisicalSecretDictionary -Prefix 'MYAPP_' -AsPlainText</dev:code>
+        <dev:remarks><maml:para>Builds a plain-text dictionary whose keys are namespaced with 'MYAPP_' (e.g. API_KEY becomes MYAPP_API_KEY); the source InfisicalSecret objects are unchanged.</maml:para></dev:remarks>
+      </command:example>
     </command:examples>
   </command:command>
 
@@ -333,7 +338,7 @@ $ConvertToInfisicalSecretDictionaryResult = ConvertTo-InfisicalSecretDictionary 
       <command:noun>InfisicalSecrets</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Buffers an incoming pipeline of InfisicalSecret objects and writes them to a file in the requested format (DotEnv, Json, Yaml, EnvironmentVariables, etc.) or sets them as environment variables on the chosen scope (Process, User, Machine). -Encoding controls text encoding for file outputs. -Prefix prepends a string to every emitted variable name regardless of format.</maml:para>
+      <maml:para>Buffers an incoming pipeline of InfisicalSecret objects and writes them to a file in the requested format (DotEnv, Json, Yaml, EnvironmentVariables, etc.) or sets them as environment variables on the chosen scope (Process, User, Machine). -Encoding controls text encoding for file outputs. -Prefix prepends a string to every emitted variable name regardless of format; names that already start with -Prefix (case-insensitive) are left as-is to avoid double-prefixing. Pass -ForcePrefix to always prepend.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -368,6 +373,44 @@ $ExportInfisicalSecretsResult = Export-InfisicalSecrets @ExportInfisicalSecretsP
       </command:example>
     </command:examples>
   </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Import-InfisicalSecret</command:name>
+      <maml:description><maml:para>Reads a previously exported secrets file (Json, Yaml, Env, or Xml) back into a name-keyed Dictionary.</maml:para></maml:description>
+      <command:verb>Import</command:verb>
+      <command:noun>InfisicalSecret</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Loads the file at -Path (which must exist) using the parser matching -Format and returns a case-insensitive Dictionary keyed by SecretName. By default values are SecureString; pass -AsPlainText for a plain string dictionary. -Prefix prepends to every emitted key; keys already starting with -Prefix (case-insensitive) are left as-is to avoid double-prefixing, and -ForcePrefix overrides that gate. -DuplicateKeyBehavior controls collision handling (Error, FirstWins, LastWins). The EnvironmentVariables format is intentionally not supported here; use [Environment]::GetEnvironmentVariable or Get-InfisicalEnvironmentVariable for environment-backed values.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Importers expect the same schema that Export-InfisicalSecrets produces (Json/Yaml = array or 'Secrets' root list of {SecretName, SecretValue}; Xml = &lt;Secrets&gt;&lt;Secret&gt;&lt;SecretName/&gt;&lt;SecretValue/&gt;; Env = KEY=VALUE per line, '#' comments allowed). JSON and YAML additionally accept a flat key/value object as a convenience.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>$Secrets = Import-InfisicalSecret -Path '.\secrets.json' -Format Json</dev:code>
+        <dev:remarks><maml:para>Reads a JSON export back into a Dictionary&lt;string, SecureString&gt; keyed by the original SecretName values.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$ImportInfisicalSecretParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$ImportInfisicalSecretParameters.Path                 = [System.IO.FileInfo]'.\secrets.env'
+$ImportInfisicalSecretParameters.Format               = 'Env'
+$ImportInfisicalSecretParameters.Prefix               = 'MYAPP_'
+$ImportInfisicalSecretParameters.DuplicateKeyBehavior = 'LastWins'
+$ImportInfisicalSecretParameters.AsPlainText          = $True
+
+$ImportInfisicalSecretResult = Import-InfisicalSecret @ImportInfisicalSecretParameters</dev:code>
+        <dev:remarks><maml:para>Loads a .env file into a plain-text dictionary, namespacing every key with 'MYAPP_' and letting the last occurrence win on duplicates.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
 
   <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
     <command:details>
@@ -1662,7 +1705,7 @@ $WriteInfisicalScepMdmProfileToWmiResult = Write-InfisicalScepMdmProfileToWmi @W
       <command:noun>InfisicalProcess</command:noun>
     </command:details>
     <maml:description>
-      <maml:para>Launches the executable specified by -FilePath, captures stdout/stderr, validates the exit code against -AcceptableExitCodeList, and optionally parses output with -ParsingExpression. InfisicalSecret objects supplied via -Secret (pipeline or by name) are decrypted into the ProcessStartInfo.Environment dictionary only, never written to the user or machine scope; -Prefix prepends a string to each injected variable name. -EnvironmentVariables adds additional non-secret values. -ExecutionTimeout, -NoWait, -CreateNoWindow, -WindowStyle, -Priority, -StandardInputObjectList, -SecureArgumentList, -LogOutput, and -ContinueOnError mirror the semantics of the upstream Start-ProcessWithOutput helper. Honors -WhatIf and -Confirm.</maml:para>
+      <maml:para>Launches the executable specified by -FilePath, captures stdout/stderr, validates the exit code against -AcceptableExitCodeList, and optionally parses output with -ParsingExpression. InfisicalSecret objects supplied via -Secret (pipeline or by name) are decrypted into the ProcessStartInfo.Environment dictionary only, never written to the user or machine scope; -Prefix prepends a string to each injected variable name, skipping names that already start with -Prefix (case-insensitive) unless -ForcePrefix is supplied. -EnvironmentVariables adds additional non-secret values. -ExecutionTimeout, -NoWait, -CreateNoWindow, -WindowStyle, -Priority, -StandardInputObjectList, -SecureArgumentList, -LogOutput, and -ContinueOnError mirror the semantics of the upstream Start-ProcessWithOutput helper. Honors -WhatIf and -Confirm.</maml:para>
     </maml:description>
     <maml:alertSet>
       <maml:title>Notes</maml:title>
@@ -1700,6 +1743,37 @@ $StartInfisicalProcessResult = Start-InfisicalProcess @StartInfisicalProcessPara
       </command:example>
     </command:examples>
   </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalEnvironmentVariable</command:name>
+      <maml:description><maml:para>Reads an environment variable from the first scope that has a non-empty value (Process > User > Machine).</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalEnvironmentVariable</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Returns the value of -Name from the first scope that contains a non-empty value, checking Process, then User, then Machine in that order. Emits nothing when the variable is missing or blank in every scope, so an assignment yields $null without writing errors or warnings. Platform-unsupported scopes (User and Machine on non-Windows) are silently skipped.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Designed for the same discovery semantics the rest of PSInfisicalAPI uses when resolving connection inputs from the environment. Pipe-friendly: accepts -Name from the pipeline by value and by property name.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>$Value = Get-InfisicalEnvironmentVariable -Name 'INFISICAL_CLIENT_ID'</dev:code>
+        <dev:remarks><maml:para>Returns the first non-empty value of INFISICAL_CLIENT_ID across Process, User, and Machine scopes; assigns $null when the variable is unset everywhere.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>@('INFISICAL_BASE_URI','INFISICAL_PROJECT_ID') | Get-InfisicalEnvironmentVariable</dev:code>
+        <dev:remarks><maml:para>Pipes a list of variable names through the cmdlet and emits one value per name that is set in any scope.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
 
   <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
     <command:details>
