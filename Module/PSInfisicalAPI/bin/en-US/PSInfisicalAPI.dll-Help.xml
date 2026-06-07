@@ -1701,4 +1701,322 @@ $StartInfisicalProcessResult = Start-InfisicalProcess @StartInfisicalProcessPara
     </command:examples>
   </command:command>
 
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalOrganization</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical organizations accessible to the current identity.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalOrganization</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) returns every organization the active session can see; visibility is governed by Infisical's role assignments. When -OrganizationId is supplied (Single parameter set) the cmdlet returns one organization. Does not require a project context.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>The List-mode result is an array of InfisicalOrganization objects; pipe into Where-Object or Select-Object to filter by Slug, Name, or Id. The cmdlet accepts pipeline input by property name on -OrganizationId.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalOrganization</dev:code>
+        <dev:remarks><maml:para>Lists every organization the current session can see.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalOrganization -OrganizationId $OrganizationId</dev:code>
+        <dev:remarks><maml:para>Retrieves the canonical record for a single organization by id.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>New-InfisicalOrganization</command:name>
+      <maml:description><maml:para>Creates a new Infisical organization.</maml:para></maml:description>
+      <command:verb>New</command:verb>
+      <command:noun>InfisicalOrganization</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Creates a new organization with the supplied name and optional slug. Honors -WhatIf and -Confirm. Requires server-side permission to create organizations.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Slug must be unique server-side; if omitted, the server derives one from the name.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>New-InfisicalOrganization -Name 'Acme Corporation'</dev:code>
+        <dev:remarks><maml:para>Creates a new organization named 'Acme Corporation' with a server-derived slug.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$NewInfisicalOrganizationParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$NewInfisicalOrganizationParameters.Name    = 'Acme Corporation'
+$NewInfisicalOrganizationParameters.Slug    = 'acme-corp'
+$NewInfisicalOrganizationParameters.Verbose = $True
+
+$NewInfisicalOrganizationResult = New-InfisicalOrganization @NewInfisicalOrganizationParameters</dev:code>
+        <dev:remarks><maml:para>Creates an organization with an explicit slug.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Update-InfisicalOrganization</command:name>
+      <maml:description><maml:para>Updates mutable attributes on an existing Infisical organization.</maml:para></maml:description>
+      <command:verb>Update</command:verb>
+      <command:noun>InfisicalOrganization</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Updates the name or slug of an organization. -OrganizationId is required. Only bound parameters are transmitted. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Renaming or re-slugging an organization may affect billing exports and identity URLs; coordinate with downstream consumers.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Update-InfisicalOrganization -OrganizationId $OrganizationId -Name 'Acme Corp.'</dev:code>
+        <dev:remarks><maml:para>Renames the supplied organization.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$UpdateInfisicalOrganizationParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$UpdateInfisicalOrganizationParameters.OrganizationId = $OrganizationId
+$UpdateInfisicalOrganizationParameters.Name           = 'Acme Corp.'
+$UpdateInfisicalOrganizationParameters.Slug           = 'acme-corp'
+$UpdateInfisicalOrganizationParameters.Verbose        = $True
+
+$UpdateInfisicalOrganizationResult = Update-InfisicalOrganization @UpdateInfisicalOrganizationParameters</dev:code>
+        <dev:remarks><maml:para>Renames the organization and updates its slug.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Remove-InfisicalOrganization</command:name>
+      <maml:description><maml:para>Deletes an Infisical organization.</maml:para></maml:description>
+      <command:verb>Remove</command:verb>
+      <command:noun>InfisicalOrganization</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Deletes an organization by id. -OrganizationId is required. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed organization id.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>This is irreversible and removes all projects, sub-organizations, secrets, and identities owned by the organization. Honors -WhatIf and -Confirm.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Remove-InfisicalOrganization -OrganizationId $OrganizationId -Confirm:$False</dev:code>
+        <dev:remarks><maml:para>Deletes the supplied organization without prompting.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$RemoveInfisicalOrganizationParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$RemoveInfisicalOrganizationParameters.OrganizationId = $OrganizationId
+$RemoveInfisicalOrganizationParameters.PassThru       = $True
+$RemoveInfisicalOrganizationParameters.Confirm        = $False
+$RemoveInfisicalOrganizationParameters.Verbose        = $True
+
+$RemoveInfisicalOrganizationResult = Remove-InfisicalOrganization @RemoveInfisicalOrganizationParameters</dev:code>
+        <dev:remarks><maml:para>Removes the organization without confirmation and emits the removed organization id for logging.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalSubOrganization</command:name>
+      <maml:description><maml:para>Lists or retrieves Infisical sub-organizations accessible to the current identity.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalSubOrganization</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Default (List parameter set) returns every sub-organization the active session can see. Optional -Limit, -Offset, -Search, -OrderBy, -OrderDirection, and -IsAccessible are forwarded to the server as query parameters. When -SubOrganizationId is supplied (Single parameter set) the cmdlet returns one sub-organization. Does not require a project context.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Sub-organizations are a beta Infisical feature. The List result is an array of InfisicalSubOrganization objects; pipe into Where-Object or Select-Object to filter further. The cmdlet accepts pipeline input by property name on -SubOrganizationId.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalSubOrganization</dev:code>
+        <dev:remarks><maml:para>Lists every sub-organization the current session can see.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>Get-InfisicalSubOrganization -SubOrganizationId $SubOrganizationId</dev:code>
+        <dev:remarks><maml:para>Retrieves the canonical record for a single sub-organization by id.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>Get-InfisicalSubOrganization -Search 'platform' -OrderBy 'name' -OrderDirection 'asc' -Limit 25 -IsAccessible</dev:code>
+        <dev:remarks><maml:para>Lists up to 25 sub-organizations matching 'platform', sorted ascending by name, restricted to those the current identity has access to.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>New-InfisicalSubOrganization</command:name>
+      <maml:description><maml:para>Creates a new Infisical sub-organization.</maml:para></maml:description>
+      <command:verb>New</command:verb>
+      <command:noun>InfisicalSubOrganization</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Creates a sub-organization with the supplied name and slug. Both are required by the server. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Slug must be unique within the parent organization. Sub-organizations are a beta Infisical feature.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>New-InfisicalSubOrganization -Name 'Platform Engineering' -Slug 'platform-eng'</dev:code>
+        <dev:remarks><maml:para>Creates a new sub-organization named 'Platform Engineering' with slug 'platform-eng'.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$NewInfisicalSubOrganizationParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$NewInfisicalSubOrganizationParameters.Name    = 'Platform Engineering'
+$NewInfisicalSubOrganizationParameters.Slug    = 'platform-eng'
+$NewInfisicalSubOrganizationParameters.Verbose = $True
+
+$NewInfisicalSubOrganizationResult = New-InfisicalSubOrganization @NewInfisicalSubOrganizationParameters</dev:code>
+        <dev:remarks><maml:para>Splatted invocation that creates a sub-organization and logs the request via the verbose stream.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Update-InfisicalSubOrganization</command:name>
+      <maml:description><maml:para>Updates mutable attributes on an existing Infisical sub-organization.</maml:para></maml:description>
+      <command:verb>Update</command:verb>
+      <command:noun>InfisicalSubOrganization</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Updates the name or slug of a sub-organization. -SubOrganizationId is required. Only bound parameters are transmitted. Honors -WhatIf and -Confirm.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Sub-organizations are a beta Infisical feature; coordinate slug changes with downstream consumers that pin the slug in scripts or configuration files.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Update-InfisicalSubOrganization -SubOrganizationId $SubOrganizationId -Name 'Platform (v2)'</dev:code>
+        <dev:remarks><maml:para>Renames the supplied sub-organization.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$UpdateInfisicalSubOrganizationParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$UpdateInfisicalSubOrganizationParameters.SubOrganizationId = $SubOrganizationId
+$UpdateInfisicalSubOrganizationParameters.Name              = 'Platform (v2)'
+$UpdateInfisicalSubOrganizationParameters.Slug              = 'platform-v2'
+$UpdateInfisicalSubOrganizationParameters.Verbose           = $True
+
+$UpdateInfisicalSubOrganizationResult = Update-InfisicalSubOrganization @UpdateInfisicalSubOrganizationParameters</dev:code>
+        <dev:remarks><maml:para>Renames the sub-organization and updates its slug in a single call.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Remove-InfisicalSubOrganization</command:name>
+      <maml:description><maml:para>Deletes an Infisical sub-organization.</maml:para></maml:description>
+      <command:verb>Remove</command:verb>
+      <command:noun>InfisicalSubOrganization</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Deletes a sub-organization by id. -SubOrganizationId is required. High ConfirmImpact prompts unless -Confirm:$False is supplied. -PassThru emits the removed sub-organization id.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>This is destructive and removes all projects, secrets, and identities scoped to the sub-organization. Honors -WhatIf and -Confirm.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Remove-InfisicalSubOrganization -SubOrganizationId $SubOrganizationId -Confirm:$False</dev:code>
+        <dev:remarks><maml:para>Deletes the supplied sub-organization without prompting.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$RemoveInfisicalSubOrganizationParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$RemoveInfisicalSubOrganizationParameters.SubOrganizationId = $SubOrganizationId
+$RemoveInfisicalSubOrganizationParameters.PassThru          = $True
+$RemoveInfisicalSubOrganizationParameters.Confirm           = $False
+$RemoveInfisicalSubOrganizationParameters.Verbose           = $True
+
+$RemoveInfisicalSubOrganizationResult = Remove-InfisicalSubOrganization @RemoveInfisicalSubOrganizationParameters</dev:code>
+        <dev:remarks><maml:para>Removes the sub-organization without confirmation and emits the removed id for logging.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10">
+    <command:details>
+      <command:name>Get-InfisicalSANList</command:name>
+      <maml:description><maml:para>Builds a deduplicated list of Subject Alternative Name candidates for the local device.</maml:para></maml:description>
+      <command:verb>Get</command:verb>
+      <command:noun>InfisicalSANList</command:noun>
+    </command:details>
+    <maml:description>
+      <maml:para>Returns, in order: the local device name; the device name suffixed with each non-empty DNS suffix found on any operational (non-loopback) network adapter and the system primary domain; every IPv4 unicast address whose first octets fall within RFC 1918 (10/8, 172.16/12, 192.168/16) or CGNAT (100.64/10); and the IPv4 and IPv6 loopback addresses (127.0.0.1, ::1). Optional -InclusionExpression and -ExclusionExpression regex filters are applied in that order after collection, before output. Suitable as a one-shot SAN provider for Request-InfisicalCertificate -DnsName.</maml:para>
+    </maml:description>
+    <maml:alertSet>
+      <maml:title>Notes</maml:title>
+      <maml:alert>
+        <maml:para>Output is a single strongly-typed System.String[] array (emitted non-enumerated) so it round-trips into [System.Collections.Generic.List[string]]::AddRange() and binds directly to string[] parameters such as Request-InfisicalCertificate -DnsName. The device name comes first so it can be reused as a CommonName. Routable public IPv4 addresses, link-local addresses, and IPv6 unicast addresses other than loopback are intentionally excluded. -InclusionExpression and -ExclusionExpression are case-insensitive .NET regular expressions; inclusion is applied first, then exclusion.</maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>EXAMPLE 1</maml:title>
+        <dev:code>Get-InfisicalSANList</dev:code>
+        <dev:remarks><maml:para>Returns the SAN candidate list for the current device.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 2</maml:title>
+        <dev:code>$Sans = Get-InfisicalSANList
+Request-InfisicalCertificate -ProjectId $ProjectId -CertificateAuthorityId $CaId -CommonName $Sans[0] -DnsName $Sans -Ttl '90d'</dev:code>
+        <dev:remarks><maml:para>Captures the SAN list, then uses the device name as the CommonName and the full list as DnsName when requesting a certificate.</maml:para></dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>EXAMPLE 3</maml:title>
+        <dev:code>$GetInfisicalSANListParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+$GetInfisicalSANListParameters.InclusionExpression = '\.gracesolution\.prv$|^10\.|^172\.'
+$GetInfisicalSANListParameters.ExclusionExpression = '^127\.|^::1$'
+$Sans = Get-InfisicalSANList @GetInfisicalSANListParameters</dev:code>
+        <dev:remarks><maml:para>Keeps only entries ending in the corporate DNS suffix or sitting in the 10/8 or 172/12 ranges, then drops loopback. Filters are case-insensitive and applied in fetch -> include -> exclude -> output order.</maml:para></dev:remarks>
+      </command:example>
+    </command:examples>
+  </command:command>
+
 </helpItems>

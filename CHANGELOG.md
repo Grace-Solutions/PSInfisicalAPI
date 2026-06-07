@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.07.0017
+
+- Build produced from commit 77cb03ec9845.
+
+## Unreleased (carried forward)
+
 - Added Organization CRUD cmdlets: `Get-InfisicalOrganization`, `New-InfisicalOrganization`, `Update-InfisicalOrganization`, `Remove-InfisicalOrganization`. `Get` lists every organization the active session can see (List parameter set, default) and returns a single record when `-OrganizationId` is supplied (Single parameter set). `New`/`Update`/`Remove` honor `-WhatIf`/`-Confirm`; `Remove` defaults to High `ConfirmImpact` and supports `-PassThru`. No project context required. Backed by new `InfisicalOrganization` model, DTO, mapper, and client wired into `InfisicalEndpointRegistry` (`ListOrganizations`, `RetrieveOrganization`, `CreateOrganization`, `UpdateOrganization`, `DeleteOrganization`).
 - Added Sub-Organization CRUD cmdlets: `Get-InfisicalSubOrganization`, `New-InfisicalSubOrganization`, `Update-InfisicalSubOrganization`, `Remove-InfisicalSubOrganization`, targeting the `/api/v1/sub-organizations` Beta endpoints. `Get` lists by default and accepts optional `-Limit`, `-Offset`, `-Search`, `-OrderBy`, `-OrderDirection`, and `-IsAccessible` query parameters; supplying `-SubOrganizationId` returns a single record. `New`/`Update`/`Remove` honor `-WhatIf`/`-Confirm`; `Remove` defaults to High `ConfirmImpact` and supports `-PassThru`. No project context required. Backed by new `InfisicalSubOrganization` model, DTO, mapper, and client wired into `InfisicalEndpointRegistry` (`ListSubOrganizations`, `RetrieveSubOrganization`, `CreateSubOrganization`, `UpdateSubOrganization`, `DeleteSubOrganization`).
 - Added `Get-InfisicalSANList` cmdlet: emits a deduplicated SAN candidate set containing the local device name, the device name suffixed with each non-empty DNS suffix found across operational adapters and the system primary domain, every IPv4 unicast address falling within RFC 1918 (10/8, 172.16/12, 192.168/16) or CGNAT (100.64/10), and the IPv4/IPv6 loopback addresses (127.0.0.1, ::1). Intended to feed `Request-InfisicalCertificate -DnsName` directly.
