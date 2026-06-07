@@ -26,7 +26,7 @@ Import-Module -Name .\Module\PSInfisicalAPI
 
 ## Cmdlets
 
-The module exports 42 cmdlets. Discovery cmdlets (`Get-Infisical*`) use a `List` (default) / single-record parameter-set pair: invoking without the identity parameter returns the collection, supplying the identity parameter returns one record.
+The module exports 51 cmdlets. Discovery cmdlets (`Get-Infisical*`) use a `List` (default) / single-record parameter-set pair: invoking without the identity parameter returns the collection, supplying the identity parameter returns one record.
 
 ### Session
 
@@ -46,6 +46,24 @@ The module exports 42 cmdlets. Discovery cmdlets (`Get-Infisical*`) use a `List`
 | `Copy-InfisicalSecret`                | Duplicates one or more secrets into a different environment or secret path.                        |
 | `ConvertTo-InfisicalSecretDictionary` | Converts a stream of InfisicalSecret objects into a name-keyed Dictionary of SecureString or plain text values. |
 | `Export-InfisicalSecrets`             | Exports InfisicalSecret objects to disk or environment variables in a chosen file format.          |
+
+### Organizations
+
+| Cmdlet                         | Purpose                                                                                            |
+| ------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalOrganization`    | Lists or retrieves Infisical organizations accessible to the current identity.                     |
+| `New-InfisicalOrganization`    | Creates a new Infisical organization.                                                              |
+| `Update-InfisicalOrganization` | Updates the name or slug of an existing Infisical organization.                                    |
+| `Remove-InfisicalOrganization` | Deletes an Infisical organization.                                                                 |
+
+### Sub-Organizations
+
+| Cmdlet                            | Purpose                                                                                            |
+| --------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `Get-InfisicalSubOrganization`    | Lists or retrieves Infisical sub-organizations, with optional search, paging, and ordering filters. |
+| `New-InfisicalSubOrganization`    | Creates a new Infisical sub-organization.                                                          |
+| `Update-InfisicalSubOrganization` | Updates the name or slug of an existing Infisical sub-organization.                                |
+| `Remove-InfisicalSubOrganization` | Deletes an Infisical sub-organization.                                                             |
 
 ### Projects
 
@@ -98,6 +116,7 @@ The module exports 42 cmdlets. Discovery cmdlets (`Get-Infisical*`) use a `List`
 | `Get-InfisicalScepMdmProfile`       | Projects an Infisical certificate profile into a Windows SCEP MDM profile model.                   |
 | `Export-InfisicalScepMdmProfile`    | Writes a SCEP MDM profile to disk as a SyncML payload suitable for MDM delivery.                   |
 | `Write-InfisicalScepMdmProfileToWmi`| Submits a SCEP MDM profile to the local MDM Bridge WMI provider to trigger enrollment.             |
+| `Get-InfisicalSANList`              | Builds a SAN candidate list (device name, `<device>.<suffix>` per adapter DNS suffix, RFC 1918 + CGNAT IPv4 addresses, IPv4/IPv6 loopback) for `Request-InfisicalCertificate -DnsName`. |
 
 ### Process
 
@@ -123,6 +142,40 @@ $connection = Connect-Infisical `
 
 Get-InfisicalSecret -SecretPath '/'
 Disconnect-Infisical
+```
+
+## End-to-end: request and install a chained certificate
+
+Connects, selects a project by name, sources SANs from `Get-InfisicalSANList`, picks the first available internal CA, requests a certificate, installs it (and its chain) into the current-user store, and disconnects. Each call uses a splatted `OrderedDictionary` constructed with `OrdinalIgnoreCase` so parameter names round-trip case-insensitively.
+
+```powershell
+$ConnectInfisicalParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+    $ConnectInfisicalParameters.BaseUri        = 'https://app.infisical.com'
+    $ConnectInfisicalParameters.OrganizationId = '00000000-0000-0000-0000-000000000000'
+    $ConnectInfisicalParameters.ClientId       = 'machine-identity-client-id'
+    $ConnectInfisicalParameters.ClientSecret   = ConvertTo-SecureString -String 'ClientSecret' -AsPlainText -Force
+    $ConnectInfisicalParameters.PassThru       = $True
+    $ConnectInfisicalParameters.Verbose        = $True
+
+$Connection = Connect-Infisical @ConnectInfisicalParameters
+
+$Project = Get-InfisicalProject | Where-Object {($_.Name -eq 'Platform')} | Select-Object -First 1
+$Ca      = Get-InfisicalCertificateAuthority -ProjectId ($Project.Id) | Select-Object -First 1
+$SanList = Get-InfisicalSANList
+
+$RequestInfisicalCertificateParameters = New-Object -TypeName 'System.Collections.Specialized.OrderedDictionary' -ArgumentList ([System.StringComparer]::OrdinalIgnoreCase)
+    $RequestInfisicalCertificateParameters.ProjectId              = $Project.Id
+    $RequestInfisicalCertificateParameters.CertificateAuthorityId = $Ca.Id
+    $RequestInfisicalCertificateParameters.CommonName             = "CN=$($Env:ComputerName.ToUpper())"
+    $RequestInfisicalCertificateParameters.DnsName                = New-Object -TypeName 'System.Collections.Generic.List[System.String]'
+        $RequestInfisicalCertificateParameters.DnsName.AddRange($SanList)
+        $RequestInfisicalCertificateParameters.DnsName.Add('myrecord.mydomain.com')
+    $RequestInfisicalCertificateParameters.Ttl                    = '90d'
+    $RequestInfisicalCertificateParameters.Install                = $True
+    $RequestInfisicalCertificateParameters.InstallChain           = $True
+    $Certificate = Request-InfisicalCertificate @RequestInfisicalCertificateParameters
+
+$Null = Disconnect-Infisical -Verbose
 ```
 
 ## Automatic environment-variable discovery
