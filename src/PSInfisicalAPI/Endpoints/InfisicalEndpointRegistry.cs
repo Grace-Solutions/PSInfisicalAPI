@@ -16,6 +16,8 @@ namespace PSInfisicalAPI.Endpoints
             RegisterEnvironments(Candidates);
             RegisterFolders(Candidates);
             RegisterTags(Candidates);
+            RegisterOrganizations(Candidates);
+            RegisterSubOrganizations(Candidates);
             RegisterPki(Candidates);
         }
 
@@ -492,6 +494,112 @@ namespace PSInfisicalAPI.Endpoints
                 Version = "v1",
                 Method = "DELETE",
                 Template = "/api/v1/workspace/{projectId}/tags/{tagId}",
+                RequiresAuthorization = true
+            });
+        }
+
+        private static void RegisterOrganizations(Dictionary<string, List<InfisicalEndpointDefinition>> map)
+        {
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListOrganizations,
+                Resource = "Organizations",
+                Version = "v2",
+                Method = "GET",
+                Template = "/api/v2/organizations",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.RetrieveOrganization,
+                Resource = "Organizations",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/organization/{organizationId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.CreateOrganization,
+                Resource = "Organizations",
+                Version = "v2",
+                Method = "POST",
+                Template = "/api/v2/organizations",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.UpdateOrganization,
+                Resource = "Organizations",
+                Version = "v1",
+                Method = "PATCH",
+                Template = "/api/v1/organization/{organizationId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.DeleteOrganization,
+                Resource = "Organizations",
+                Version = "v1",
+                Method = "DELETE",
+                Template = "/api/v1/organization/{organizationId}",
+                RequiresAuthorization = true
+            });
+        }
+
+        private static void RegisterSubOrganizations(Dictionary<string, List<InfisicalEndpointDefinition>> map)
+        {
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.ListSubOrganizations,
+                Resource = "SubOrganizations",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/sub-organizations",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.RetrieveSubOrganization,
+                Resource = "SubOrganizations",
+                Version = "v1",
+                Method = "GET",
+                Template = "/api/v1/sub-organizations/{subOrgId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.CreateSubOrganization,
+                Resource = "SubOrganizations",
+                Version = "v1",
+                Method = "POST",
+                Template = "/api/v1/sub-organizations",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.UpdateSubOrganization,
+                Resource = "SubOrganizations",
+                Version = "v1",
+                Method = "PATCH",
+                Template = "/api/v1/sub-organizations/{subOrgId}",
+                RequiresAuthorization = true
+            });
+
+            Add(map, new InfisicalEndpointDefinition
+            {
+                Name = InfisicalEndpointNames.DeleteSubOrganization,
+                Resource = "SubOrganizations",
+                Version = "v1",
+                Method = "DELETE",
+                Template = "/api/v1/sub-organizations/{subOrgId}",
                 RequiresAuthorization = true
             });
         }

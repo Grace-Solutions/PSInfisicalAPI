@@ -129,6 +129,14 @@ function Write-Manifest {
         'New-InfisicalTag',
         'Update-InfisicalTag',
         'Remove-InfisicalTag',
+        'Get-InfisicalOrganization',
+        'New-InfisicalOrganization',
+        'Update-InfisicalOrganization',
+        'Remove-InfisicalOrganization',
+        'Get-InfisicalSubOrganization',
+        'New-InfisicalSubOrganization',
+        'Update-InfisicalSubOrganization',
+        'Remove-InfisicalSubOrganization',
         'Get-InfisicalCertificateAuthority',
         'Get-InfisicalPkiSubscriber',
         'Get-InfisicalCertificateProfile',
@@ -145,7 +153,8 @@ function Write-Manifest {
         'Get-InfisicalScepMdmProfile',
         'Export-InfisicalScepMdmProfile',
         'Write-InfisicalScepMdmProfileToWmi',
-        'Start-InfisicalProcess'
+        'Start-InfisicalProcess',
+        'Get-InfisicalSANList'
     )
     AliasesToExport      = @()
     VariablesToExport    = @()
@@ -210,7 +219,7 @@ if (`$cmds.Count -eq 0) {
     throw "No cmdlets were exported by the PSInfisicalAPI module."
 }
 
-`$expectedCmds = @('Connect-Infisical','Disconnect-Infisical','Get-InfisicalSecret','New-InfisicalSecret','Update-InfisicalSecret','Remove-InfisicalSecret','Copy-InfisicalSecret','ConvertTo-InfisicalSecretDictionary','Export-InfisicalSecrets','Get-InfisicalProject','New-InfisicalProject','Update-InfisicalProject','Remove-InfisicalProject','Get-InfisicalEnvironment','New-InfisicalEnvironment','Update-InfisicalEnvironment','Remove-InfisicalEnvironment','Get-InfisicalFolder','New-InfisicalFolder','Update-InfisicalFolder','Remove-InfisicalFolder','Get-InfisicalTag','New-InfisicalTag','Update-InfisicalTag','Remove-InfisicalTag','Get-InfisicalCertificateAuthority','Get-InfisicalPkiSubscriber','Get-InfisicalCertificateProfile','Get-InfisicalCertificatePolicy','Get-InfisicalCertificate','Request-InfisicalCertificate','ConvertTo-InfisicalCertificate','Install-InfisicalCertificate','Uninstall-InfisicalCertificate','Export-InfisicalCertificate','Get-InfisicalCertificateApplication','Get-InfisicalCertificateApplicationEnrollment','New-InfisicalScepDynamicChallenge','Get-InfisicalScepMdmProfile','Export-InfisicalScepMdmProfile','Write-InfisicalScepMdmProfileToWmi','Start-InfisicalProcess')
+`$expectedCmds = @('Connect-Infisical','Disconnect-Infisical','Get-InfisicalSecret','New-InfisicalSecret','Update-InfisicalSecret','Remove-InfisicalSecret','Copy-InfisicalSecret','ConvertTo-InfisicalSecretDictionary','Export-InfisicalSecrets','Get-InfisicalProject','New-InfisicalProject','Update-InfisicalProject','Remove-InfisicalProject','Get-InfisicalEnvironment','New-InfisicalEnvironment','Update-InfisicalEnvironment','Remove-InfisicalEnvironment','Get-InfisicalFolder','New-InfisicalFolder','Update-InfisicalFolder','Remove-InfisicalFolder','Get-InfisicalTag','New-InfisicalTag','Update-InfisicalTag','Remove-InfisicalTag','Get-InfisicalOrganization','New-InfisicalOrganization','Update-InfisicalOrganization','Remove-InfisicalOrganization','Get-InfisicalSubOrganization','New-InfisicalSubOrganization','Update-InfisicalSubOrganization','Remove-InfisicalSubOrganization','Get-InfisicalCertificateAuthority','Get-InfisicalPkiSubscriber','Get-InfisicalCertificateProfile','Get-InfisicalCertificatePolicy','Get-InfisicalCertificate','Request-InfisicalCertificate','ConvertTo-InfisicalCertificate','Install-InfisicalCertificate','Uninstall-InfisicalCertificate','Export-InfisicalCertificate','Get-InfisicalCertificateApplication','Get-InfisicalCertificateApplicationEnrollment','New-InfisicalScepDynamicChallenge','Get-InfisicalScepMdmProfile','Export-InfisicalScepMdmProfile','Write-InfisicalScepMdmProfileToWmi','Start-InfisicalProcess','Get-InfisicalSANList')
 foreach (`$expected in `$expectedCmds) {
     if (-not (Get-Command -Name `$expected -Module PSInfisicalAPI -ErrorAction SilentlyContinue)) {
         throw "Cmdlet not found: `$expected"

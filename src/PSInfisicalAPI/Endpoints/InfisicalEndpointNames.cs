@@ -44,6 +44,18 @@ namespace PSInfisicalAPI.Endpoints
         public const string UpdateTag = "UpdateTag";
         public const string DeleteTag = "DeleteTag";
 
+        public const string ListOrganizations = "ListOrganizations";
+        public const string RetrieveOrganization = "RetrieveOrganization";
+        public const string CreateOrganization = "CreateOrganization";
+        public const string UpdateOrganization = "UpdateOrganization";
+        public const string DeleteOrganization = "DeleteOrganization";
+
+        public const string ListSubOrganizations = "ListSubOrganizations";
+        public const string RetrieveSubOrganization = "RetrieveSubOrganization";
+        public const string CreateSubOrganization = "CreateSubOrganization";
+        public const string UpdateSubOrganization = "UpdateSubOrganization";
+        public const string DeleteSubOrganization = "DeleteSubOrganization";
+
         public const string ListInternalCertificateAuthorities = "ListInternalCertificateAuthorities";
         public const string RetrieveInternalCertificateAuthority = "RetrieveInternalCertificateAuthority";
         public const string SearchCertificates = "SearchCertificates";

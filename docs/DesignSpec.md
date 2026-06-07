@@ -39,6 +39,14 @@ Get-InfisicalTag
 New-InfisicalTag
 Update-InfisicalTag
 Remove-InfisicalTag
+Get-InfisicalOrganization
+New-InfisicalOrganization
+Update-InfisicalOrganization
+Remove-InfisicalOrganization
+Get-InfisicalSubOrganization
+New-InfisicalSubOrganization
+Update-InfisicalSubOrganization
+Remove-InfisicalSubOrganization
 ```
 
 Infisical’s public API is REST-based and provides programmatic access for managing secrets and related resources. Current Infisical documentation shows the list-secrets endpoint under `/api/v4/secrets`, the single-secret retrieval endpoint under `/api/v4/secrets/{secretName}`, and Universal Auth login under `/api/v1/auth/universal-auth/login`. The implementation must centralize API endpoint definitions because Infisical uses different API versions across resource families. ([Infisical Blog][1])
@@ -1530,6 +1538,78 @@ Throw a terminating error on unacceptable exit code unless -ContinueOnError is s
 ```
 
 Output: `InfisicalProcessResult` with `ExitCode`, `ExitCodeAsHex`, `ExitCodeAsInteger`, `ExitCodeAsDecimal`, `StandardOutput`, `StandardError`, `StandardOutputObject`, `StandardErrorObject`, `StartTime`, `ExitTime`, `Duration`, `DurationFriendly`, `ProcessId`, `TimedOut`, `Succeeded`, `SecretCount`.
+
+---
+
+# 16.7 Organization Cmdlets
+
+Organizations are the top-level tenancy boundary in Infisical. They are not scoped under a project; the active connection's `OrganizationId` is used as the default identifier when an explicit one is not supplied.
+
+Cmdlet signatures:
+
+```powershell
+Get-InfisicalOrganization [[-OrganizationId] <string>]                          # default = List
+New-InfisicalOrganization [-Name] <string> [-Slug <string>] [-WhatIf] [-Confirm]
+Update-InfisicalOrganization [-OrganizationId] <string> [-Name <string>] [-Slug <string>] [-WhatIf] [-Confirm]
+Remove-InfisicalOrganization [-OrganizationId] <string> [-PassThru] [-WhatIf] [-Confirm]
+```
+
+Parameter sets:
+
+| Cmdlet | Default set | Single set | Notes |
+|---|---|---|---|
+| `Get-InfisicalOrganization` | `List` (no `-Id`) | `Single` (`-OrganizationId`/`-Id`) | No `-ProjectId`. |
+| `New-InfisicalOrganization` | n/a | `-Name` mandatory, `-Slug` optional | ShouldProcess. |
+| `Update-InfisicalOrganization` | n/a | `-OrganizationId` mandatory | ShouldProcess; only bound parameters are sent. |
+| `Remove-InfisicalOrganization` | n/a | `-OrganizationId` mandatory | `ConfirmImpact.High`; `-PassThru` emits removed id. |
+
+Endpoints:
+
+| Operation | Method | Template | Version |
+|---|---|---|---|
+| List | `GET` | `/api/v2/organizations` | v2 |
+| Retrieve | `GET` | `/api/v1/organization/{organizationId}` | v1 |
+| Create | `POST` | `/api/v2/organizations` | v2 |
+| Update | `PATCH` | `/api/v1/organization/{organizationId}` | v1 |
+| Delete | `DELETE` | `/api/v1/organization/{organizationId}` | v1 |
+
+Output: `InfisicalOrganization` with `Id`, `Name`, `Slug`, `CustomerId`, `AuthEnforced`, `ScimEnabled`, `CreatedAtUtc`, `UpdatedAtUtc`.
+
+---
+
+# 16.8 Sub-Organization Cmdlets
+
+Sub-organizations partition an organization into isolated child tenants. They are not scoped under a project; the active connection is used for the parent organization context.
+
+Cmdlet signatures:
+
+```powershell
+Get-InfisicalSubOrganization [[-SubOrganizationId] <string>] [-Limit <int>] [-Offset <int>] [-Search <string>] [-OrderBy <string>] [-OrderDirection <string>] [-IsAccessible]
+New-InfisicalSubOrganization [-Name] <string> [-Slug] <string> [-WhatIf] [-Confirm]
+Update-InfisicalSubOrganization [-SubOrganizationId] <string> [-Name <string>] [-Slug <string>] [-WhatIf] [-Confirm]
+Remove-InfisicalSubOrganization [-SubOrganizationId] <string> [-PassThru] [-WhatIf] [-Confirm]
+```
+
+Parameter sets:
+
+| Cmdlet | Default set | Single set | Notes |
+|---|---|---|---|
+| `Get-InfisicalSubOrganization` | `List` (no `-Id`) | `Single` (`-SubOrganizationId`/`-Id`) | List supports server-side `-Limit`, `-Offset`, `-Search`, `-OrderBy`, `-OrderDirection`, `-IsAccessible`. |
+| `New-InfisicalSubOrganization` | n/a | `-Name` + `-Slug` mandatory | ShouldProcess. |
+| `Update-InfisicalSubOrganization` | n/a | `-SubOrganizationId` mandatory | ShouldProcess; only bound parameters are sent. |
+| `Remove-InfisicalSubOrganization` | n/a | `-SubOrganizationId` mandatory | `ConfirmImpact.High`; `-PassThru` emits removed id. |
+
+Endpoints (beta):
+
+| Operation | Method | Template | Version |
+|---|---|---|---|
+| List | `GET` | `/api/v1/sub-organizations` | v1 |
+| Retrieve | `GET` | `/api/v1/sub-organizations/{subOrgId}` | v1 |
+| Create | `POST` | `/api/v1/sub-organizations` | v1 |
+| Update | `PATCH` | `/api/v1/sub-organizations/{subOrgId}` | v1 |
+| Delete | `DELETE` | `/api/v1/sub-organizations/{subOrgId}` | v1 |
+
+Output: `InfisicalSubOrganization` with `Id`, `Name`, `Slug`, `OrganizationId`, `IsAccessible`, `CreatedAtUtc`, `UpdatedAtUtc`.
 
 ---
 

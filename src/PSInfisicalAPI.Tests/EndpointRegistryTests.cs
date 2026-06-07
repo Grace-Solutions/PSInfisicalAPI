@@ -75,6 +75,16 @@ namespace PSInfisicalAPI.Tests
         [InlineData(InfisicalEndpointNames.BulkUpdateSecret, "PATCH", "/api/v4/secrets/batch")]
         [InlineData(InfisicalEndpointNames.BulkDeleteSecret, "DELETE", "/api/v4/secrets/batch")]
         [InlineData(InfisicalEndpointNames.DuplicateSecret, "POST", "/api/v4/secrets/duplicate")]
+        [InlineData(InfisicalEndpointNames.ListOrganizations, "GET", "/api/v2/organizations")]
+        [InlineData(InfisicalEndpointNames.RetrieveOrganization, "GET", "/api/v1/organization/{organizationId}")]
+        [InlineData(InfisicalEndpointNames.CreateOrganization, "POST", "/api/v2/organizations")]
+        [InlineData(InfisicalEndpointNames.UpdateOrganization, "PATCH", "/api/v1/organization/{organizationId}")]
+        [InlineData(InfisicalEndpointNames.DeleteOrganization, "DELETE", "/api/v1/organization/{organizationId}")]
+        [InlineData(InfisicalEndpointNames.ListSubOrganizations, "GET", "/api/v1/sub-organizations")]
+        [InlineData(InfisicalEndpointNames.RetrieveSubOrganization, "GET", "/api/v1/sub-organizations/{subOrgId}")]
+        [InlineData(InfisicalEndpointNames.CreateSubOrganization, "POST", "/api/v1/sub-organizations")]
+        [InlineData(InfisicalEndpointNames.UpdateSubOrganization, "PATCH", "/api/v1/sub-organizations/{subOrgId}")]
+        [InlineData(InfisicalEndpointNames.DeleteSubOrganization, "DELETE", "/api/v1/sub-organizations/{subOrgId}")]
         public void Registered_Endpoints_Have_Expected_Shape(string name, string method, string template)
         {
             InfisicalEndpointDefinition definition = InfisicalEndpointRegistry.Get(name);
