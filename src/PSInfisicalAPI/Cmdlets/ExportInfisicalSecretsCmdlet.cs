@@ -39,10 +39,12 @@ namespace PSInfisicalAPI.Cmdlets
         public InfisicalExportEncoding Encoding { get; set; } = InfisicalExportEncoding.UTF8;
 
         [Parameter]
-        public string Prefix { get; set; }
+        [Alias("Prefix")]
+        public string SecretsPrefix { get; set; }
 
         [Parameter]
-        public SwitchParameter ForcePrefix { get; set; }
+        [Alias("ForcePrefix")]
+        public SwitchParameter ForceSecretsPrefix { get; set; }
 
         private readonly List<InfisicalSecret> _buffer = new List<InfisicalSecret>();
 
@@ -75,7 +77,7 @@ namespace PSInfisicalAPI.Cmdlets
 
                 InfisicalExportRequest request = new InfisicalExportRequest
                 {
-                    Secrets = ApplyPrefix(_buffer, Prefix, ForcePrefix.IsPresent),
+                    Secrets = ApplySecretsPrefix(_buffer, SecretsPrefix, ForceSecretsPrefix.IsPresent),
                     Format = Format,
                     Path = Path,
                     Scope = Scope,
@@ -92,7 +94,7 @@ namespace PSInfisicalAPI.Cmdlets
             }
         }
 
-        private static InfisicalSecret[] ApplyPrefix(List<InfisicalSecret> source, string prefix, bool force)
+        private static InfisicalSecret[] ApplySecretsPrefix(List<InfisicalSecret> source, string prefix, bool force)
         {
             if (string.IsNullOrEmpty(prefix)) { return source.ToArray(); }
 

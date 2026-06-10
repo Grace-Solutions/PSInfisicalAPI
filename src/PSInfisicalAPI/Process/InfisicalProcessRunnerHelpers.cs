@@ -40,7 +40,7 @@ namespace PSInfisicalAPI.Process
             foreach (InfisicalSecret secret in options.Secrets)
             {
                 if (secret == null || string.IsNullOrEmpty(secret.SecretName) || secret.SecretValue == null) { continue; }
-                string name = InfisicalPrefix.Apply(secret.SecretName, options.Prefix, options.ForcePrefix);
+                string name = InfisicalPrefix.Apply(secret.SecretName, options.SecretsPrefix, options.ForceSecretsPrefix);
                 SecureStringUtility.UsePlainText(secret.SecretValue, plain =>
                 {
                     processEnv[name] = plain;

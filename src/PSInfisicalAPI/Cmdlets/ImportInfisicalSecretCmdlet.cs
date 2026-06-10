@@ -30,10 +30,12 @@ namespace PSInfisicalAPI.Cmdlets
         public SwitchParameter AsPlainText { get; set; }
 
         [Parameter]
-        public string Prefix { get; set; }
+        [Alias("Prefix")]
+        public string SecretsPrefix { get; set; }
 
         [Parameter]
-        public SwitchParameter ForcePrefix { get; set; }
+        [Alias("ForcePrefix")]
+        public SwitchParameter ForceSecretsPrefix { get; set; }
 
         protected override void EndProcessing()
         {
@@ -74,7 +76,7 @@ namespace PSInfisicalAPI.Cmdlets
             foreach (KeyValuePair<string, string> pair in pairs)
             {
                 if (pair.Key == null) { continue; }
-                string key = InfisicalPrefix.Apply(pair.Key, Prefix, ForcePrefix.IsPresent);
+                string key = InfisicalPrefix.Apply(pair.Key, SecretsPrefix, ForceSecretsPrefix.IsPresent);
 
                 if (dictionary.ContainsKey(key))
                 {
