@@ -23,10 +23,12 @@ namespace PSInfisicalAPI.Cmdlets
         public SwitchParameter AsPlainText { get; set; }
 
         [Parameter]
-        public string Prefix { get; set; }
+        [Alias("Prefix")]
+        public string SecretsPrefix { get; set; }
 
         [Parameter]
-        public SwitchParameter ForcePrefix { get; set; }
+        [Alias("ForcePrefix")]
+        public SwitchParameter ForceSecretsPrefix { get; set; }
 
         private readonly List<InfisicalSecret> _buffer = new List<InfisicalSecret>();
 
@@ -70,7 +72,7 @@ namespace PSInfisicalAPI.Cmdlets
 
             foreach (InfisicalSecret secret in _buffer)
             {
-                string key = InfisicalPrefix.Apply(secret.SecretName ?? string.Empty, Prefix, ForcePrefix.IsPresent);
+                string key = InfisicalPrefix.Apply(secret.SecretName ?? string.Empty, SecretsPrefix, ForceSecretsPrefix.IsPresent);
 
                 if (dictionary.ContainsKey(key))
                 {

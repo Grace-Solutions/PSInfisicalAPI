@@ -89,21 +89,23 @@ namespace PSInfisicalAPI.Cmdlets
         public SwitchParameter ContinueOnError { get; set; }
 
         [Parameter(ValueFromPipeline = true)]
-        [Alias("Secrets", "InputObject")]
-        public InfisicalSecret[] Secret { get; set; }
+        [Alias("Secret", "InputObject")]
+        public InfisicalSecret[] Secrets { get; set; }
 
         [Parameter]
-        public string Prefix { get; set; }
+        [Alias("Prefix")]
+        public string SecretsPrefix { get; set; }
 
         [Parameter]
-        public SwitchParameter ForcePrefix { get; set; }
+        [Alias("ForcePrefix")]
+        public SwitchParameter ForceSecretsPrefix { get; set; }
 
         private readonly List<InfisicalSecret> _secretBuffer = new List<InfisicalSecret>();
 
         protected override void ProcessRecord()
         {
-            if (Secret == null) { return; }
-            foreach (InfisicalSecret secret in Secret)
+            if (Secrets == null) { return; }
+            foreach (InfisicalSecret secret in Secrets)
             {
                 if (secret != null) { _secretBuffer.Add(secret); }
             }
@@ -138,8 +140,8 @@ namespace PSInfisicalAPI.Cmdlets
                     LogOutput = LogOutput.IsPresent,
                     ContinueOnError = ContinueOnError.IsPresent,
                     Secrets = _secretBuffer.ToArray(),
-                    Prefix = Prefix,
-                    ForcePrefix = ForcePrefix.IsPresent
+                    SecretsPrefix = SecretsPrefix,
+                    ForceSecretsPrefix = ForceSecretsPrefix.IsPresent
                 };
 
                 InfisicalProcessResult result = InfisicalProcessRunner.Run(options, Logger);

@@ -25,7 +25,7 @@ namespace PSInfisicalAPI.Process
         public bool LogOutput { get; set; }
         public bool ContinueOnError { get; set; }
         public InfisicalSecret[] Secrets { get; set; }
-        public string Prefix { get; set; }
-        public bool ForcePrefix { get; set; }
+        public string SecretsPrefix { get; set; }
+        public bool ForceSecretsPrefix { get; set; }
     }
 }

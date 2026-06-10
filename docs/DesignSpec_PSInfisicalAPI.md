@@ -1222,7 +1222,8 @@ Export-InfisicalSecrets `
     [-Scope <Process|User|Machine>] `
     [-Force] `
     [-Encoding <UTF8|UTF8Bom|Unicode>] `
-    [-Prefix <string>]
+    [-SecretsPrefix <string>] `
+    [-ForceSecretsPrefix]
 ```
 
 ## Parameter Rules
@@ -1521,8 +1522,9 @@ Start-InfisicalProcess
     [-SecureArgumentList]
     [-LogOutput]
     [-ContinueOnError]
-    [-Secret <InfisicalSecret[]>]
-    [-Prefix <string>]
+    [-Secrets <InfisicalSecret[]>]
+    [-SecretsPrefix <string>]
+    [-ForceSecretsPrefix]
 ```
 
 Behavior:
@@ -1530,7 +1532,7 @@ Behavior:
 ```text
 Buffer pipeline InfisicalSecret objects in ProcessRecord.
 Decrypt secrets only into ProcessStartInfo.Environment.
-Apply -Prefix to each secret name before injection.
+Apply -SecretsPrefix to each secret name before injection.
 Never write secret plaintext to user or machine environment scope.
 Honor -WhatIf / -Confirm.
 Default -AcceptableExitCodeList = @('0','3010').

@@ -6,6 +6,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased
 
+## 2026.06.10.2018
+
+- Build produced from commit daf1cdce6576.
+
+## Unreleased (carried forward)
+
+- Renamed prefix-related parameters across `ConvertTo-InfisicalSecretDictionary`, `Import-InfisicalSecret`, `Export-InfisicalSecrets`, and `Start-InfisicalProcess`: `-Prefix` is now `-SecretsPrefix` and `-ForcePrefix` is now `-ForceSecretsPrefix`. `Start-InfisicalProcess` also renames the pipeline parameter `-Secret` to `-Secrets`. The previous names remain available as parameter aliases (`Prefix`, `ForcePrefix`, `Secret`) for backward compatibility.
+
 ## 2026.06.07.1435
 
 - Build produced from commit 97193d46f2ff.
@@ -43,7 +51,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 - Added `Get-InfisicalSANList` cmdlet: emits a deduplicated SAN candidate set containing the local device name, the device name suffixed with each non-empty DNS suffix found across operational adapters and the system primary domain, every IPv4 unicast address falling within RFC 1918 (10/8, 172.16/12, 192.168/16) or CGNAT (100.64/10), and the IPv4/IPv6 loopback addresses (127.0.0.1, ::1). Intended to feed `Request-InfisicalCertificate -DnsName` directly.
 - `Get-InfisicalSANList`: added optional `-InclusionExpression` and `-ExclusionExpression` case-insensitive regex filters. Applied in fetch -> include -> exclude -> output order after the deduplicated set is built; both default to unset (no filtering).
 - `Get-InfisicalSANList`: output is a single strongly-typed `System.String[]` array emitted non-enumerated (`OutputType(string[])`), so variable assignment yields `string[]` rather than `object[]`. This lets `[System.Collections.Generic.List[string]]::AddRange()` consume the result directly and lets the array bind straight to `string[]` parameters such as `Request-InfisicalCertificate -DnsName`.
-- `build.ps1` `CmdletsToExport` and `Test-ModuleImports` expected list now contain 51 cmdlets. `docs/DesignSpec.md` updated with `§16.7` (Organizations) and `§16.8` (Sub-Organizations); full MAML help added for all 9 new cmdlets in `Module/PSInfisicalAPI/en-US/PSInfisicalAPI.dll-Help.xml`.
+- `build.ps1` `CmdletsToExport` and `Test-ModuleImports` expected list now contain 51 cmdlets. `docs/DesignSpec.md` updated with `Â§16.7` (Organizations) and `Â§16.8` (Sub-Organizations); full MAML help added for all 9 new cmdlets in `Module/PSInfisicalAPI/en-US/PSInfisicalAPI.dll-Help.xml`.
 
 ## 2026.06.06.2229
 
@@ -205,7 +213,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 - **BREAKING**: Removed the plural-noun discovery cmdlets `Get-InfisicalProjects`, `Get-InfisicalEnvironments`, `Get-InfisicalFolders`, `Get-InfisicalTags`, `Get-InfisicalSecrets`, and `Get-InfisicalCertificates`. Their behavior is now folded into the corresponding singular cmdlets via a `List` (default) / single-record parameter set pair, matching the existing `Get-InfisicalCertificateAuthority` precedent. Callers should drop the trailing `s`; invocation without the identity parameter (`-ProjectId`, `-EnvironmentSlugOrId`, `-FolderNameOrId`, `-TagSlugOrId`, `-SecretName`, `-SerialNumber`) now returns the list, and supplying the identity parameter returns the single record. No back-compat aliases were added.
 - Added `Get-InfisicalPkiSubscriber` with `List` (default) and `ByName` parameter sets, backed by new `InfisicalPkiClient.ListPkiSubscribers` and `GetPkiSubscriber` methods, an `InfisicalPkiSubscriber` model, and corresponding DTOs/mapper. Use the emitted `Name` (slug) on `Request-InfisicalCertificate -PkiSubscriberSlug`.
 - **Bug fix**: `Request-InfisicalCertificate -PkiSubscriberSlug ...` was returning 404 because the registry's `SignCertificateBySubscriber` endpoint pointed at `/api/v1/pki/pki-subscribers/{subscriberName}/sign-certificate` and `/api/v1/cert-manager/pki-subscribers/...`. Per Infisical's `v1/index.ts`, the subscriber router is mounted at `/pki/subscribers`, so the single correct path is `/api/v1/pki/subscribers/{subscriberName}/sign-certificate`. The redundant `cert-manager` template was removed; the PKI endpoint registry tests were updated to match.
-- Updated MAML help in `Module/PSInfisicalAPI/en-US/PSInfisicalAPI.dll-Help.xml`: the six consolidated cmdlets and the new `Get-InfisicalPkiSubscriber` each ship three examples â€” two straight-line invocations (one per parameter set) plus one `OrderedDictionary` splat example. All in-text references to the removed plural cmdlets across other cmdlets' examples were updated to the singular form.
+- Updated MAML help in `Module/PSInfisicalAPI/en-US/PSInfisicalAPI.dll-Help.xml`: the six consolidated cmdlets and the new `Get-InfisicalPkiSubscriber` each ship three examples Ã¢â‚¬â€ two straight-line invocations (one per parameter set) plus one `OrderedDictionary` splat example. All in-text references to the removed plural cmdlets across other cmdlets' examples were updated to the singular form.
 - `build.ps1`: `CmdletsToExport` and the `Test-ModuleImports` expected cmdlet list were updated to drop the six plural cmdlets and add `Get-InfisicalPkiSubscriber` (total: 34 exported cmdlets).
 
 ## 2026.06.04.1825
@@ -283,9 +291,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
   - List/single CA and single certificate response parsing now tolerate raw arrays, wrapper objects (`{certificate: {...}}`, `{certificates: [...]}`), and nested `configuration` blocks. `InfisicalCaMapper` reads CA detail fields from `configuration` first, falling back to top-level.
   - `RetrieveCertificate(connection, identifier)` added on `InfisicalPkiClient`.
 - **New cmdlets**:
-  - **`Get-InfisicalCertificate`** â€” single-record retrieval by `-SerialNumber`/`-Id` (mandatory positional).
-  - **`Get-InfisicalCertificates`** â€” listing with light filtering (`-CommonName`, `-FriendlyName`, `-Status`, `-CaId`, `-Limit`, `-Offset`, `-NoAutoPage`). Auto-paginates by default.
-  - **`Request-InfisicalCertificate`** â€” generates a keypair locally (private key never leaves the device), submits a PKCS#10 CSR to either `pki-subscribers/{name}/sign-certificate` (`-PkiSubscriberSlug`) or `ca/{caId}/sign-certificate` (`-CertificateAuthorityId`), and returns a single `InfisicalCertificateResult` object with the leaf and chain pre-classified. The result exposes `Leaf : X509Certificate2`, `Intermediates : X509Certificate2[]`, `Root : X509Certificate2` (nullable), `Chain : X509Certificate2[]` (ordered leaf â†’ intermediates â†’ root, deduplicated by thumbprint), plus pass-through `SerialNumber`, `CertificatePem`, `CertificateChainPem`, and `PrivateKeyPem`. Supports `-Subject` (`IDictionary` with `CN`/`C`/`ST`/`L`/`O`/`OU`/`E` keys) merged with individual `-CommonName`/`-Country`/etc. parameters (individual params win), `-DnsName`/`-IpAddress` SANs (auto-populated from local FQDN when omitted). Idempotency: scans the local `X509Store` for an existing certificate matching `CN` and an Infisical-known serial number; returns the existing certificate wrapped in an `InfisicalCertificateResult` whose `Intermediates`/`Root`/`Chain` are populated by walking the local trust stores via `X509Chain` (no network calls, revocation checks disabled), and whose `CertificatePem`/`CertificateChainPem` are reconstructed from the resolved certs. Reuse is short-circuited unless `-Force` or `-AllowRenewal` (with optional `-RenewalThresholdDays`, default 30) requests a new one. Installation: `-Install` adds the leaf to `-StoreName`/`-StoreLocation` (default `My`/`CurrentUser`); `-InstallChain` additionally places intermediates into `CertificateAuthority` and self-signed roots into `Root` for the same `-StoreLocation`. `-KeyStorageFlags` is passed through to `X509Certificate2` import.
+  - **`Get-InfisicalCertificate`** Ã¢â‚¬â€ single-record retrieval by `-SerialNumber`/`-Id` (mandatory positional).
+  - **`Get-InfisicalCertificates`** Ã¢â‚¬â€ listing with light filtering (`-CommonName`, `-FriendlyName`, `-Status`, `-CaId`, `-Limit`, `-Offset`, `-NoAutoPage`). Auto-paginates by default.
+  - **`Request-InfisicalCertificate`** Ã¢â‚¬â€ generates a keypair locally (private key never leaves the device), submits a PKCS#10 CSR to either `pki-subscribers/{name}/sign-certificate` (`-PkiSubscriberSlug`) or `ca/{caId}/sign-certificate` (`-CertificateAuthorityId`), and returns a single `InfisicalCertificateResult` object with the leaf and chain pre-classified. The result exposes `Leaf : X509Certificate2`, `Intermediates : X509Certificate2[]`, `Root : X509Certificate2` (nullable), `Chain : X509Certificate2[]` (ordered leaf Ã¢â€ â€™ intermediates Ã¢â€ â€™ root, deduplicated by thumbprint), plus pass-through `SerialNumber`, `CertificatePem`, `CertificateChainPem`, and `PrivateKeyPem`. Supports `-Subject` (`IDictionary` with `CN`/`C`/`ST`/`L`/`O`/`OU`/`E` keys) merged with individual `-CommonName`/`-Country`/etc. parameters (individual params win), `-DnsName`/`-IpAddress` SANs (auto-populated from local FQDN when omitted). Idempotency: scans the local `X509Store` for an existing certificate matching `CN` and an Infisical-known serial number; returns the existing certificate wrapped in an `InfisicalCertificateResult` whose `Intermediates`/`Root`/`Chain` are populated by walking the local trust stores via `X509Chain` (no network calls, revocation checks disabled), and whose `CertificatePem`/`CertificateChainPem` are reconstructed from the resolved certs. Reuse is short-circuited unless `-Force` or `-AllowRenewal` (with optional `-RenewalThresholdDays`, default 30) requests a new one. Installation: `-Install` adds the leaf to `-StoreName`/`-StoreLocation` (default `My`/`CurrentUser`); `-InstallChain` additionally places intermediates into `CertificateAuthority` and self-signed roots into `Root` for the same `-StoreLocation`. `-KeyStorageFlags` is passed through to `X509Certificate2` import.
   - **Multi-algorithm CSR support** on `Request-InfisicalCertificate` via split parameters: `-KeyAlgorithm` (`Rsa`/`Ecdsa`/`Ed25519`, default `Rsa`), `-KeySize` (`2048`/`3072`/`4096`, default `2048`, applies to RSA only), `-Curve` (`P256`/`P384`, default `P256`, applies to ECDSA only). Signature algorithms are picked automatically: SHA256WITHRSA for RSA, SHA256WITHECDSA / SHA384WITHECDSA for ECDSA P-256/P-384, and Ed25519 (pure-EdDSA) for Ed25519. The underlying `InfisicalCsrBuilder.Build(subject, dns, ip, options)` API was updated to take an `InfisicalCsrOptions` object in place of the prior `keySize` int.
   - **Sign-certificate endpoint registrations**: `SignCertificateBySubscriber` and `SignCertificateByCa` registered with both `/api/v1/pki/...` and `/api/v1/cert-manager/...` candidate paths and marked `ContainsSecretMaterialInResponse = true`.
 
@@ -307,7 +315,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased (carried forward)
 
-- **CI Ã¢â‚¬â€ Gitea artifact upload fix**: Replaced `actions/upload-artifact@v4` and `actions/download-artifact@v4` with the Gitea-compatible forks `christopherhx/gitea-upload-artifact@v4` and `christopherhx/gitea-download-artifact@v4` in `.gitea/workflows/publish-psgallery.yml`. The upstream v4 actions abort on Gitea because Gitea is detected as GHES, which the upstream v4 actions do not support (see [go-gitea/gitea#28853](https://github.com/go-gitea/gitea/issues/28853)).
+- **CI ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Gitea artifact upload fix**: Replaced `actions/upload-artifact@v4` and `actions/download-artifact@v4` with the Gitea-compatible forks `christopherhx/gitea-upload-artifact@v4` and `christopherhx/gitea-download-artifact@v4` in `.gitea/workflows/publish-psgallery.yml`. The upstream v4 actions abort on Gitea because Gitea is detected as GHES, which the upstream v4 actions do not support (see [go-gitea/gitea#28853](https://github.com/go-gitea/gitea/issues/28853)).
 
 ## 2026.06.04.0123
 
@@ -315,7 +323,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased (carried forward)
 
-- **M10 polish ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â formatting, type metadata, and PKI route aliases**:
+- **M10 polish ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â formatting, type metadata, and PKI route aliases**:
   - Added default table views and `DefaultDisplayPropertySet` entries for `InfisicalCertificateAuthority`, `InfisicalCertificate`, and `InfisicalCertificateBundle` in the module `Format.ps1xml` / `Types.ps1xml`.
   - Realigned PKI endpoint registry to current Infisical paths: `ListInternalCertificateAuthorities` and `RetrieveInternalCertificateAuthority` now use `/api/v1/cert-manager/ca/internal[/{caId}]` as primary, with legacy `/api/v1/pki/ca/internal[/{caId}]` retained as a fallback alias. `GetCertificateBundle` and `RetrieveCertificate` similarly carry `cert-manager` fallback aliases.
   - `InfisicalApiInvoker.InvokeWithCandidateFallback` walks the candidate list and falls back on `404`/`405`, used by `InfisicalPkiClient` so older self-hosted Infisical instances are tolerated transparently.
@@ -326,7 +334,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 
 ## Unreleased (carried forward)
 
-- **M10 ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â PKI Internal CAs, Certificates & Windows Store integration**:
+- **M10 ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â PKI Internal CAs, Certificates & Windows Store integration**:
   - **`Get-InfisicalCertificateAuthority`** lists internal certificate authorities for the current project, or returns a single CA with `-CaId`.
   - **`Search-InfisicalCertificate`** wraps `POST /api/v1/projects/{projectId}/certificates/search` with rich filters (`-CommonName`, `-FriendlyName`, `-Search`, `-Status`, `-CaId`, `-ProfileId`, `-ApplicationId`, `-EnrollmentType`, `-KeyAlgorithm`, `-SignatureAlgorithm`, `-Source`, `-NotAfterFrom/To`, `-NotBeforeFrom/To`, `-SortBy/-SortOrder`, `-Limit/-Offset`). Auto-paginates unless `-NoAutoPage` is set.
   - **`ConvertTo-InfisicalCertificate`** accepts an `InfisicalCertificate`, `InfisicalCertificateBundle`, or `-SerialNumber`, fetches the bundle endpoint when needed, and emits a `System.Security.Cryptography.X509Certificates.X509Certificate2` with the private key attached. `-NoPrivateKey` skips key parsing; `-IncludeChain` additionally emits intermediates; `-KeyStorageFlags` controls import behavior.
@@ -353,7 +361,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) loos
 ## 2026.06.03.2207
 
 - Build produced from commit 09c3d5c68bbc.
-- **M9 ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â Bulk, Duplicate & Inheritance**:
+- **M9 ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â Bulk, Duplicate & Inheritance**:
   - **Bulk parameter sets** added to `New-InfisicalSecret`, `Update-InfisicalSecret`, and `Remove-InfisicalSecret` accepting `-Secrets Hashtable[]`; client methods `CreateBatch`/`UpdateBatch`/`DeleteBatch` wrap `POST|PATCH|DELETE /api/v3/secrets/batch/raw`.
   - **`Copy-InfisicalSecret`** cmdlet added, wrapping `POST /api/v4/secrets/duplicate` with source/destination environment + path parameters and per-attribute copy toggles.
   - **Connection inheritance** centralized in `InfisicalCmdletBase` (`ResolveProjectId`/`ResolveEnvironment`/`ResolveSecretPath`/`ResolveApiVersion`/`ResolveOrganizationId`). Explicit parameters always win; missing values fall back to the active connection and emit a `-Verbose` line.
